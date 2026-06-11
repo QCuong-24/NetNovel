@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.DayOfWeek;
+import java.time.temporal.TemporalAdjusters;
 
 public final class DateTimeUtils {
 
@@ -25,6 +27,14 @@ public final class DateTimeUtils {
 
     public static LocalDateTime endOfMonth(YearMonth month) {
         return month.atEndOfMonth().atTime(LocalTime.MAX);
+    }
+
+    public static LocalDateTime startOfWeek(LocalDate date) {
+        return date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+    }
+
+    public static LocalDateTime endOfWeek(LocalDate date) {
+        return date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY)).atTime(LocalTime.MAX);
     }
 
     public static LocalDateTime startOfYear(Year year) {

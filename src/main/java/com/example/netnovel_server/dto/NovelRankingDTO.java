@@ -7,11 +7,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChapterCreateDTO {
+public class NovelRankingDTO {
 
-    private String title;
+    private NovelDTO novel;
 
-    private Integer chapterNumber;
-
-    private String content;
+    private Long count;
 }

@@ -2,6 +2,8 @@ package com.example.netnovel_server.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -27,6 +29,7 @@ public class Bookmark {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "chapter_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Chapter chapter;
 
     // Time when the user bookmarked the chapter.

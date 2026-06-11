@@ -30,4 +30,8 @@ public interface NovelLastReadRepository extends JpaRepository<NovelLastRead, Lo
     Optional<NovelLastRead> findByUserIdAndNovelId(Long userId, Long novelId);
 
     void deleteByUserIdAndNovelId(Long userId, Long novelId);
+
+    void deleteByNovelId(Long novelId);
+
+    void deleteByChapterId(Long chapterId);
 }

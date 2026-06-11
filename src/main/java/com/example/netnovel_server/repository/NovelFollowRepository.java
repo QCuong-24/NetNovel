@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Year;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,11 +23,15 @@ public interface NovelFollowRepository extends JpaRepository<NovelFollow, Long> 
 
     Page<NovelFollow> findByNovelIdOrderByFollowedAtDesc(Long novelId, Pageable pageable);
 
+    List<NovelFollow> findByNovelId(Long novelId);
+
     Optional<NovelFollow> findByUserIdAndNovelId(Long userId, Long novelId);
 
     boolean existsByUserIdAndNovelId(Long userId, Long novelId);
 
     void deleteByUserIdAndNovelId(Long userId, Long novelId);
+
+    void deleteByNovelId(Long novelId);
 
     @Query("""
         select count(f)

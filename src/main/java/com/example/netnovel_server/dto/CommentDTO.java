@@ -27,6 +27,8 @@ public class CommentDTO {
 
     private String content;
 
+    private Boolean deleted;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime lastActivityAt;

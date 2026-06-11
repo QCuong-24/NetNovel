@@ -15,9 +15,17 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
 
     Page<Novel> findByStatus(Status status, Pageable pageable);
 
+    Page<Novel> findByStatusOrderByUpdateAtDesc(Status status, Pageable pageable);
+
+    Page<Novel> findAllByOrderByUpdateAtDesc(Pageable pageable);
+
     Page<Novel> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 
     Page<Novel> findByAuthorContainingIgnoreCase(String author, Pageable pageable);
+
+    boolean existsByTitleIgnoreCase(String title);
+
+    boolean existsByTitleIgnoreCaseAndIdNot(String title, Long id);
 
     Page<Novel> findByUpdateAtBetweenOrderByUpdateAtDesc(
         LocalDateTime start,
@@ -30,4 +38,6 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
     List<Novel> findTop10ByOrderByFollowsDesc();
 
     List<Novel> findTop10ByOrderByLikesDesc();
+
+    List<Novel> findByTagsId(Long tagId);
 }

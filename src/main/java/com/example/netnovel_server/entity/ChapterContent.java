@@ -2,6 +2,8 @@ package com.example.netnovel_server.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "chapter_contents")
@@ -18,6 +20,7 @@ public class ChapterContent {
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
     @JoinColumn(name = "chapter_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Chapter chapter;
 
     @Lob

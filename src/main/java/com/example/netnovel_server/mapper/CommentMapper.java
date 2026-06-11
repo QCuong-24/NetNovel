@@ -29,6 +29,7 @@ public final class CommentMapper {
             .username(user != null ? user.getUsername() : null)
             .userAvatarUrl(user != null ? user.getProfilePictureUrl() : null)
             .content(comment.getContent())
+            .deleted(comment.getDeleted())
             .createdAt(comment.getCreatedAt())
             .lastActivityAt(comment.getLastActivityAt())
             .build();

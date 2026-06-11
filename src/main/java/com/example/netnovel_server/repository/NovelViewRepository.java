@@ -21,6 +21,8 @@ public interface NovelViewRepository extends JpaRepository<NovelView, Long> {
 
     Page<NovelView> findByUserIdOrderByViewedAtDesc(Long userId, Pageable pageable);
 
+    void deleteByNovelId(Long novelId);
+
     @Query("""
         select count(v)
         from NovelView v

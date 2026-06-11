@@ -26,19 +26,22 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final GoogleTokenVerifier googleTokenVerifier;
+    private final NotificationService notificationService;
 
     public AuthService(
         UserRepository userRepository,
         RefreshTokenRepository refreshTokenRepository,
         PasswordEncoder passwordEncoder,
         JwtService jwtService,
-        GoogleTokenVerifier googleTokenVerifier
+        GoogleTokenVerifier googleTokenVerifier,
+        NotificationService notificationService
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.googleTokenVerifier = googleTokenVerifier;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -59,7 +62,9 @@ public class AuthService {
             .roles(Set.of(Role.USER))
             .build();
 
-        return buildAuthResponse(userRepository.save(user), "Register successfully");
+        User savedUser = userRepository.save(user);
+        sendWelcomeNotification(savedUser);
+        return buildAuthResponse(savedUser, "Register successfully");
     }
 
     @Transactional
@@ -132,7 +137,19 @@ public class AuthService {
         user.setProvider(AuthProvider.GOOGLE);
         user.setProviderId(googleUser.providerId());
         user.setProfilePictureUrl(googleUser.picture());
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        sendWelcomeNotification(savedUser);
+        return savedUser;
+    }
+
+    private void sendWelcomeNotification(User user) {
+        notificationService.createNotification(
+            user,
+            NotificationService.TYPE_WELCOME,
+            "Welcome to NetNovel",
+            "Your account has been created successfully.",
+            "/"
+        );
     }
 
     private User createGoogleUser(GoogleTokenVerifier.GoogleUserInfo googleUser) {
