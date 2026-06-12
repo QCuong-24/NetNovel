@@ -10,7 +10,11 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
     name = "bookmarks",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "chapter_id"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "chapter_id"}),
+    indexes = {
+        @Index(name = "idx_bookmarks_chapter", columnList = "chapter_id"),
+        @Index(name = "idx_bookmarks_user_created_at", columnList = "user_id, created_at")
+    }
 )
 @Getter
 @Setter
@@ -25,6 +29,7 @@ public class Bookmark {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

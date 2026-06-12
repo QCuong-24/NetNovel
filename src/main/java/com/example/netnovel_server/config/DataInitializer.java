@@ -2,7 +2,9 @@ package com.example.netnovel_server.config;
 
 import com.example.netnovel_server.entity.AuthProvider;
 import com.example.netnovel_server.entity.Role;
+import com.example.netnovel_server.entity.Tag;
 import com.example.netnovel_server.entity.User;
+import com.example.netnovel_server.repository.TagRepository;
 import com.example.netnovel_server.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +16,34 @@ import java.util.Set;
 @Configuration
 public class DataInitializer {
 
+    private static final String[] DEFAULT_TAGS = {
+        "Fantasy",
+        "Sci-Fi",
+        "Romance",
+        "Mystery",
+        "Thriller",
+        "Horror",
+        "Historical",
+        "Adventure",
+        "Comedy",
+        "Drama",
+        "Action",
+        "Slice of Life",
+        "Supernatural",
+        "Psychological",
+        "Tragedy",
+        "Mythology",
+        "Wuxia",
+        "Xianxia",
+        "Crawled"
+    };
+
     @Bean
-    public CommandLineRunner seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CommandLineRunner seedData(
+        UserRepository userRepository,
+        TagRepository tagRepository,
+        PasswordEncoder passwordEncoder
+    ) {
         return args -> {
             createUserIfMissing(
                 userRepository,
@@ -43,6 +71,10 @@ public class DataInitializer {
                 "12345678",
                 Set.of(Role.USER)
             );
+
+            for (String tagName : DEFAULT_TAGS) {
+                createTagIfMissing(tagRepository, tagName);
+            }
         };
     }
 
@@ -67,5 +99,13 @@ public class DataInitializer {
             .build();
 
         userRepository.save(user);
+    }
+
+    private void createTagIfMissing(TagRepository tagRepository, String name) {
+        if (tagRepository.existsByName(name)) {
+            return;
+        }
+
+        tagRepository.save(Tag.builder().name(name).build());
     }
 }

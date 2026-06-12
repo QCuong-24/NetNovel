@@ -17,6 +17,24 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: netnovel-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-netnovel}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-netnovel}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
@@ -25,6 +43,8 @@ services:
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     environment:
       SERVER_PORT: 8080
@@ -39,8 +59,41 @@ services:
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-netnovel}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-netnovel}
+      APP_CRAWL_RABBIT_EXCHANGE: ${APP_CRAWL_RABBIT_EXCHANGE:-netnovel.crawl}
+      APP_CRAWL_RABBIT_NOVEL_REQUEST_QUEUE: ${APP_CRAWL_RABBIT_NOVEL_REQUEST_QUEUE:-crawl.novel.request}
+      APP_CRAWL_RABBIT_NOVEL_REQUEST_ROUTING_KEY: ${APP_CRAWL_RABBIT_NOVEL_REQUEST_ROUTING_KEY:-crawl.novel.request}
     ports:
       - "${APP_PORT:-8080}:8080"
 
+  crawler:
+    build:
+      context: ../netnovel-crawler
+      dockerfile: Dockerfile
+    container_name: netnovel-crawler
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-netnovel}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-netnovel}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-netnovel}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-netnovel}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-netnovel}
+      APP_CRAWL_RABBIT_EXCHANGE: ${APP_CRAWL_RABBIT_EXCHANGE:-netnovel.crawl}
+      APP_CRAWL_RABBIT_NOVEL_REQUEST_QUEUE: ${APP_CRAWL_RABBIT_NOVEL_REQUEST_QUEUE:-crawl.novel.request}
+      APP_CRAWL_RABBIT_NOVEL_REQUEST_ROUTING_KEY: ${APP_CRAWL_RABBIT_NOVEL_REQUEST_ROUTING_KEY:-crawl.novel.request}
+      APP_CRAWLER_SUPPORTED_SOURCES: ${APP_CRAWLER_SUPPORTED_SOURCES:-}
+
 volumes:
   postgres_data:
+  rabbitmq_data:

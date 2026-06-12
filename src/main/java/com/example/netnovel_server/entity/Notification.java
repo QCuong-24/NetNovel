@@ -2,11 +2,19 @@ package com.example.netnovel_server.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(
+    name = "notifications",
+    indexes = {
+        @Index(name = "idx_notifications_user_created_at", columnList = "user_id, created_at"),
+        @Index(name = "idx_notifications_user_is_read", columnList = "user_id, is_read")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,6 +28,7 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     // e.g. NEW_CHAPTER, FOLLOWER_UPDATE, SYSTEM

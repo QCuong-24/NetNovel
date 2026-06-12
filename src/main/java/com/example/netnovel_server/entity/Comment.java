@@ -8,7 +8,16 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "comments")
+@Table(
+    name = "comments",
+    indexes = {
+        @Index(name = "idx_comments_novel_parent_activity", columnList = "novel_id, parent_comment_id, last_activity_at"),
+        @Index(name = "idx_comments_chapter_parent_activity", columnList = "chapter_id, parent_comment_id, last_activity_at"),
+        @Index(name = "idx_comments_parent_created_at", columnList = "parent_comment_id, created_at"),
+        @Index(name = "idx_comments_root_created_at", columnList = "root_comment_id, created_at"),
+        @Index(name = "idx_comments_user_created_at", columnList = "user_id, created_at")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,6 +31,7 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)

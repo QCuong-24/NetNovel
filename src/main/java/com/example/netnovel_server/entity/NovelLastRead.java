@@ -10,7 +10,11 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
     name = "novel_last_reads",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "novel_id"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "novel_id"}),
+    indexes = {
+        @Index(name = "idx_novel_last_reads_chapter", columnList = "chapter_id"),
+        @Index(name = "idx_novel_last_reads_user_last_read_at", columnList = "user_id, last_read_at")
+    }
 )
 @Getter
 @Setter
@@ -25,6 +29,7 @@ public class NovelLastRead {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
     name = "novel_follows",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "novel_id"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "novel_id"}),
+    indexes = {
+        @Index(name = "idx_novel_follows_novel", columnList = "novel_id")
+    }
 )
 @Getter
 @Setter
@@ -25,6 +28,7 @@ public class NovelFollow {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

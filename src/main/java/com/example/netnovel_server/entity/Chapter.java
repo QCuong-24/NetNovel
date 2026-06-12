@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
     name = "chapters",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"novel_id", "chapter_number"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"novel_id", "chapter_number"}),
+    indexes = {
+        @Index(name = "idx_chapters_novel_update_at", columnList = "novel_id, update_at")
+    }
 )
 @Getter
 @Setter
