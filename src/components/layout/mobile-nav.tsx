@@ -1,4 +1,4 @@
-import { Bell, LibraryBig, LogOut, Menu, Upload, UserRound } from 'lucide-react';
+import { LibraryBig, Menu, UserRound } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -20,16 +20,13 @@ const navItems = [
   { to: routes.rankings, key: 'nav.rankings' },
   { to: routes.dashboard, key: 'nav.dashboard' },
   { to: routes.notifications, key: 'nav.notifications' },
-  { to: routes.profile, key: 'nav.profile' },
 ];
 
 type MobileNavProps = {
   user?: User;
-  isLoggingOut?: boolean;
-  onLogout: () => void;
 };
 
-export function MobileNav({ user, isLoggingOut = false, onLogout }: MobileNavProps) {
+export function MobileNav({ user }: MobileNavProps) {
   const { t } = useTranslation();
 
   return (
@@ -69,43 +66,16 @@ export function MobileNav({ user, isLoggingOut = false, onLogout }: MobileNavPro
             ))}
           </nav>
 
-          <div className="grid gap-3 border-t pt-4">
-            {user ? (
-              <>
-                <Button className="justify-start" variant="outline" asChild>
-                  <Link to={routes.profile}>
-                    <UserRound />
-                    {user.username}
-                  </Link>
-                </Button>
-                <Button
-                  className="justify-start"
-                  disabled={isLoggingOut}
-                  variant="outline"
-                  type="button"
-                  onClick={onLogout}
-                >
-                  <LogOut />
-                  {t('auth.logout')}
-                </Button>
-              </>
-            ) : (
+          {!user ? (
+            <div className="grid gap-3 border-t pt-4">
               <Button className="justify-start" variant="outline" asChild>
                 <Link to={routes.login}>
                   <UserRound />
                   {t('auth.login')}
                 </Link>
               </Button>
-            )}
-            <Button className="justify-start" variant="outline" type="button">
-              <Bell />
-              {t('nav.notifications')}
-            </Button>
-            <Button className="justify-start" type="button">
-              <Upload />
-              {t('common.upload')}
-            </Button>
-          </div>
+            </div>
+          ) : null}
         </div>
       </SheetContent>
     </Sheet>

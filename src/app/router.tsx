@@ -10,6 +10,11 @@ import { ChapterReaderPage } from '@/features/reader/pages/chapter-reader-page';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { RegisterPage } from '@/features/auth/pages/register-page';
 import { ProtectedRoute } from '@/features/auth/components/protected-route';
+import { NovelDetailPage } from '@/features/novels/pages/novel-detail-page';
+import { NovelCreatePage } from '@/features/novels/pages/novel-create-page';
+import { ChapterCreatePage } from '@/features/chapters/pages/chapter-create-page';
+import { ChapterEditPage } from '@/features/chapters/pages/chapter-edit-page';
+import { ProfilePage } from '@/features/users/pages/profile-page';
 
 export const router = createBrowserRouter([
   {
@@ -21,8 +26,11 @@ export const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
+          { path: 'novels/new', element: <NovelCreatePage /> },
+          { path: 'novels/:novelId/chapters/new', element: <ChapterCreatePage /> },
+          { path: 'novels/:novelId/chapters/:chapterId/edit', element: <ChapterEditPage /> },
           { path: 'notifications', element: <PlaceholderPage titleKey="nav.notifications" /> },
-          { path: 'profile', element: <PlaceholderPage titleKey="nav.profile" /> },
+          { path: 'profile', element: <ProfilePage /> },
           {
             path: 'dashboard',
             element: <DashboardLayout />,
@@ -33,6 +41,7 @@ export const router = createBrowserRouter([
           },
         ],
       },
+      { path: 'novels/:novelId', element: <NovelDetailPage /> },
     ],
   },
   {

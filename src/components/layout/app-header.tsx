@@ -1,4 +1,4 @@
-import { Bell, LibraryBig, Search, Upload } from 'lucide-react';
+import { Bell, LibraryBig, Search } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { useCurrentUser, useLogoutMutation } from '@/features/auth/hooks/use-aut
 import { LanguageSwitcher } from './language-switcher';
 import { MobileNav } from './mobile-nav';
 import { ThemeToggle } from './theme-toggle';
+import { UserMenu } from './user-menu';
 import { routes } from '@/config/routes';
 import { cn } from '@/lib/utils';
 
@@ -57,39 +58,19 @@ export function AppHeader() {
         <div className="ml-auto flex items-center gap-1 lg:ml-0">
           <ThemeToggle />
           <LanguageSwitcher />
-          <Button
-            aria-label={t('nav.notifications')}
-            size="icon"
-            variant="ghost"
-            type="button"
-          >
-            <Bell />
+          <Button aria-label={t('nav.notifications')} size="icon" variant="ghost" asChild>
+            <Link to={routes.notifications}>
+              <Bell />
+            </Link>
           </Button>
           {user ? (
-            <>
-              <Button className="hidden md:inline-flex" variant="ghost" asChild>
-                <Link to={routes.profile}>{user.username}</Link>
-              </Button>
-              <Button
-                className="hidden md:inline-flex"
-                disabled={logoutMutation.isPending}
-                variant="outline"
-                type="button"
-                onClick={() => logoutMutation.mutate()}
-              >
-                {t('auth.logout')}
-              </Button>
-            </>
+            <UserMenu user={user} isLoggingOut={logoutMutation.isPending} onLogout={() => logoutMutation.mutate()} />
           ) : (
             <Button className="hidden md:inline-flex" variant="outline" asChild>
               <Link to={routes.login}>{t('auth.login')}</Link>
             </Button>
           )}
-          <Button className="hidden md:inline-flex" type="button">
-            <Upload />
-            {t('common.upload')}
-          </Button>
-          <MobileNav user={user} onLogout={() => logoutMutation.mutate()} isLoggingOut={logoutMutation.isPending} />
+          <MobileNav user={user} />
         </div>
       </div>
     </header>

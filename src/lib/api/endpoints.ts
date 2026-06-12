@@ -10,6 +10,22 @@ export const endpoints = {
   novels: {
     list: '/novels',
     detail: (novelId: string) => `/novels/${novelId}`,
+    create: '/novels',
+    update: (novelId: string) => `/novels/${novelId}`,
+    coverSignature: (novelId: string) => `/novels/${novelId}/cover/upload-signature`,
+    cover: (novelId: string) => `/novels/${novelId}/cover`,
+  },
+  users: {
+    avatarSignature: '/users/me/avatar/upload-signature',
+    avatar: '/users/me/avatar',
+  },
+  tags: {
+    list: '/tags',
+  },
+  chapters: {
+    byNovel: (novelId: string) => `/novels/${novelId}/chapters`,
+    detail: (chapterId: string) => `/chapters/${chapterId}`,
+    update: (chapterId: string) => `/chapters/${chapterId}`,
   },
   rankings: {
     list: '/rankings',

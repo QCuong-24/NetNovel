@@ -1,38 +1,73 @@
-import { useTranslation } from 'react-i18next';
+import { Link, useParams } from 'react-router-dom';
 import { AdSlot } from '@/features/ads/components/ad-slot';
+import { Button } from '@/components/ui/button';
+import { ChapterNavigation } from '@/features/chapters/components/chapter-navigation';
+import { useChapter, useNovelChapters } from '@/features/chapters/hooks/use-chapters';
 import { cn } from '@/lib/utils';
 import { ReaderToolbar } from '../components/reader-toolbar';
 import { useReaderSettings } from '../hooks/use-reader-settings';
 
-const paragraphs = [
-  'The city woke under a pale morning sky, its towers catching light before the streets remembered their noise.',
-  'Linh paused at the old archive door and ran her thumb across the brass seal. Every story in the lower vault had a price, and today she finally knew which one she was willing to pay.',
-  'Somewhere beneath the floor, machinery breathed in slow metallic rhythms. The archive was not asleep. It was listening.',
-];
-
 export function ChapterReaderPage() {
-  const { t } = useTranslation();
+  const { chapterId, novelId } = useParams();
   const { settings, classes, updateSetting } = useReaderSettings();
+  const { data: chapter, isError, isLoading } = useChapter(chapterId);
+  const chapterNovelId = chapter?.novelId ? String(chapter.novelId) : novelId;
+  const { data: chapters = [] } = useNovelChapters(chapterNovelId);
+  const backToNovel = chapter?.novelId ? `/novels/${chapter.novelId}` : `/novels/${novelId ?? ''}`;
+  const editTo =
+    chapter?.novelId && chapter?.chapterId
+      ? `/novels/${chapter.novelId}/chapters/${chapter.chapterId}/edit`
+      : undefined;
+  const paragraphs = chapter?.content
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
 
   return (
     <div className={cn('min-h-screen text-reader-page-foreground', classes.background)}>
-      <ReaderToolbar settings={settings} onChange={updateSetting} />
+      <ReaderToolbar backTo={backToNovel} editTo={editTo} settings={settings} onChange={updateSetting} />
       <article className={cn('mx-auto grid gap-8 px-4 py-8 md:py-12', classes.container)}>
-        <AdSlot slot="reader_top" />
-        <header className="grid gap-3 text-center">
-          <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            {t('reader.sampleNovel')}
-          </p>
-          <h1 className="text-3xl font-bold tracking-normal md:text-4xl">
-            {t('reader.sampleChapter')}
-          </h1>
-        </header>
-        <div className={cn('grid gap-6', classes.content)}>
-          {paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
-        <AdSlot slot="reader_after_chapter" />
+        {isLoading ? (
+          <div className="grid min-h-64 place-items-center text-sm font-semibold text-muted-foreground">
+            Loading chapter...
+          </div>
+        ) : null}
+
+        {isError || !chapter ? (
+          <div className="grid min-h-64 place-items-center gap-4 text-center">
+            <p className="font-semibold">Chapter not found.</p>
+            <Button asChild className="mx-auto w-fit" variant="outline">
+              <Link to={backToNovel}>Back to novel</Link>
+            </Button>
+          </div>
+        ) : null}
+
+        {chapter ? (
+          <>
+            <AdSlot slot="reader_top" />
+            <header className="grid gap-3 text-center">
+              <Link
+                className="text-sm font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-primary hover:underline"
+                to={`/novels/${chapter.novelId}`}
+              >
+                {chapter.novelTitle}
+              </Link>
+              <h1 className="text-3xl font-bold tracking-normal md:text-4xl">
+                Chapter {chapter.chapterNumber}: {chapter.title}
+              </h1>
+            </header>
+            <ChapterNavigation chapters={chapters} currentChapterId={chapter.chapterId} />
+            <div className={cn('grid gap-6 whitespace-pre-wrap', classes.content)}>
+              {paragraphs?.length ? (
+                paragraphs.map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>)
+              ) : (
+                <p>{chapter.content}</p>
+              )}
+            </div>
+            <ChapterNavigation chapters={chapters} currentChapterId={chapter.chapterId} />
+            <AdSlot slot="reader_after_chapter" />
+          </>
+        ) : null}
       </article>
     </div>
   );
