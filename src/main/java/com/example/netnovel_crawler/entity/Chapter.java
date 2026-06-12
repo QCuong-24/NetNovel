@@ -2,13 +2,18 @@ package com.example.netnovel_crawler.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(
     name = "chapters",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"novel_id", "chapter_number"})
+    uniqueConstraints = @UniqueConstraint(columnNames = {"novel_id", "chapter_number"}),
+    indexes = {
+        @Index(name = "idx_chapters_novel_update_at", columnList = "novel_id, update_at")
+    }
 )
 @Getter
 @Setter
@@ -23,6 +28,7 @@ public class Chapter {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "novel_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Novel novel;
 
     @Column(nullable = false)

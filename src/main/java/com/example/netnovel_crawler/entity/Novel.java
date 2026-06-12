@@ -2,13 +2,24 @@ package com.example.netnovel_crawler.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "novels")
+@Table(
+    name = "novels",
+    indexes = {
+        @Index(name = "idx_novels_status", columnList = "status"),
+        @Index(name = "idx_novels_update_at", columnList = "update_at"),
+        @Index(name = "idx_novels_views", columnList = "views"),
+        @Index(name = "idx_novels_follows", columnList = "follows"),
+        @Index(name = "idx_novels_likes", columnList = "likes")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -49,8 +60,13 @@ public class Novel {
     @JoinTable(
         name = "novel_tags",
         joinColumns = @JoinColumn(name = "novel_id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id")
+        inverseJoinColumns = @JoinColumn(name = "tag_id"),
+        indexes = {
+            @Index(name = "idx_novel_tags_novel", columnList = "novel_id"),
+            @Index(name = "idx_novel_tags_tag", columnList = "tag_id")
+        }
     )
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Builder.Default
     private Set<Tag> tags = new HashSet<>();
 

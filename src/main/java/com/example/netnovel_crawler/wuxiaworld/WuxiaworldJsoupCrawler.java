@@ -9,6 +9,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,9 +24,12 @@ import java.util.regex.Pattern;
 @Component
 public class WuxiaworldJsoupCrawler {
 
+    private static final Logger log = LoggerFactory.getLogger(WuxiaworldJsoupCrawler.class);
+
     private static final String CRAWLED_TAG = "Crawled";
     private static final Pattern NUMBER_PATTERN = Pattern.compile("(\\d+)");
     private static final String SOURCE_MARKER_TEMPLATE = "[Crawled Source: %s]";
+    private static final long CHAPTER_FETCH_DELAY_MILLIS = 200L;
 
     private final WuxiaworldProperties properties;
     private final NovelRepository novelRepository;
@@ -51,6 +56,7 @@ public class WuxiaworldJsoupCrawler {
 
     @Transactional
     public void crawlNovel(CrawlerSource source, CrawlNovelRequestMessage message) {
+        log.info("Starting Wuxiaworld novel crawl. taskId={}, url={}", message.getTaskId(), message.getUrl());
         Document novelDocument = fetch(message.getUrl());
         String title = requiredText(novelDocument, properties.titleSelector(), "novel title");
         String author = requiredText(novelDocument, properties.authorSelector(), "novel author");
@@ -63,8 +69,16 @@ public class WuxiaworldJsoupCrawler {
             properties.totalChaptersSelector(),
             "total chapters"
         ));
+        log.info(
+            "Parsed Wuxiaworld novel detail. taskId={}, title=\"{}\", author=\"{}\", totalChapters={}",
+            message.getTaskId(),
+            title,
+            author,
+            totalChapters
+        );
 
         Novel novel = upsertNovel(source, message.getUrl(), title, author, description);
+        log.info("Novel upserted. taskId={}, novelId={}, title=\"{}\"", message.getTaskId(), novel.getId(), novel.getTitle());
         String slug = extractSlug(message.getUrl());
         for (int chapterNumber = 1; chapterNumber <= totalChapters; chapterNumber++) {
             String chapterUrl = buildChapterUrl(slug, chapterNumber);
@@ -73,15 +87,30 @@ public class WuxiaworldJsoupCrawler {
                 chapterUrl,
                 CrawlChapterStatus.SUCCESS
             )) {
+                log.info(
+                    "Skipping already successful chapter. taskId={}, novelId={}, chapterNumber={}, url={}",
+                    message.getTaskId(),
+                    novel.getId(),
+                    chapterNumber,
+                    chapterUrl
+                );
                 continue;
             }
-            crawlChapter(source, novel, chapterNumber, chapterUrl);
+            crawlChapter(source, novel, chapterNumber, chapterUrl, message.getTaskId());
         }
+        log.info("Finished Wuxiaworld novel crawl loop. taskId={}, novelId={}", message.getTaskId(), novel.getId());
     }
 
-    private void crawlChapter(CrawlerSource source, Novel novel, int chapterNumber, String chapterUrl) {
+    private void crawlChapter(CrawlerSource source, Novel novel, int chapterNumber, String chapterUrl, Long taskId) {
         try {
-            Document chapterDocument = fetch(chapterUrl);
+            log.info(
+                "Crawling chapter. taskId={}, novelId={}, chapterNumber={}, url={}",
+                taskId,
+                novel.getId(),
+                chapterNumber,
+                chapterUrl
+            );
+            Document chapterDocument = fetchChapter(chapterUrl);
             ChapterText chapterText = extractChapterText(chapterDocument, chapterNumber);
             String title = chapterText.title();
             String content = chapterText.content();
@@ -98,8 +127,25 @@ public class WuxiaworldJsoupCrawler {
             chapter.setContent(content);
             Chapter savedChapter = chapterRepository.save(chapter);
             saveChapterRecord(source.name(), chapterUrl, novel, savedChapter, CrawlChapterStatus.SUCCESS, null);
+            log.info(
+                "Chapter crawl success. taskId={}, novelId={}, chapterId={}, chapterNumber={}, title=\"{}\", contentLength={}",
+                taskId,
+                novel.getId(),
+                savedChapter.getId(),
+                chapterNumber,
+                title,
+                content.length()
+            );
         } catch (Exception exception) {
             saveChapterRecord(source.name(), chapterUrl, novel, null, CrawlChapterStatus.FAILED, exception.getMessage());
+            log.warn(
+                "Chapter crawl failed. taskId={}, novelId={}, chapterNumber={}, url={}, error={}",
+                taskId,
+                novel.getId(),
+                chapterNumber,
+                chapterUrl,
+                exception.getMessage()
+            );
         }
     }
 
@@ -117,6 +163,7 @@ public class WuxiaworldJsoupCrawler {
             Novel savedNovel = novelRepository.save(novel);
             existingSource.get().setLastCrawledAt(LocalDateTime.now());
             novelSourceRepository.save(existingSource.get());
+            log.info("Updated existing crawled novel source. source={}, sourceUrl={}, novelId={}", source.name(), sourceNovelUrl, savedNovel.getId());
             return savedNovel;
         }
 
@@ -135,6 +182,7 @@ public class WuxiaworldJsoupCrawler {
             .externalId(extractSlug(sourceNovelUrl))
             .lastCrawledAt(LocalDateTime.now())
             .build());
+        log.info("Created new crawled novel source. source={}, sourceUrl={}, novelId={}", source.name(), sourceNovelUrl, savedNovel.getId());
         return savedNovel;
     }
 
@@ -168,6 +216,7 @@ public class WuxiaworldJsoupCrawler {
 
     private Document fetch(String url) {
         try {
+            log.debug("Fetching URL: {}", url);
             return Jsoup.connect(url)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .timeout(30_000)
@@ -175,6 +224,17 @@ public class WuxiaworldJsoupCrawler {
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to fetch URL: " + url, exception);
         }
+    }
+
+    private Document fetchChapter(String url) {
+        try {
+            Thread.sleep(CHAPTER_FETCH_DELAY_MILLIS);
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted before fetching chapter URL: " + url, exception);
+        }
+
+        return fetch(url);
     }
 
     private String requiredText(Document document, String selector, String label) {
@@ -197,15 +257,9 @@ public class WuxiaworldJsoupCrawler {
             return new ChapterText("Chapter " + chapterNumber, "");
         }
 
-        String title = TextCleaner.cleanInline(contentElements.first().text());
-        if (title.isBlank()) {
-            title = "Chapter " + chapterNumber;
-        }
-
         StringBuilder contentBuilder = new StringBuilder();
-        int startIndex = contentElements.size() > 1 ? 1 : 0;
-        for (int index = startIndex; index < contentElements.size(); index++) {
-            String paragraph = TextCleaner.cleanContent(contentElements.get(index).wholeText());
+        for (Element contentElement : contentElements) {
+            String paragraph = TextCleaner.cleanContent(contentElement.wholeText());
             if (paragraph.isBlank()) {
                 continue;
             }
@@ -215,7 +269,7 @@ public class WuxiaworldJsoupCrawler {
             contentBuilder.append(paragraph);
         }
 
-        return new ChapterText(title, TextCleaner.cleanContent(contentBuilder.toString()));
+        return new ChapterText("Chapter " + chapterNumber, TextCleaner.cleanContent(contentBuilder.toString()));
     }
 
     private int parseTotalChapters(String value) {

@@ -9,3 +9,7 @@ Supported sources are configured with:
 ```text
 APP_CRAWLER_SUPPORTED_SOURCES=sourceName|example.com|JSOUP;sourceName2|dynamic.example|PLAYWRIGHT
 ```
+
+NetNovel/
+  netnovel-server/
+  netnovel-crawler/
