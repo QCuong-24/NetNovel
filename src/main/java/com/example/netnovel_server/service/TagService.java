@@ -44,7 +44,7 @@ public class TagService {
     public TagDTO createTag(TagDTO request) {
         String name = normalizeName(request.getName());
 
-        if (tagRepository.existsByName(name)) {
+        if (tagRepository.existsByNameIgnoreCase(name)) {
             throw new DuplicateResourceException("Tag already exists");
         }
 
@@ -67,7 +67,7 @@ public class TagService {
         }
 
         List<Tag> tags = names.stream()
-            .map(name -> tagRepository.findByName(name)
+            .map(name -> tagRepository.findByNameIgnoreCase(name)
                 .orElseGet(() -> tagRepository.save(Tag.builder().name(name).build())))
             .toList();
 

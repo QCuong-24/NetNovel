@@ -102,7 +102,7 @@ public class DataInitializer {
     }
 
     private void createTagIfMissing(TagRepository tagRepository, String name) {
-        if (tagRepository.existsByName(name)) {
+        if (tagRepository.existsByNameIgnoreCase(name)) {
             return;
         }
 

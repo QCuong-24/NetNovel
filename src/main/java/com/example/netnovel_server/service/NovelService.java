@@ -11,7 +11,6 @@ import com.example.netnovel_server.exception.DuplicateResourceException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.NovelMapper;
 import com.example.netnovel_server.repository.*;
-import com.example.netnovel_server.utility.TextUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -130,7 +129,6 @@ public class NovelService {
         }
 
         return tagNames.stream()
-            .map(TextUtils::toTitleCaseWords)
             .map(this::findTagByName)
             .collect(Collectors.toSet());
     }
@@ -140,7 +138,7 @@ public class NovelService {
             throw new BadRequestException("Tag name is required");
         }
 
-        return tagRepository.findByName(tagName)
+        return tagRepository.findByNameIgnoreCase(tagName.trim())
             .orElseThrow(() -> new BadRequestException("Tag does not exist: " + tagName));
     }
 
