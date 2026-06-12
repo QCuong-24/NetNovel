@@ -26,6 +26,7 @@ public final class NovelMapper {
             .author(novel.getAuthor())
             .description(novel.getDescription())
             .coverImageUrl(novel.getCoverImageUrl())
+            .coverImagePublicId(novel.getCoverImagePublicId())
             .views(novel.getViews())
             .follows(novel.getFollows())
             .likes(novel.getLikes())
@@ -46,6 +47,7 @@ public final class NovelMapper {
             .author(dto.getAuthor())
             .description(dto.getDescription())
             .coverImageUrl(dto.getCoverImageUrl())
+            .coverImagePublicId(dto.getCoverImagePublicId())
             .tags(tags != null ? tags : Collections.emptySet())
             .status(parseStatus(dto.getStatus()))
             .build();

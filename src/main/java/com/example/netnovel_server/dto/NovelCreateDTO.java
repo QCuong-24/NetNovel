@@ -19,6 +19,8 @@ public class NovelCreateDTO {
 
     private String coverImageUrl;
 
+    private String coverImagePublicId;
+
     private Set<String> tags;
 
     private String status;

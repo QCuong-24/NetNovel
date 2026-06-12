@@ -35,6 +35,8 @@ public class Novel {
 
     private String coverImageUrl;
 
+    private String coverImagePublicId;
+
     @Column(nullable = false)
     @Builder.Default
     private Long views = 0L;

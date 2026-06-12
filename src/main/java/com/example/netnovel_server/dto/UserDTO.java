@@ -19,6 +19,8 @@ public class UserDTO {
 
     private String profilePictureUrl;
 
+    private String profilePicturePublicId;
+
     private String[] roles;
 
     private String provider;

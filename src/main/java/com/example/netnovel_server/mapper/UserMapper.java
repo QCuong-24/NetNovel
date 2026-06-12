@@ -23,6 +23,7 @@ public final class UserMapper {
             .username(user.getUsername())
             .email(user.getEmail())
             .profilePictureUrl(user.getProfilePictureUrl())
+            .profilePicturePublicId(user.getProfilePicturePublicId())
             .roles(toRoleNames(user.getRoles()))
             .provider(user.getProvider() != null ? user.getProvider().name() : null)
             .createAt(user.getCreateAt())
@@ -39,6 +40,7 @@ public final class UserMapper {
             .username(dto.getUsername())
             .email(dto.getEmail())
             .profilePictureUrl(dto.getProfilePictureUrl())
+            .profilePicturePublicId(dto.getProfilePicturePublicId())
             .roles(toRoles(dto.getRoles()))
             .build();
     }

@@ -22,6 +22,8 @@ public class NovelDTO {
 
     private String coverImageUrl;
 
+    private String coverImagePublicId;
+
     private Long views;
 
     private Long follows;

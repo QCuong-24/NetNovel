@@ -28,6 +28,8 @@ public class User {
 
     private String profilePictureUrl;
 
+    private String profilePicturePublicId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

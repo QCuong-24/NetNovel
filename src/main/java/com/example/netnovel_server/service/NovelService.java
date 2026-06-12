@@ -97,6 +97,7 @@ public class NovelService {
         novel.setAuthor(request.getAuthor());
         novel.setDescription(request.getDescription());
         novel.setCoverImageUrl(request.getCoverImageUrl());
+        novel.setCoverImagePublicId(request.getCoverImagePublicId());
         novel.setStatus(validateStatus(request.getStatus()));
         novel.setTags(resolveTags(request.getTags()));
 
