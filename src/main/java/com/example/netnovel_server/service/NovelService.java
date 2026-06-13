@@ -28,17 +28,20 @@ public class NovelService {
     private final TagRepository tagRepository;
     private final NovelFollowRepository novelFollowRepository;
     private final NotificationService notificationService;
+    private final NovelChapterInfoService novelChapterInfoService;
 
     public NovelService(
         NovelRepository novelRepository,
         TagRepository tagRepository,
         NovelFollowRepository novelFollowRepository,
-        NotificationService notificationService
+        NotificationService notificationService,
+        NovelChapterInfoService novelChapterInfoService
     ) {
         this.novelRepository = novelRepository;
         this.tagRepository = tagRepository;
         this.novelFollowRepository = novelFollowRepository;
         this.notificationService = notificationService;
+        this.novelChapterInfoService = novelChapterInfoService;
     }
 
     @Transactional(readOnly = true)
@@ -81,7 +84,9 @@ public class NovelService {
         validateStatus(request.getStatus());
 
         Novel novel = NovelMapper.toEntity(request, tags);
-        return NovelMapper.toDTO(novelRepository.save(novel));
+        Novel savedNovel = novelRepository.save(novel);
+        novelChapterInfoService.refresh(savedNovel.getId());
+        return NovelMapper.toDTO(savedNovel);
     }
 
     @Transactional

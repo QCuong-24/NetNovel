@@ -11,5 +11,7 @@ public interface NovelSourceRepository extends JpaRepository<NovelSource, Long> 
 
     Optional<NovelSource> findBySourceNameAndSourceNovelUrl(String sourceName, String sourceNovelUrl);
 
+    Optional<NovelSource> findFirstByNovelIdOrderByLastCrawledAtDesc(Long novelId);
+
     boolean existsBySourceNameAndSourceNovelUrl(String sourceName, String sourceNovelUrl);
 }

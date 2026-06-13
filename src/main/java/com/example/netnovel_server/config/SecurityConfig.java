@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +21,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -42,8 +44,18 @@ public class SecurityConfig {
                     "/v3/api-docs/**"
                 ).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(
+                    "/api/crawl-tasks/crawl-chapter-records",
+                    "/api/crawl-tasks/crawl-chapter-records/**"
+                ).hasRole("ADMIN")
+                .requestMatchers(
+                    "/api/crawl-tasks",
+                    "/api/crawl-tasks/**"
+                ).hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers("/api/advanced/search/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/tags/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/search/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/novels/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/chapters/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/novel-rankings/**").permitAll()

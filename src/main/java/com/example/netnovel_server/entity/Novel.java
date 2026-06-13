@@ -83,6 +83,9 @@ public class Novel {
     @Column(nullable = false)
     private LocalDateTime updateAt;
 
+    @OneToOne(mappedBy = "novel", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private NovelChapterInfo chapterInfo;
+
     @PrePersist
     private void setCreateTime() {
         LocalDateTime now = LocalDateTime.now();

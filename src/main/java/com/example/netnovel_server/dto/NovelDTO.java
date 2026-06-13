@@ -34,6 +34,16 @@ public class NovelDTO {
 
     private String status;
 
+    private Integer chapterCount;
+
+    private Long latestChapterId;
+
+    private Integer latestChapterNumber;
+
+    private String latestChapterTitle;
+
+    private LocalDateTime latestChapterUpdatedAt;
+
     private LocalDateTime createAt;
 
     private LocalDateTime updateAt;

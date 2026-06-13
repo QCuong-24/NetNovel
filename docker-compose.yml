@@ -35,6 +35,26 @@ services:
       timeout: 5s
       retries: 5
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: netnovel-elasticsearch
+    restart: unless-stopped
+    profiles:
+      - search
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: ${ELASTICSEARCH_JAVA_OPTS:--Xms512m -Xmx512m}
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   app:
     build:
       context: .
@@ -66,6 +86,9 @@ services:
       APP_CRAWL_RABBIT_EXCHANGE: ${APP_CRAWL_RABBIT_EXCHANGE:-netnovel.crawl}
       APP_CRAWL_RABBIT_NOVEL_REQUEST_QUEUE: ${APP_CRAWL_RABBIT_NOVEL_REQUEST_QUEUE:-crawl.novel.request}
       APP_CRAWL_RABBIT_NOVEL_REQUEST_ROUTING_KEY: ${APP_CRAWL_RABBIT_NOVEL_REQUEST_ROUTING_KEY:-crawl.novel.request}
+      ELASTIC_SEARCH_ENABLED: ${ELASTIC_SEARCH_ENABLED:-false}
+      ELASTIC_SEARCH_URL: ${ELASTIC_SEARCH_URL:-http://elasticsearch:9200}
+      ELASTIC_SEARCH_NOVEL_INDEX: ${ELASTIC_SEARCH_NOVEL_INDEX:-netnovel_novels}
     ports:
       - "${APP_PORT:-8080}:8080"
 
@@ -97,3 +120,4 @@ services:
 volumes:
   postgres_data:
   rabbitmq_data:
+  elasticsearch_data:

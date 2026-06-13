@@ -3,6 +3,7 @@ package com.example.netnovel_server.mapper;
 import com.example.netnovel_server.dto.NovelCreateDTO;
 import com.example.netnovel_server.dto.NovelDTO;
 import com.example.netnovel_server.entity.Novel;
+import com.example.netnovel_server.entity.NovelChapterInfo;
 import com.example.netnovel_server.entity.Status;
 import com.example.netnovel_server.entity.Tag;
 
@@ -20,6 +21,8 @@ public final class NovelMapper {
             return null;
         }
 
+        NovelChapterInfo chapterInfo = novel.getChapterInfo();
+
         return NovelDTO.builder()
             .novelId(novel.getId())
             .title(novel.getTitle())
@@ -32,6 +35,13 @@ public final class NovelMapper {
             .likes(novel.getLikes())
             .tags(toTagNames(novel.getTags()))
             .status(novel.getStatus() != null ? novel.getStatus().name() : null)
+            .chapterCount(chapterInfo != null ? chapterInfo.getChapterCount() : 0)
+            .latestChapterId(chapterInfo != null && chapterInfo.getLatestChapter() != null
+                ? chapterInfo.getLatestChapter().getId()
+                : null)
+            .latestChapterNumber(chapterInfo != null ? chapterInfo.getLatestChapterNumber() : null)
+            .latestChapterTitle(chapterInfo != null ? chapterInfo.getLatestChapterTitle() : null)
+            .latestChapterUpdatedAt(chapterInfo != null ? chapterInfo.getLatestChapterUpdatedAt() : null)
             .createAt(novel.getCreateAt())
             .updateAt(novel.getUpdateAt())
             .build();

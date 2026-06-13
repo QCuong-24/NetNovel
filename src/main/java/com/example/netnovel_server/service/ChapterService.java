@@ -21,13 +21,16 @@ public class ChapterService {
 
     private final ChapterRepository chapterRepository;
     private final NovelRepository novelRepository;
+    private final NovelChapterInfoService novelChapterInfoService;
 
     public ChapterService(
         ChapterRepository chapterRepository,
-        NovelRepository novelRepository
+        NovelRepository novelRepository,
+        NovelChapterInfoService novelChapterInfoService
     ) {
         this.chapterRepository = chapterRepository;
         this.novelRepository = novelRepository;
+        this.novelChapterInfoService = novelChapterInfoService;
     }
 
     @Transactional(readOnly = true)
@@ -59,6 +62,7 @@ public class ChapterService {
         }
 
         Chapter chapter = chapterRepository.save(ChapterMapper.toEntity(request, novel));
+        novelChapterInfoService.refresh(novelId);
         return ChapterMapper.toContentDTO(chapter);
     }
 
@@ -77,13 +81,17 @@ public class ChapterService {
         chapter.setContent(request.getContent());
 
         Chapter savedChapter = chapterRepository.save(chapter);
+        novelChapterInfoService.refresh(novelId);
         return ChapterMapper.toContentDTO(savedChapter);
     }
 
     @Transactional
     public void deleteChapter(Long chapterId) {
         Chapter chapter = findChapter(chapterId);
+        Long novelId = chapter.getNovel().getId();
         chapterRepository.delete(chapter);
+        chapterRepository.flush();
+        novelChapterInfoService.refresh(novelId);
     }
 
     private Chapter findChapter(Long chapterId) {

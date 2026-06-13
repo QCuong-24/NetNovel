@@ -10,5 +10,15 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CrawlTaskRepository extends JpaRepository<CrawlTask, Long> {
 
+    Page<CrawlTask> findAllByOrderByCreateAtDesc(Pageable pageable);
+
     Page<CrawlTask> findByStatusOrderByCreateAtDesc(CrawlTaskStatus status, Pageable pageable);
+
+    Page<CrawlTask> findByRequestedByIdOrderByCreateAtDesc(Long requestedByUserId, Pageable pageable);
+
+    Page<CrawlTask> findByStatusAndRequestedByIdOrderByCreateAtDesc(
+        CrawlTaskStatus status,
+        Long requestedByUserId,
+        Pageable pageable
+    );
 }
