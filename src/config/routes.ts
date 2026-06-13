@@ -6,6 +6,7 @@ export const routes = {
   novelsCompleted: '/novels/completed',
   novelsTag: (tagName: string) => `/novels/tags/${encodeURIComponent(tagName)}`,
   novelNew: '/novels/new',
+  search: '/search',
   rankings: '/rankings',
   collection: '/collection',
   notifications: '/notifications',

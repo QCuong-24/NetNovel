@@ -1,0 +1,34 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { queryKeys } from '@/config/query-keys';
+import { getApiErrorMessage } from '@/lib/api/api-error';
+import { reindexNovels, searchAdvancedNovels, searchPublicNovels } from '../api/search-api';
+import type { AdvancedNovelSearchParams, PublicNovelSearchParams } from '../types';
+
+export function usePublicNovelSearch(params: PublicNovelSearchParams, enabled: boolean) {
+  return useQuery({
+    queryKey: [...queryKeys.search, 'public', params],
+    queryFn: () => searchPublicNovels(params),
+    enabled,
+  });
+}
+
+export function useAdvancedNovelSearch(params: AdvancedNovelSearchParams, enabled: boolean) {
+  return useQuery({
+    queryKey: [...queryKeys.search, 'advanced', params],
+    queryFn: () => searchAdvancedNovels(params),
+    enabled,
+  });
+}
+
+export function useReindexNovelsMutation() {
+  return useMutation({
+    mutationFn: reindexNovels,
+    onSuccess: () => {
+      toast.success('Novel reindex started');
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Could not reindex novels'));
+    },
+  });
+}

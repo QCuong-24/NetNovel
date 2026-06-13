@@ -21,6 +21,10 @@ export const endpoints = {
   search: {
     novels: '/search/novels',
   },
+  advancedSearch: {
+    novels: '/advanced/search/novels',
+    reindexNovels: '/advanced/search/reindex/novels',
+  },
   users: {
     avatarSignature: '/users/me/avatar/upload-signature',
     avatar: '/users/me/avatar',
