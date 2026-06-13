@@ -39,8 +39,8 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: netnovel-elasticsearch
     restart: unless-stopped
-    profiles:
-      - search
+    #profiles:
+    #  - search
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"

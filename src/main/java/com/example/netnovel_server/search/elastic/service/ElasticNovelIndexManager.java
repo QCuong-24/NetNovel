@@ -1,5 +1,6 @@
 package com.example.netnovel_server.search.elastic.service;
 
+import com.example.netnovel_server.exception.SearchUnavailableException;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
@@ -38,7 +39,7 @@ public class ElasticNovelIndexManager {
         try {
             restClient.performRequest(request);
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not create Elasticsearch novel index: " + novelIndexName, exception);
+            throw new SearchUnavailableException("Could not create Elasticsearch novel index: " + novelIndexName, exception);
         }
     }
 
@@ -49,7 +50,7 @@ public class ElasticNovelIndexManager {
         } catch (ResponseException exception) {
             return exception.getResponse().getStatusLine().getStatusCode() != 404;
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not check Elasticsearch novel index: " + novelIndexName, exception);
+            throw new SearchUnavailableException("Could not connect to Elasticsearch", exception);
         }
     }
 

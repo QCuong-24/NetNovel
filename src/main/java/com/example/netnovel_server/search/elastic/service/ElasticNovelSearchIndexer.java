@@ -2,6 +2,7 @@ package com.example.netnovel_server.search.elastic.service;
 
 import com.example.netnovel_server.dto.ElasticReindexResponseDTO;
 import com.example.netnovel_server.entity.Novel;
+import com.example.netnovel_server.exception.SearchUnavailableException;
 import com.example.netnovel_server.repository.NovelRepository;
 import com.example.netnovel_server.search.elastic.document.NovelSearchDocument;
 import com.example.netnovel_server.search.elastic.mapper.NovelSearchDocumentMapper;
@@ -79,7 +80,7 @@ public class ElasticNovelSearchIndexer {
         try {
             restClient.performRequest(request);
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not delete Elasticsearch novel document: " + novelId, exception);
+            throw new SearchUnavailableException("Could not delete Elasticsearch novel document: " + novelId, exception);
         }
     }
 
@@ -90,7 +91,7 @@ public class ElasticNovelSearchIndexer {
         try {
             restClient.performRequest(request);
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not index Elasticsearch novel document: " + novel.getId(), exception);
+            throw new SearchUnavailableException("Could not index Elasticsearch novel document: " + novel.getId(), exception);
         }
     }
 

@@ -52,6 +52,7 @@ public class SecurityConfig {
                     "/api/crawl-tasks",
                     "/api/crawl-tasks/**"
                 ).hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/advanced/search/reindex/novels").hasRole("ADMIN")
                 .requestMatchers("/api/advanced/search/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/tags/**").permitAll()

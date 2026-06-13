@@ -4,6 +4,7 @@ import com.example.netnovel_server.dto.NovelSearchResultDTO;
 import com.example.netnovel_server.entity.Novel;
 import com.example.netnovel_server.entity.Status;
 import com.example.netnovel_server.exception.BadRequestException;
+import com.example.netnovel_server.exception.SearchUnavailableException;
 import com.example.netnovel_server.mapper.NovelMapper;
 import com.example.netnovel_server.repository.NovelRepository;
 import org.apache.http.util.EntityUtils;
@@ -87,7 +88,7 @@ public class ElasticAdminNovelSearchService {
             String responseBody = EntityUtils.toString(restClient.performRequest(request).getEntity());
             return objectMapper.readValue(responseBody, Map.class);
         } catch (IOException exception) {
-            throw new IllegalStateException("Could not search Elasticsearch novel index", exception);
+            throw new SearchUnavailableException("Could not search Elasticsearch novel index", exception);
         }
     }
 
