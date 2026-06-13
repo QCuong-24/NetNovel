@@ -61,6 +61,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/chapters/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/novel-rankings/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/recommendations/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/novels/*/view").permitAll()
                 .anyRequest().authenticated()
             )

@@ -103,6 +103,59 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
 
     @Query(
         value = """
+            select
+                candidate.id as novelId,
+                (
+                    coalesce(tag_scores.match_count, 0) * 10.0
+                    + case when lower(candidate.author) = lower(source.author) then 5.0 else 0.0 end
+                    + case when candidate.status = source.status then 2.0 else 0.0 end
+                    + ln(coalesce(candidate.views, 0) + 1) * 0.5
+                    + ln(coalesce(candidate.likes, 0) + 1) * 1.0
+                    + ln(coalesce(candidate.follows, 0) + 1) * 1.5
+                ) as score
+            from novels source
+            join novels candidate on candidate.id <> source.id
+            left join (
+                select nt_candidate.novel_id, count(*) as match_count
+                from novel_tags nt_source
+                join novel_tags nt_candidate on nt_candidate.tag_id = nt_source.tag_id
+                where nt_source.novel_id = :novelId
+                  and nt_candidate.novel_id <> :novelId
+                group by nt_candidate.novel_id
+            ) tag_scores on tag_scores.novel_id = candidate.id
+            where source.id = :novelId
+              and (
+                  coalesce(tag_scores.match_count, 0) > 0
+                  or lower(candidate.author) = lower(source.author)
+                  or candidate.status = source.status
+              )
+            order by score desc, candidate.update_at desc
+            """,
+        countQuery = """
+            select count(*)
+            from novels source
+            join novels candidate on candidate.id <> source.id
+            left join (
+                select nt_candidate.novel_id, count(*) as match_count
+                from novel_tags nt_source
+                join novel_tags nt_candidate on nt_candidate.tag_id = nt_source.tag_id
+                where nt_source.novel_id = :novelId
+                  and nt_candidate.novel_id <> :novelId
+                group by nt_candidate.novel_id
+            ) tag_scores on tag_scores.novel_id = candidate.id
+            where source.id = :novelId
+              and (
+                  coalesce(tag_scores.match_count, 0) > 0
+                  or lower(candidate.author) = lower(source.author)
+                  or candidate.status = source.status
+              )
+            """,
+        nativeQuery = true
+    )
+    Page<NovelSearchProjection> findSimilarNovels(@Param("novelId") Long novelId, Pageable pageable);
+
+    @Query(
+        value = """
             select suggestion_type as type, suggestion_id as id, suggestion_label as label
             from (
                 select
