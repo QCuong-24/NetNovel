@@ -10,4 +10,8 @@ import java.util.Optional;
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
 
     Optional<Chapter> findByNovelIdAndChapterNumber(Long novelId, Integer chapterNumber);
+
+    Optional<Chapter> findTopByNovelIdOrderByChapterNumberDesc(Long novelId);
+
+    long countByNovelId(Long novelId);
 }

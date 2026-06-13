@@ -3,6 +3,7 @@ package com.example.netnovel_crawler.wuxiaworld;
 import com.example.netnovel_crawler.dto.CrawlNovelRequestMessage;
 import com.example.netnovel_crawler.entity.*;
 import com.example.netnovel_crawler.repository.*;
+import com.example.netnovel_crawler.service.NovelChapterInfoService;
 import com.example.netnovel_crawler.source.CrawlerSource;
 import com.example.netnovel_crawler.utility.TextCleaner;
 import org.jsoup.Jsoup;
@@ -37,6 +38,7 @@ public class WuxiaworldJsoupCrawler {
     private final ChapterRepository chapterRepository;
     private final TagRepository tagRepository;
     private final CrawlChapterRecordRepository crawlChapterRecordRepository;
+    private final NovelChapterInfoService novelChapterInfoService;
 
     public WuxiaworldJsoupCrawler(
         WuxiaworldProperties properties,
@@ -44,7 +46,8 @@ public class WuxiaworldJsoupCrawler {
         NovelSourceRepository novelSourceRepository,
         ChapterRepository chapterRepository,
         TagRepository tagRepository,
-        CrawlChapterRecordRepository crawlChapterRecordRepository
+        CrawlChapterRecordRepository crawlChapterRecordRepository,
+        NovelChapterInfoService novelChapterInfoService
     ) {
         this.properties = properties;
         this.novelRepository = novelRepository;
@@ -52,6 +55,7 @@ public class WuxiaworldJsoupCrawler {
         this.chapterRepository = chapterRepository;
         this.tagRepository = tagRepository;
         this.crawlChapterRecordRepository = crawlChapterRecordRepository;
+        this.novelChapterInfoService = novelChapterInfoService;
     }
 
     @Transactional
@@ -98,6 +102,7 @@ public class WuxiaworldJsoupCrawler {
             }
             crawlChapter(source, novel, chapterNumber, chapterUrl, message.getTaskId());
         }
+        novelChapterInfoService.refresh(novel.getId());
         log.info("Finished Wuxiaworld novel crawl loop. taskId={}, novelId={}", message.getTaskId(), novel.getId());
     }
 
