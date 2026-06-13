@@ -1,4 +1,4 @@
-import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, RefreshCw, Send, ShieldAlert, Trash2 } from 'lucide-react';
+import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, RefreshCcw, RefreshCw, Send, ShieldAlert, Trash2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
@@ -166,6 +166,11 @@ function CrawlTaskPanel({ canAccess }: { canAccess: boolean }) {
     setPage(0);
   }
 
+  async function resendCrawlTask(taskUrl: string) {
+    await createCrawlTaskMutation.mutateAsync({ url: taskUrl });
+    setPage(0);
+  }
+
   function handleStatusChange(nextStatus: string) {
     setStatus(nextStatus as CrawlTaskStatus | '');
     setPage(0);
@@ -260,6 +265,7 @@ function CrawlTaskPanel({ canAccess }: { canAccess: boolean }) {
                     <th className="px-3 py-3">{t('crawlTasks.tasks.columns.created')}</th>
                     <th className="px-3 py-3">{t('crawlTasks.tasks.columns.started')}</th>
                     <th className="px-3 py-3">{t('crawlTasks.tasks.columns.finished')}</th>
+                    <th className="px-3 py-3 text-right">{t('crawlTasks.tasks.columns.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -293,6 +299,18 @@ function CrawlTaskPanel({ canAccess }: { canAccess: boolean }) {
                       </td>
                       <td className="px-3 py-3 text-muted-foreground">
                         {task.finishedAt ? formatDateTime(task.finishedAt) : '-'}
+                      </td>
+                      <td className="px-3 py-3 text-right">
+                        <Button
+                          aria-label={t('crawlTasks.tasks.resend')}
+                          disabled={createCrawlTaskMutation.isPending}
+                          size="icon"
+                          type="button"
+                          variant="outline"
+                          onClick={() => resendCrawlTask(task.url)}
+                        >
+                          <RefreshCcw />
+                        </Button>
                       </td>
                     </tr>
                   ))}

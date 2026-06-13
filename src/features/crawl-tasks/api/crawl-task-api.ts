@@ -49,6 +49,7 @@ export async function getCrawlChapterRecords(params: CrawlChapterRecordListParam
   }
   searchParams.set('page', String(params.page ?? 0));
   searchParams.set('size', String(params.size ?? 20));
+  searchParams.set('sort', 'crawledAt,desc');
 
   const response = await httpClient.get<CrawlChapterRecordPage>(
     `${endpoints.crawlTasks.chapterRecords}?${searchParams.toString()}`,

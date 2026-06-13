@@ -58,3 +58,12 @@ export type NovelSearchResult = {
   novel: Novel;
   score?: number | null;
 };
+
+export type NovelInteraction = {
+  novelId: number;
+  followed: boolean;
+  liked: boolean;
+  views: number;
+  follows: number;
+  likes: number;
+};

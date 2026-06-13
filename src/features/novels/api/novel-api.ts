@@ -1,6 +1,6 @@
 import { endpoints } from '@/lib/api/endpoints';
 import { httpClient } from '@/lib/api/http-client';
-import type { Novel, NovelListParams, NovelPayload, NovelSearchResult, PageResponse, Tag } from '../types';
+import type { Novel, NovelInteraction, NovelListParams, NovelPayload, NovelSearchResult, PageResponse, Tag } from '../types';
 
 function withPageParams(url: string, params: URLSearchParams) {
   return `${url}?${params.toString()}`;
@@ -18,6 +18,18 @@ export async function getNovel(novelId: string) {
   const response = await httpClient.get<Novel>(endpoints.novels.detail(novelId));
 
   return response.data;
+}
+
+export async function getSimilarNovels(novelId: string, size = 5) {
+  const pageParams = buildPageParams(0, size);
+  const response = await httpClient.get<PageResponse<NovelSearchResult>>(
+    withPageParams(endpoints.recommendations.similarNovels(novelId), pageParams),
+  );
+
+  return {
+    ...response.data,
+    content: response.data.content.map((result) => result.novel),
+  } satisfies PageResponse<Novel>;
 }
 
 export async function getNovelList(params: NovelListParams) {
@@ -70,6 +82,30 @@ export async function updateNovel(novelId: string, payload: NovelPayload) {
 
 export async function deleteNovel(novelId: string) {
   await httpClient.delete(endpoints.novels.delete(novelId));
+}
+
+export async function increaseNovelView(novelId: string) {
+  const response = await httpClient.post<NovelInteraction>(endpoints.novels.view(novelId));
+
+  return response.data;
+}
+
+export async function getMyNovelInteraction(novelId: string) {
+  const response = await httpClient.get<NovelInteraction>(endpoints.novels.myInteraction(novelId));
+
+  return response.data;
+}
+
+export async function toggleNovelFollow(novelId: string) {
+  const response = await httpClient.post<NovelInteraction>(endpoints.novels.toggleFollow(novelId));
+
+  return response.data;
+}
+
+export async function toggleNovelLike(novelId: string) {
+  const response = await httpClient.post<NovelInteraction>(endpoints.novels.toggleLike(novelId));
+
+  return response.data;
 }
 
 export async function getTags() {

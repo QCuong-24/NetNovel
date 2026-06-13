@@ -1,17 +1,22 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef } from 'react';
 import { AdSlot } from '@/features/ads/components/ad-slot';
 import { Button } from '@/components/ui/button';
 import { ChapterNavigation } from '@/features/chapters/components/chapter-navigation';
 import { useChapter, useNovelChapters } from '@/features/chapters/hooks/use-chapters';
+import { useIncreaseNovelViewMutation } from '@/features/novels/hooks/use-novels';
 import { cn } from '@/lib/utils';
 import { ReaderToolbar } from '../components/reader-toolbar';
 import { useReaderSettings } from '../hooks/use-reader-settings';
 
 export function ChapterReaderPage() {
+  const navigate = useNavigate();
   const { chapterId, novelId } = useParams();
   const { settings, classes, updateSetting } = useReaderSettings();
   const { data: chapter, isError, isLoading } = useChapter(chapterId);
   const chapterNovelId = chapter?.novelId ? String(chapter.novelId) : novelId;
+  const viewedChapterRef = useRef<string | null>(null);
+  const increaseViewMutation = useIncreaseNovelViewMutation(chapterNovelId);
   const { data: chapters = [] } = useNovelChapters(chapterNovelId);
   const backToNovel = chapter?.novelId ? `/novels/${chapter.novelId}` : `/novels/${novelId ?? ''}`;
   const editTo =
@@ -22,6 +27,62 @@ export function ChapterReaderPage() {
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+  const sortedChapters = useMemo(
+    () => [...chapters].sort((left, right) => left.chapterNumber - right.chapterNumber),
+    [chapters],
+  );
+  const currentChapterIndex = chapter
+    ? sortedChapters.findIndex((chapterSummary) => chapterSummary.chapterId === chapter.chapterId)
+    : -1;
+  const previousChapter = currentChapterIndex > 0 ? sortedChapters[currentChapterIndex - 1] : undefined;
+  const nextChapter =
+    currentChapterIndex >= 0 && currentChapterIndex < sortedChapters.length - 1
+      ? sortedChapters[currentChapterIndex + 1]
+      : undefined;
+
+  useEffect(() => {
+    if (!chapter?.chapterId || !chapterNovelId) {
+      return;
+    }
+
+    const viewKey = `${chapterNovelId}:${chapter.chapterId}`;
+    if (viewedChapterRef.current === viewKey) {
+      return;
+    }
+
+    viewedChapterRef.current = viewKey;
+    increaseViewMutation.mutate();
+  }, [chapter?.chapterId, chapterNovelId, increaseViewMutation]);
+
+  useEffect(() => {
+    function isEditableTarget(target: EventTarget | null) {
+      if (!(target instanceof HTMLElement)) {
+        return false;
+      }
+
+      return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isEditableTarget(event.target)) {
+        return;
+      }
+
+      if (event.key === 'ArrowLeft' && previousChapter) {
+        event.preventDefault();
+        navigate(`/novels/${previousChapter.novelId}/chapters/${previousChapter.chapterId}`);
+      }
+
+      if (event.key === 'ArrowRight' && nextChapter) {
+        event.preventDefault();
+        navigate(`/novels/${nextChapter.novelId}/chapters/${nextChapter.chapterId}`);
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate, nextChapter, previousChapter]);
 
   return (
     <div className={cn('min-h-screen text-reader-page-foreground', classes.background)}>

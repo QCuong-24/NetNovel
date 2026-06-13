@@ -13,6 +13,10 @@ export const endpoints = {
     create: '/novels',
     update: (novelId: string) => `/novels/${novelId}`,
     delete: (novelId: string) => `/novels/${novelId}`,
+    view: (novelId: string) => `/novels/${novelId}/view`,
+    myInteraction: (novelId: string) => `/novels/${novelId}/me`,
+    toggleFollow: (novelId: string) => `/novels/${novelId}/follow/toggle`,
+    toggleLike: (novelId: string) => `/novels/${novelId}/like/toggle`,
     latest: '/novels/latest-updates',
     completed: '/novels/completed',
     coverSignature: (novelId: string) => `/novels/${novelId}/cover/upload-signature`,
@@ -24,6 +28,9 @@ export const endpoints = {
   advancedSearch: {
     novels: '/advanced/search/novels',
     reindexNovels: '/advanced/search/reindex/novels',
+  },
+  recommendations: {
+    similarNovels: (novelId: string) => `/recommendations/novels/${novelId}/similar`,
   },
   users: {
     avatarSignature: '/users/me/avatar/upload-signature',

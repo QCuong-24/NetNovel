@@ -10,9 +10,17 @@ import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { ChapterListSection } from '@/features/chapters/components/chapter-list-section';
 import { NovelCover } from '../components/novel-cover';
 import { NovelForm } from '../components/novel-form';
+import { SimilarNovelsSection } from '../components/similar-novels-section';
 import { formatCount, formatDateTime } from '../lib/novel-format';
 import { canManageNovels } from '../lib/novel-permissions';
-import { useDeleteNovelMutation, useNovel, useUpdateNovelMutation } from '../hooks/use-novels';
+import {
+  useDeleteNovelMutation,
+  useMyNovelInteraction,
+  useNovel,
+  useToggleNovelFollowMutation,
+  useToggleNovelLikeMutation,
+  useUpdateNovelMutation,
+} from '../hooks/use-novels';
 import type { NovelPayload } from '../types';
 
 const metricItems = [
@@ -32,8 +40,11 @@ export function NovelDetailPage() {
   const { data: user } = useCurrentUser();
   const canEdit = canManageNovels(user);
   const { data: novel, isError, isLoading } = useNovel(novelId);
+  const { data: interaction } = useMyNovelInteraction(novelId);
   const updateNovelMutation = useUpdateNovelMutation(novelId ?? '');
   const deleteNovelMutation = useDeleteNovelMutation(novelId ?? '');
+  const followMutation = useToggleNovelFollowMutation(novelId ?? '');
+  const likeMutation = useToggleNovelLikeMutation(novelId ?? '');
 
   useEffect(() => {
     return () => {
@@ -232,7 +243,7 @@ export function NovelDetailPage() {
                 <CardContent className="flex items-center gap-3 p-4">
                   <item.icon className="size-5 text-primary" />
                   <div>
-                    <p className="text-lg font-bold">{formatCount(novel[item.key])}</p>
+                    <p className="text-lg font-bold">{formatCount(interaction?.[item.key] ?? novel[item.key])}</p>
                     <p className="text-xs font-semibold uppercase text-muted-foreground">
                       {t(item.labelKey)}
                     </p>
@@ -240,6 +251,46 @@ export function NovelDetailPage() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {user ? (
+              <>
+                <Button
+                  disabled={followMutation.isPending}
+                  type="button"
+                  variant={interaction?.followed ? 'default' : 'outline'}
+                  onClick={() => followMutation.mutate()}
+                >
+                  <Users />
+                  {interaction?.followed ? t('novelPages.following') : t('novelPages.follow')}
+                </Button>
+                <Button
+                  disabled={likeMutation.isPending}
+                  type="button"
+                  variant={interaction?.liked ? 'default' : 'outline'}
+                  onClick={() => likeMutation.mutate()}
+                >
+                  <Heart />
+                  {interaction?.liked ? t('novelPages.liked') : t('novelPages.like')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="outline">
+                  <Link to={routes.login}>
+                    <Users />
+                    {t('novelPages.follow')}
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to={routes.login}>
+                    <Heart />
+                    {t('novelPages.like')}
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
 
           <Card>
@@ -270,6 +321,7 @@ export function NovelDetailPage() {
           <ChapterListSection novelId={String(novel.novelId)} />
         </div>
       </section>
+      <SimilarNovelsSection novelId={String(novel.novelId)} />
     </main>
   );
 }
