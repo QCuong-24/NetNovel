@@ -25,3 +25,7 @@ export async function updateChapter(chapterId: string, payload: ChapterPayload) 
 
   return response.data;
 }
+
+export async function deleteChapter(chapterId: string) {
+  await httpClient.delete(endpoints.chapters.delete(chapterId));
+}

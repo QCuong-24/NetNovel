@@ -5,4 +5,5 @@ export const queryKeys = {
   chapters: ['chapters'] as const,
   rankings: ['rankings'] as const,
   notifications: ['notifications'] as const,
+  crawlTasks: ['crawlTasks'] as const,
 } as const;

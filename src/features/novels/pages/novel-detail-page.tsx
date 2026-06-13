@@ -1,7 +1,7 @@
-import { ArrowLeft, BookOpen, Eye, Heart, Pencil, Plus, Users } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, BookOpen, Eye, Heart, Pencil, Plus, RotateCcw, Trash2, Users } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { NovelCover } from '../components/novel-cover';
 import { NovelForm } from '../components/novel-form';
 import { formatCount, formatDateTime } from '../lib/novel-format';
 import { canManageNovels } from '../lib/novel-permissions';
-import { useNovel, useUpdateNovelMutation } from '../hooks/use-novels';
+import { useDeleteNovelMutation, useNovel, useUpdateNovelMutation } from '../hooks/use-novels';
 import type { NovelPayload } from '../types';
 
 const metricItems = [
@@ -23,16 +23,75 @@ const metricItems = [
 
 export function NovelDetailPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { novelId } = useParams();
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteCountdown, setDeleteCountdown] = useState<number | null>(null);
+  const deleteIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { data: user } = useCurrentUser();
   const canEdit = canManageNovels(user);
   const { data: novel, isError, isLoading } = useNovel(novelId);
   const updateNovelMutation = useUpdateNovelMutation(novelId ?? '');
+  const deleteNovelMutation = useDeleteNovelMutation(novelId ?? '');
+
+  useEffect(() => {
+    return () => {
+      if (deleteIntervalRef.current) {
+        clearInterval(deleteIntervalRef.current);
+      }
+      if (deleteTimeoutRef.current) {
+        clearTimeout(deleteTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleUpdate(payload: NovelPayload) {
     await updateNovelMutation.mutateAsync(payload);
     setIsEditing(false);
+  }
+
+  function scheduleDeleteNovel() {
+    if (!novelId || deleteCountdown !== null) {
+      return;
+    }
+
+    setDeleteCountdown(5);
+
+    deleteIntervalRef.current = setInterval(() => {
+      setDeleteCountdown((current) => {
+        if (!current || current <= 1) {
+          return current;
+        }
+
+        return current - 1;
+      });
+    }, 1000);
+
+    deleteTimeoutRef.current = setTimeout(async () => {
+      if (deleteIntervalRef.current) {
+        clearInterval(deleteIntervalRef.current);
+        deleteIntervalRef.current = null;
+      }
+      deleteTimeoutRef.current = null;
+      setDeleteCountdown(null);
+
+      await deleteNovelMutation.mutateAsync();
+      navigate(routes.novels);
+    }, 5000);
+  }
+
+  function undoDeleteNovel() {
+    if (deleteIntervalRef.current) {
+      clearInterval(deleteIntervalRef.current);
+      deleteIntervalRef.current = null;
+    }
+    if (deleteTimeoutRef.current) {
+      clearTimeout(deleteTimeoutRef.current);
+      deleteTimeoutRef.current = null;
+    }
+
+    setDeleteCountdown(null);
   }
 
   if (isLoading) {
@@ -103,6 +162,28 @@ export function NovelDetailPage() {
               <Pencil />
               {t('novelPages.editNovel')}
             </Button>
+            {deleteCountdown === null ? (
+              <Button
+                disabled={deleteNovelMutation.isPending}
+                type="button"
+                variant="destructive"
+                onClick={scheduleDeleteNovel}
+              >
+                <Trash2 />
+                {t('novelPages.deleteNovel')}
+              </Button>
+            ) : (
+              <Button
+                disabled={deleteNovelMutation.isPending}
+                type="button"
+                variant="outline"
+                onClick={undoDeleteNovel}
+              >
+                <RotateCcw />
+                <span className="font-bold">{deleteCountdown}s</span>
+                {t('novelPages.undoDelete')}
+              </Button>
+            )}
           </div>
         ) : null}
       </div>
@@ -116,6 +197,14 @@ export function NovelDetailPage() {
               {t('novelPages.startReading')}
             </Link>
           </Button>
+          {novel.latestChapterId ? (
+            <Button asChild variant="outline">
+              <Link to={`/novels/${novel.novelId}/chapters/${novel.latestChapterId}`}>
+                <BookOpen />
+                {t('novelPages.readLatest')}
+              </Link>
+            </Button>
+          ) : null}
         </div>
 
         <div className="grid gap-5">
@@ -132,6 +221,9 @@ export function NovelDetailPage() {
               {novel.title}
             </h1>
             <p className="text-lg font-semibold text-muted-foreground">{novel.author}</p>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {t('novelPages.chapterCount', { count: novel.chapterCount ?? 0 })}
+            </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">

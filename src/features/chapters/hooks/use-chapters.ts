@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from '@/config/query-keys';
 import { getApiErrorMessage } from '@/lib/api/api-error';
-import { createChapter, getChapter, getNovelChapters, updateChapter } from '../api/chapter-api';
+import { createChapter, deleteChapter, getChapter, getNovelChapters, updateChapter } from '../api/chapter-api';
 import type { ChapterPayload } from '../types';
 
 export function useChapter(chapterId?: string) {
@@ -48,6 +48,21 @@ export function useUpdateChapterMutation(chapterId: string) {
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'Could not update chapter'));
+    },
+  });
+}
+
+export function useDeleteChapterMutation(novelId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (chapterId: string) => deleteChapter(chapterId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.chapters, 'novel', novelId] });
+      toast.success('Chapter deleted');
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Could not delete chapter'));
     },
   });
 }

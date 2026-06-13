@@ -12,8 +12,14 @@ export const endpoints = {
     detail: (novelId: string) => `/novels/${novelId}`,
     create: '/novels',
     update: (novelId: string) => `/novels/${novelId}`,
+    delete: (novelId: string) => `/novels/${novelId}`,
+    latest: '/novels/latest-updates',
+    completed: '/novels/completed',
     coverSignature: (novelId: string) => `/novels/${novelId}/cover/upload-signature`,
     cover: (novelId: string) => `/novels/${novelId}/cover`,
+  },
+  search: {
+    novels: '/search/novels',
   },
   users: {
     avatarSignature: '/users/me/avatar/upload-signature',
@@ -26,6 +32,7 @@ export const endpoints = {
     byNovel: (novelId: string) => `/novels/${novelId}/chapters`,
     detail: (chapterId: string) => `/chapters/${chapterId}`,
     update: (chapterId: string) => `/chapters/${chapterId}`,
+    delete: (chapterId: string) => `/chapters/${chapterId}`,
   },
   rankings: {
     list: '/rankings',
@@ -36,5 +43,12 @@ export const endpoints = {
   notifications: {
     list: '/notifications',
     sse: '/notifications/stream',
+  },
+  crawlTasks: {
+    list: '/crawl-tasks',
+    create: '/crawl-tasks',
+    detail: (taskId: string) => `/crawl-tasks/${taskId}`,
+    chapterRecords: '/crawl-tasks/crawl-chapter-records',
+    chapterRecord: (recordId: string) => `/crawl-tasks/crawl-chapter-records/${recordId}`,
   },
 } as const;

@@ -1,11 +1,13 @@
-import { ArrowLeft, LogOut, Pencil, Settings, UserRound } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { ArrowLeft, Pencil, Settings, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
+import { UserMenu } from '@/components/layout/user-menu';
 import { useCurrentUser, useLogoutMutation } from '@/features/auth/hooks/use-auth';
+import { useDeleteChapterMutation } from '@/features/chapters/hooks/use-chapters';
 import { canManageNovels } from '@/features/novels/lib/novel-permissions';
 import { ReaderSettingsPanel } from './reader-settings-panel';
 import type { ReaderSettings } from '../types';
@@ -13,16 +15,78 @@ import type { ReaderSettings } from '../types';
 type ReaderToolbarProps = {
   backTo: string;
   editTo?: string;
+  chapterId?: string;
+  novelId?: string;
   settings: ReaderSettings;
   onChange: <TKey extends keyof ReaderSettings>(key: TKey, value: ReaderSettings[TKey]) => void;
 };
 
-export function ReaderToolbar({ backTo, editTo, settings, onChange }: ReaderToolbarProps) {
+export function ReaderToolbar({ backTo, editTo, chapterId, novelId, settings, onChange }: ReaderToolbarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [deleteCountdown, setDeleteCountdown] = useState<number | null>(null);
+  const deleteIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { data: user } = useCurrentUser();
   const logoutMutation = useLogoutMutation();
+  const deleteChapterMutation = useDeleteChapterMutation(novelId ?? '');
   const canEditChapter = canManageNovels(user);
+  const canDeleteChapter = canEditChapter && Boolean(chapterId && novelId);
+
+  useEffect(() => {
+    return () => {
+      if (deleteIntervalRef.current) {
+        clearInterval(deleteIntervalRef.current);
+      }
+      if (deleteTimeoutRef.current) {
+        clearTimeout(deleteTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function scheduleDeleteChapter() {
+    if (!chapterId || deleteCountdown !== null) {
+      return;
+    }
+
+    setDeleteCountdown(5);
+    deleteIntervalRef.current = setInterval(() => {
+      setDeleteCountdown((current) => {
+        if (!current || current <= 1) {
+          return current;
+        }
+
+        return current - 1;
+      });
+    }, 1000);
+
+    deleteTimeoutRef.current = setTimeout(async () => {
+      if (deleteIntervalRef.current) {
+        clearInterval(deleteIntervalRef.current);
+        deleteIntervalRef.current = null;
+      }
+      setDeleteCountdown(null);
+      try {
+        await deleteChapterMutation.mutateAsync(chapterId);
+        navigate(backTo);
+      } catch {
+        // The mutation hook already shows the API error toast.
+      }
+    }, 5000);
+  }
+
+  function cancelDeleteChapter() {
+    if (deleteIntervalRef.current) {
+      clearInterval(deleteIntervalRef.current);
+      deleteIntervalRef.current = null;
+    }
+    if (deleteTimeoutRef.current) {
+      clearTimeout(deleteTimeoutRef.current);
+      deleteTimeoutRef.current = null;
+    }
+    setDeleteCountdown(null);
+  }
 
   return (
     <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
@@ -34,6 +98,8 @@ export function ReaderToolbar({ backTo, editTo, settings, onChange }: ReaderTool
           </Link>
         </Button>
         <div className="ml-auto flex items-center gap-1">
+          <ThemeToggle />
+          <LanguageSwitcher />
           <Button
             aria-label={t('reader.settings')}
             type="button"
@@ -44,35 +110,47 @@ export function ReaderToolbar({ backTo, editTo, settings, onChange }: ReaderTool
             <Settings />
             <span className="hidden sm:inline">{t('reader.settings')}</span>
           </Button>
-          <ThemeToggle />
-          <LanguageSwitcher />
           {canEditChapter && editTo ? (
             <Button asChild size="sm" variant="outline">
               <Link to={editTo}>
                 <Pencil />
-                <span className="hidden sm:inline">Edit</span>
+                <span className="hidden sm:inline">{t('chapters.edit')}</span>
               </Link>
             </Button>
           ) : null}
-          {user ? (
-            <>
-              <Button asChild className="hidden md:inline-flex" size="sm" variant="ghost">
-                <Link to="/profile">
-                  <UserRound />
-                  {user.username}
-                </Link>
-              </Button>
+          {canDeleteChapter ? (
+            deleteCountdown === null ? (
               <Button
-                aria-label="Logout"
-                disabled={logoutMutation.isPending}
-                size="icon"
+                aria-label={t('chapters.delete')}
+                disabled={deleteChapterMutation.isPending}
+                size="sm"
                 type="button"
-                variant="ghost"
-                onClick={() => logoutMutation.mutate()}
+                variant="destructive"
+                onClick={scheduleDeleteChapter}
               >
-                <LogOut />
+                <Trash2 />
+                <span className="hidden sm:inline">{t('chapters.delete')}</span>
               </Button>
-            </>
+            ) : (
+              <Button
+                aria-label={t('chapters.undoDelete')}
+                disabled={deleteChapterMutation.isPending}
+                size="sm"
+                type="button"
+                variant="outline"
+                onClick={cancelDeleteChapter}
+              >
+                <span className="font-bold">{deleteCountdown}s</span>
+                <span className="hidden sm:inline">{t('chapters.undoDelete')}</span>
+              </Button>
+            )
+          ) : null}
+          {user ? (
+            <UserMenu
+              user={user}
+              isLoggingOut={logoutMutation.isPending}
+              onLogout={() => logoutMutation.mutateAsync()}
+            />
           ) : (
             <Button asChild className="hidden sm:inline-flex" size="sm" variant="outline">
               <Link to="/login">{t('auth.login')}</Link>

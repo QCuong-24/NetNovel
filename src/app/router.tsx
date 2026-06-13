@@ -10,18 +10,24 @@ import { ChapterReaderPage } from '@/features/reader/pages/chapter-reader-page';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { RegisterPage } from '@/features/auth/pages/register-page';
 import { ProtectedRoute } from '@/features/auth/components/protected-route';
+import { NovelListPage } from '@/features/novels/pages/novel-list-page';
 import { NovelDetailPage } from '@/features/novels/pages/novel-detail-page';
 import { NovelCreatePage } from '@/features/novels/pages/novel-create-page';
 import { ChapterCreatePage } from '@/features/chapters/pages/chapter-create-page';
 import { ChapterEditPage } from '@/features/chapters/pages/chapter-edit-page';
 import { ProfilePage } from '@/features/users/pages/profile-page';
+import { CrawlTasksPage } from '@/features/crawl-tasks/pages/crawl-tasks-page';
 
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'novels', element: <PlaceholderPage titleKey="nav.library" /> },
+      { path: 'novels', element: <NovelListPage kind="all" /> },
+      { path: 'novels/newest', element: <NovelListPage kind="newest" /> },
+      { path: 'novels/hot', element: <NovelListPage kind="hot" /> },
+      { path: 'novels/completed', element: <NovelListPage kind="completed" /> },
+      { path: 'novels/tags/:tagName', element: <NovelListPage kind="tag" /> },
       { path: 'rankings', element: <PlaceholderPage titleKey="nav.rankings" /> },
       {
         element: <ProtectedRoute />,
@@ -29,6 +35,7 @@ export const router = createBrowserRouter([
           { path: 'novels/new', element: <NovelCreatePage /> },
           { path: 'novels/:novelId/chapters/new', element: <ChapterCreatePage /> },
           { path: 'novels/:novelId/chapters/:chapterId/edit', element: <ChapterEditPage /> },
+          { path: 'collection', element: <PlaceholderPage titleKey="nav.collection" /> },
           { path: 'notifications', element: <PlaceholderPage titleKey="nav.notifications" /> },
           { path: 'profile', element: <ProfilePage /> },
           {
@@ -37,6 +44,7 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <PlaceholderPage titleKey="nav.dashboard" /> },
               { path: 'novels', element: <PlaceholderPage titleKey="nav.myNovels" /> },
+              { path: 'crawl-tasks', element: <CrawlTasksPage /> },
             ],
           },
         ],

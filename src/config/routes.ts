@@ -1,11 +1,17 @@
 export const routes = {
   home: '/',
   novels: '/novels',
+  novelsNewest: '/novels/newest',
+  novelsHot: '/novels/hot',
+  novelsCompleted: '/novels/completed',
+  novelsTag: (tagName: string) => `/novels/tags/${encodeURIComponent(tagName)}`,
   novelNew: '/novels/new',
   rankings: '/rankings',
+  collection: '/collection',
   notifications: '/notifications',
   profile: '/profile',
   dashboard: '/dashboard',
+  crawlTasks: '/dashboard/crawl-tasks',
   login: '/login',
   register: '/register',
 } as const;

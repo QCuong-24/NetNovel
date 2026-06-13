@@ -25,7 +25,14 @@ export function ChapterReaderPage() {
 
   return (
     <div className={cn('min-h-screen text-reader-page-foreground', classes.background)}>
-      <ReaderToolbar backTo={backToNovel} editTo={editTo} settings={settings} onChange={updateSetting} />
+      <ReaderToolbar
+        backTo={backToNovel}
+        chapterId={chapter?.chapterId ? String(chapter.chapterId) : chapterId}
+        editTo={editTo}
+        novelId={chapterNovelId}
+        settings={settings}
+        onChange={updateSetting}
+      />
       <article className={cn('mx-auto grid gap-8 px-4 py-8 md:py-12', classes.container)}>
         {isLoading ? (
           <div className="grid min-h-64 place-items-center text-sm font-semibold text-muted-foreground">
