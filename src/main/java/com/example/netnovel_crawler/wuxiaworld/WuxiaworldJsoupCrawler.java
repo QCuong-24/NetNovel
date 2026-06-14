@@ -18,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +38,7 @@ public class WuxiaworldJsoupCrawler {
     private final NovelRepository novelRepository;
     private final NovelSourceRepository novelSourceRepository;
     private final ChapterRepository chapterRepository;
+    private final GenreRepository genreRepository;
     private final TagRepository tagRepository;
     private final CrawlChapterRecordRepository crawlChapterRecordRepository;
     private final NovelChapterInfoService novelChapterInfoService;
@@ -45,6 +48,7 @@ public class WuxiaworldJsoupCrawler {
         NovelRepository novelRepository,
         NovelSourceRepository novelSourceRepository,
         ChapterRepository chapterRepository,
+        GenreRepository genreRepository,
         TagRepository tagRepository,
         CrawlChapterRecordRepository crawlChapterRecordRepository,
         NovelChapterInfoService novelChapterInfoService
@@ -53,6 +57,7 @@ public class WuxiaworldJsoupCrawler {
         this.novelRepository = novelRepository;
         this.novelSourceRepository = novelSourceRepository;
         this.chapterRepository = chapterRepository;
+        this.genreRepository = genreRepository;
         this.tagRepository = tagRepository;
         this.crawlChapterRecordRepository = crawlChapterRecordRepository;
         this.novelChapterInfoService = novelChapterInfoService;
@@ -73,15 +78,19 @@ public class WuxiaworldJsoupCrawler {
             properties.totalChaptersSelector(),
             "total chapters"
         ));
+        Set<String> genreNames = extractNames(novelDocument, properties.genreSelector());
+        Set<String> tagNames = extractNames(novelDocument, properties.tagSelector());
         log.info(
-            "Parsed Wuxiaworld novel detail. taskId={}, title=\"{}\", author=\"{}\", totalChapters={}",
+            "Parsed Wuxiaworld novel detail. taskId={}, title=\"{}\", author=\"{}\", totalChapters={}, genres={}, tags={}",
             message.getTaskId(),
             title,
             author,
-            totalChapters
+            totalChapters,
+            genreNames,
+            tagNames
         );
 
-        Novel novel = upsertNovel(source, message.getUrl(), title, author, description);
+        Novel novel = upsertNovel(source, message.getUrl(), title, author, description, genreNames, tagNames);
         log.info("Novel upserted. taskId={}, novelId={}, title=\"{}\"", message.getTaskId(), novel.getId(), novel.getTitle());
         String slug = extractSlug(message.getUrl());
         for (int chapterNumber = 1; chapterNumber <= totalChapters; chapterNumber++) {
@@ -154,7 +163,15 @@ public class WuxiaworldJsoupCrawler {
         }
     }
 
-    private Novel upsertNovel(CrawlerSource source, String sourceNovelUrl, String title, String author, String description) {
+    private Novel upsertNovel(
+        CrawlerSource source,
+        String sourceNovelUrl,
+        String title,
+        String author,
+        String description,
+        Set<String> genreNames,
+        Set<String> tagNames
+    ) {
         Optional<NovelSource> existingSource = novelSourceRepository.findBySourceNameAndSourceNovelUrl(
             source.name(),
             sourceNovelUrl
@@ -164,6 +181,8 @@ public class WuxiaworldJsoupCrawler {
             novel.setTitle(title);
             novel.setAuthor(author);
             novel.setDescription(appendSourceMarker(novel.getDescription(), sourceNovelUrl));
+            addGenres(novel, genreNames);
+            addTags(novel, tagNames);
             novel.getTags().add(resolveCrawledTag());
             Novel savedNovel = novelRepository.save(novel);
             existingSource.get().setLastCrawledAt(LocalDateTime.now());
@@ -178,6 +197,8 @@ public class WuxiaworldJsoupCrawler {
             .description(description)
             .status(Status.ONGOING)
             .build();
+        addGenres(novel, genreNames);
+        addTags(novel, tagNames);
         novel.getTags().add(resolveCrawledTag());
         Novel savedNovel = novelRepository.save(novel);
         novelSourceRepository.save(NovelSource.builder()
@@ -191,8 +212,30 @@ public class WuxiaworldJsoupCrawler {
         return savedNovel;
     }
 
+    private void addGenres(Novel novel, Set<String> genreNames) {
+        for (String genreName : genreNames) {
+            novel.getGenres().add(resolveGenre(genreName));
+        }
+    }
+
+    private void addTags(Novel novel, Set<String> tagNames) {
+        for (String tagName : tagNames) {
+            novel.getTags().add(resolveTag(tagName));
+        }
+    }
+
+    private Genre resolveGenre(String genreName) {
+        return genreRepository.findByNameIgnoreCase(genreName)
+            .orElseGet(() -> genreRepository.save(Genre.builder().name(genreName).build()));
+    }
+
+    private Tag resolveTag(String tagName) {
+        return tagRepository.findByNameIgnoreCase(tagName)
+            .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
+    }
+
     private Tag resolveCrawledTag() {
-        return tagRepository.findByName(CRAWLED_TAG)
+        return tagRepository.findByNameIgnoreCase(CRAWLED_TAG)
             .orElseGet(() -> tagRepository.save(Tag.builder().name(CRAWLED_TAG).build()));
     }
 
@@ -254,6 +297,36 @@ public class WuxiaworldJsoupCrawler {
             return Optional.empty();
         }
         return Optional.of(TextCleaner.cleanInline(element.text()));
+    }
+
+    private Set<String> extractNames(Document document, String selector) {
+        Set<String> names = new LinkedHashSet<>();
+        if (selector == null || selector.isBlank()) {
+            return names;
+        }
+
+        for (Element element : document.select(selector)) {
+            String text = TextCleaner.cleanInline(element.text());
+            for (String value : text.split("[,;|]")) {
+                String normalized = normalizeName(value);
+                if (!normalized.isBlank()) {
+                    names.add(normalized);
+                }
+            }
+        }
+        return names;
+    }
+
+    private String normalizeName(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        String normalized = TextCleaner.cleanInline(value).trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            return "";
+        }
+        return Character.toUpperCase(normalized.charAt(0)) + normalized.substring(1);
     }
 
     private ChapterText extractChapterText(Document document, int chapterNumber) {
