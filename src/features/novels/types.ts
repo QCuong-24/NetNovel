@@ -10,7 +10,7 @@ export type Novel = {
   views: number;
   follows: number;
   likes: number;
-  tags: string[];
+  genres: string[];
   status: NovelStatus;
   chapterCount: number;
   latestChapterId?: number | null;
@@ -26,12 +26,18 @@ export type NovelPayload = {
   author: string;
   description: string;
   coverImageUrl: string;
+  genres: string[];
   tags: string[];
   status: NovelStatus;
 };
 
 export type Tag = {
   tagId: number;
+  name: string;
+};
+
+export type Genre = {
+  genreId: number;
   name: string;
 };
 
@@ -45,11 +51,11 @@ export type PageResponse<T> = {
   last: boolean;
 };
 
-export type NovelListKind = 'all' | 'newest' | 'hot' | 'completed' | 'tag';
+export type NovelListKind = 'all' | 'newest' | 'hot' | 'completed' | 'genre';
 
 export type NovelListParams = {
   kind: NovelListKind;
-  tagName?: string;
+  genreName?: string;
   page?: number;
   size?: number;
 };

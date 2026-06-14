@@ -1,5 +1,6 @@
-import { ChevronDown, LibraryBig, Menu, UserRound } from 'lucide-react';
-import { Link, NavLink } from 'react-router-dom';
+import { ChevronDown, LibraryBig, Menu, Search, UserRound } from 'lucide-react';
+import { FormEvent, KeyboardEvent, useEffect, useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +13,9 @@ import {
 } from '@/components/ui/sheet';
 import { routes } from '@/config/routes';
 import type { User } from '@/features/auth/types';
-import { useTags } from '@/features/novels/hooks/use-novels';
+import { useGenres } from '@/features/novels/hooks/use-novels';
+import { useSearchSuggestions } from '@/features/search/hooks/use-search';
+import type { SearchSuggestion } from '@/features/search/types';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -36,10 +39,100 @@ type MobileNavProps = {
 
 export function MobileNav({ user }: MobileNavProps) {
   const { t } = useTranslation();
-  const { data: tags = [] } = useTags();
+  const navigate = useNavigate();
+  const { data: genres = [] } = useGenres();
+  const [open, setOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState(-1);
+  const searchSuggestionsQuery = useSearchSuggestions(debouncedSearchText, open);
+  const searchSuggestions = searchSuggestionsQuery.data ?? [];
+  const normalizedSearchText = searchText.trim();
+  const shouldShowSearchDropdown = open && Boolean(debouncedSearchText.trim());
+  const searchOptionCount = searchSuggestions.length || (normalizedSearchText ? 1 : 0);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearchText(searchText.trim());
+    }, 1000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [searchText]);
+
+  useEffect(() => {
+    setSelectedSearchIndex(-1);
+  }, [debouncedSearchText, searchSuggestions.length]);
+
+  function goToSearch(query: string) {
+    const normalizedQuery = query.trim();
+
+    if (!normalizedQuery) {
+      return;
+    }
+
+    setOpen(false);
+    navigate(`${routes.search}?q=${encodeURIComponent(normalizedQuery)}`);
+  }
+
+  function getSuggestionTarget(suggestion: SearchSuggestion) {
+    if (suggestion.type === 'NOVEL' && suggestion.id) {
+      return `/novels/${suggestion.id}`;
+    }
+
+    if (suggestion.type === 'GENRE') {
+      return routes.novelsGenre(suggestion.label);
+    }
+
+    return `${routes.search}?q=${encodeURIComponent(suggestion.label)}`;
+  }
+
+  function chooseSuggestion(suggestion: SearchSuggestion) {
+    setSearchText(suggestion.label);
+    setOpen(false);
+    navigate(getSuggestionTarget(suggestion));
+  }
+
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    goToSearch(searchText);
+  }
+
+  function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape') {
+      setSelectedSearchIndex(-1);
+      return;
+    }
+
+    if (!shouldShowSearchDropdown || searchOptionCount <= 0) {
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setSelectedSearchIndex((current) => (current + 1) % searchOptionCount);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setSelectedSearchIndex((current) => (current <= 0 ? searchOptionCount - 1 : current - 1));
+      return;
+    }
+
+    if (event.key === 'Enter' && selectedSearchIndex >= 0) {
+      event.preventDefault();
+      const selectedSuggestion = searchSuggestions[selectedSearchIndex];
+
+      if (selectedSuggestion) {
+        chooseSuggestion(selectedSuggestion);
+      } else {
+        goToSearch(normalizedSearchText);
+      }
+    }
+  }
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button className="md:hidden" size="icon" variant="ghost" type="button" aria-label={t('nav.menu')}>
           <Menu />
@@ -58,6 +151,60 @@ export function MobileNav({ user }: MobileNavProps) {
           </div>
 
           <nav className="grid gap-1">
+            <form className="relative mb-2 flex h-11 items-center gap-2 rounded-md border bg-card px-3 text-muted-foreground" onSubmit={handleSearchSubmit}>
+              <Search className="size-4 shrink-0" />
+              <input
+                className="w-full bg-transparent text-sm text-foreground outline-none"
+                placeholder={t('common.searchPlaceholder')}
+                value={searchText}
+                onChange={(event) => setSearchText(event.target.value)}
+                onKeyDown={handleSearchKeyDown}
+              />
+              {shouldShowSearchDropdown ? (
+                <div className="absolute left-0 right-0 top-12 z-50 overflow-hidden rounded-lg border bg-background shadow-2xl">
+                  {searchSuggestionsQuery.isLoading ? (
+                    <div className="px-3 py-3 text-sm font-semibold text-muted-foreground">{t('searchPage.loading')}</div>
+                  ) : searchSuggestions.length ? (
+                    <div className="grid py-1">
+                      {searchSuggestions.map((suggestion) => {
+                        const suggestionTarget = getSuggestionTarget(suggestion);
+                        const suggestionIndex = searchSuggestions.indexOf(suggestion);
+
+                        return (
+                          <SheetClose asChild key={`${suggestion.type}-${suggestion.id ?? suggestion.label}`}>
+                            <Link
+                              className={cn(
+                                'grid gap-0.5 px-3 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground',
+                                selectedSearchIndex === suggestionIndex && 'bg-accent text-accent-foreground',
+                              )}
+                              to={suggestionTarget}
+                              onClick={() => setSearchText(suggestion.label)}
+                              onMouseEnter={() => setSelectedSearchIndex(suggestionIndex)}
+                            >
+                              <span className="font-semibold">{suggestion.label}</span>
+                              <span className="text-xs uppercase text-muted-foreground">{suggestion.type}</span>
+                            </Link>
+                          </SheetClose>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <button
+                      className={cn(
+                        'flex w-full items-center gap-2 px-3 py-3 text-left text-sm font-semibold text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                        selectedSearchIndex === 0 && 'bg-accent text-accent-foreground',
+                      )}
+                      type="button"
+                      onClick={() => goToSearch(normalizedSearchText)}
+                      onMouseEnter={() => setSelectedSearchIndex(0)}
+                    >
+                      <Search className="size-4" />
+                      {normalizedSearchText}
+                    </button>
+                  )}
+                </div>
+              ) : null}
+            </form>
             <SheetClose asChild>
               <NavLink
                 className={({ isActive }) =>
@@ -96,12 +243,12 @@ export function MobileNav({ user }: MobileNavProps) {
             </details>
             <details className="group rounded-md border">
               <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-3 text-sm font-semibold text-muted-foreground [&::-webkit-details-marker]:hidden">
-                {t('nav.tags')}
+                {t('nav.genres')}
                 <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
               </summary>
               <div className="grid max-h-72 gap-1 overflow-y-auto border-t p-2">
-                {tags.map((tag) => (
-                  <SheetClose asChild key={tag.tagId}>
+                {genres.map((genre) => (
+                  <SheetClose asChild key={genre.genreId}>
                     <NavLink
                       className={({ isActive }) =>
                         cn(
@@ -109,9 +256,9 @@ export function MobileNav({ user }: MobileNavProps) {
                           isActive && 'bg-accent text-accent-foreground',
                         )
                       }
-                      to={routes.novelsTag(tag.name)}
+                      to={routes.novelsGenre(genre.name)}
                     >
-                      {tag.name}
+                      {genre.name}
                     </NavLink>
                   </SheetClose>
                 ))}

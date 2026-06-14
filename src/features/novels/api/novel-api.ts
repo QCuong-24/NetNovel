@@ -1,6 +1,6 @@
 import { endpoints } from '@/lib/api/endpoints';
 import { httpClient } from '@/lib/api/http-client';
-import type { Novel, NovelInteraction, NovelListParams, NovelPayload, NovelSearchResult, PageResponse, Tag } from '../types';
+import type { Genre, Novel, NovelInteraction, NovelListParams, NovelPayload, NovelSearchResult, PageResponse, Tag } from '../types';
 
 function withPageParams(url: string, params: URLSearchParams) {
   return `${url}?${params.toString()}`;
@@ -47,10 +47,10 @@ export async function getNovelList(params: NovelListParams) {
     return response.data;
   }
 
-  if (params.kind === 'hot' || params.kind === 'tag') {
+  if (params.kind === 'hot' || params.kind === 'genre') {
     pageParams.set('sortMode', params.kind === 'hot' ? 'popular' : 'latest');
-    if (params.kind === 'tag' && params.tagName) {
-      pageParams.set('tag', params.tagName);
+    if (params.kind === 'genre' && params.genreName) {
+      pageParams.set('genre', params.genreName);
     }
 
     const response = await httpClient.get<PageResponse<NovelSearchResult>>(
@@ -110,6 +110,18 @@ export async function toggleNovelLike(novelId: string) {
 
 export async function getTags() {
   const response = await httpClient.get<Tag[]>(endpoints.tags.list);
+
+  return response.data;
+}
+
+export async function getNovelTags(novelId: string) {
+  const response = await httpClient.get<Tag[]>(endpoints.tags.byNovel(novelId));
+
+  return response.data;
+}
+
+export async function getGenres() {
+  const response = await httpClient.get<Genre[]>(endpoints.genres.list);
 
   return response.data;
 }

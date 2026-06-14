@@ -28,7 +28,7 @@ export const router = createBrowserRouter([
       { path: 'novels/newest', element: <NovelListPage kind="newest" /> },
       { path: 'novels/hot', element: <NovelListPage kind="hot" /> },
       { path: 'novels/completed', element: <NovelListPage kind="completed" /> },
-      { path: 'novels/tags/:tagName', element: <NovelListPage kind="tag" /> },
+      { path: 'novels/genres/:genreName', element: <NovelListPage kind="genre" /> },
       { path: 'search', element: <SearchPage /> },
       { path: 'rankings', element: <PlaceholderPage titleKey="nav.rankings" /> },
       {
@@ -40,13 +40,13 @@ export const router = createBrowserRouter([
           { path: 'collection', element: <PlaceholderPage titleKey="nav.collection" /> },
           { path: 'notifications', element: <PlaceholderPage titleKey="nav.notifications" /> },
           { path: 'profile', element: <ProfilePage /> },
+          { path: 'crawl-tasks', element: <CrawlTasksPage /> },
           {
             path: 'dashboard',
             element: <DashboardLayout />,
             children: [
               { index: true, element: <PlaceholderPage titleKey="nav.dashboard" /> },
               { path: 'novels', element: <PlaceholderPage titleKey="nav.myNovels" /> },
-              { path: 'crawl-tasks', element: <CrawlTasksPage /> },
             ],
           },
         ],

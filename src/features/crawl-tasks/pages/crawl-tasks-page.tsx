@@ -69,18 +69,24 @@ export function CrawlTasksPage() {
 
   if (isUserLoading) {
     return (
-      <div className="grid min-h-64 place-items-center text-sm font-semibold text-muted-foreground">
+      <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
+        <div className="grid min-h-64 place-items-center text-sm font-semibold text-muted-foreground">
         {t('crawlTasks.loading')}
-      </div>
+        </div>
+      </main>
     );
   }
 
   if (!canAccessTasks) {
-    return <PermissionCard description={t('crawlTasks.noPermissionDescription')} title={t('crawlTasks.noPermission')} />;
+    return (
+      <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
+        <PermissionCard description={t('crawlTasks.noPermissionDescription')} title={t('crawlTasks.noPermission')} />
+      </main>
+    );
   }
 
   return (
-    <div className="grid gap-6">
+    <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
       <header className="grid gap-2">
         <p className="text-sm font-semibold uppercase text-primary">{t('crawlTasks.eyebrow')}</p>
         <h1 className="text-3xl font-extrabold tracking-normal md:text-4xl">{t('crawlTasks.title')}</h1>
@@ -117,7 +123,7 @@ export function CrawlTasksPage() {
           />
         )
       ) : null}
-    </div>
+    </main>
   );
 }
 

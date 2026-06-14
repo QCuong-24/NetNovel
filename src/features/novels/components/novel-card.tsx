@@ -39,9 +39,9 @@ export function NovelCard({ novel }: NovelCardProps) {
         <div className="grid content-start gap-2">
           <div className="flex flex-wrap gap-1">
             <Badge variant="secondary">{novel.status}</Badge>
-            {novel.tags.slice(0, 2).map((tag) => (
-              <Badge key={tag} variant="outline">
-                {tag}
+            {novel.genres.slice(0, 2).map((genre) => (
+              <Badge key={genre} variant="outline">
+                {genre}
               </Badge>
             ))}
           </div>

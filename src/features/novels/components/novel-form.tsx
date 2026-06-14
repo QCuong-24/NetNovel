@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
@@ -11,7 +11,7 @@ import { ImageUploader } from '@/features/uploads/components/image-uploader';
 import { useUploadNovelCoverMutation } from '@/features/uploads/hooks/use-image-upload';
 import { cn } from '@/lib/utils';
 import { NovelCover } from './novel-cover';
-import { useTags } from '../hooks/use-novels';
+import { useGenres, useNovelTags, useTags } from '../hooks/use-novels';
 import type { Novel, NovelPayload, NovelStatus } from '../types';
 
 const novelFormSchema = z.object({
@@ -20,6 +20,7 @@ const novelFormSchema = z.object({
   description: z.string().min(10),
   coverImageUrl: z.string().url().or(z.literal('')),
   status: z.enum(['ONGOING', 'COMPLETED']),
+  genres: z.array(z.string()),
   tags: z.array(z.string()),
 });
 
@@ -35,20 +36,24 @@ type NovelFormProps = {
 
 const statusOptions: NovelStatus[] = ['ONGOING', 'COMPLETED'];
 
-function toFormValues(novel?: Novel): NovelFormValues {
+function toFormValues(novel?: Novel, tagNames: string[] = []): NovelFormValues {
   return {
     title: novel?.title ?? '',
     author: novel?.author ?? '',
     description: novel?.description ?? '',
     coverImageUrl: novel?.coverImageUrl ?? '',
     status: novel?.status ?? 'ONGOING',
-    tags: novel?.tags ?? [],
+    genres: novel?.genres ?? [],
+    tags: tagNames,
   };
 }
 
 export function NovelForm({ novel, mode, isSubmitting = false, onCancel, onSubmit }: NovelFormProps) {
   const { t } = useTranslation();
+  const { data: genres = [], isLoading: isLoadingGenres } = useGenres();
   const { data: tags = [], isLoading: isLoadingTags } = useTags();
+  const { data: novelTags } = useNovelTags(novel?.novelId ? String(novel.novelId) : undefined);
+  const novelTagNames = useMemo(() => novelTags?.map((tag) => tag.name) ?? [], [novelTags]);
   const uploadCoverMutation = useUploadNovelCoverMutation(String(novel?.novelId ?? ''));
   const {
     formState: { errors },
@@ -61,13 +66,22 @@ export function NovelForm({ novel, mode, isSubmitting = false, onCancel, onSubmi
     resolver: zodResolver(novelFormSchema),
     defaultValues: toFormValues(novel),
   });
+  const selectedGenres = watch('genres');
   const selectedTags = watch('tags');
   const coverImageUrl = watch('coverImageUrl');
   const title = watch('title');
 
   useEffect(() => {
-    reset(toFormValues(novel));
-  }, [novel, reset]);
+    reset(toFormValues(novel, novelTagNames));
+  }, [novel, novelTagNames, reset]);
+
+  function toggleGenre(genreName: string) {
+    const nextGenres = selectedGenres.includes(genreName)
+      ? selectedGenres.filter((genre) => genre !== genreName)
+      : [...selectedGenres, genreName];
+
+    setValue('genres', nextGenres, { shouldDirty: true, shouldValidate: true });
+  }
 
   function toggleTag(tagName: string) {
     const nextTags = selectedTags.includes(tagName)
@@ -128,6 +142,42 @@ export function NovelForm({ novel, mode, isSubmitting = false, onCancel, onSubmi
               <span className="text-xs text-destructive">{t('novelForm.descriptionError')}</span>
             ) : null}
           </label>
+
+          <div className="grid gap-2">
+            <p className="text-sm font-semibold">{t('novelForm.genres')}</p>
+            {isLoadingGenres ? (
+              <p className="text-sm text-muted-foreground">{t('novelForm.loadingGenres')}</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {genres.map((genre) => {
+                  const isSelected = selectedGenres.includes(genre.name);
+
+                  return (
+                    <button
+                      className={cn(
+                        'rounded-full border px-3 py-1 text-sm font-semibold transition-colors hover:border-primary',
+                        isSelected && 'border-primary bg-primary text-primary-foreground',
+                      )}
+                      key={genre.genreId}
+                      type="button"
+                      onClick={() => toggleGenre(genre.name)}
+                    >
+                      {genre.name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {selectedGenres.length ? (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {selectedGenres.map((genre) => (
+                  <Badge key={genre} variant="secondary">
+                    {genre}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
           <div className="grid gap-2">
             <p className="text-sm font-semibold">{t('novelForm.tags')}</p>

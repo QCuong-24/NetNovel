@@ -4,7 +4,7 @@ export const routes = {
   novelsNewest: '/novels/newest',
   novelsHot: '/novels/hot',
   novelsCompleted: '/novels/completed',
-  novelsTag: (tagName: string) => `/novels/tags/${encodeURIComponent(tagName)}`,
+  novelsGenre: (genreName: string) => `/novels/genres/${encodeURIComponent(genreName)}`,
   novelNew: '/novels/new',
   search: '/search',
   rankings: '/rankings',
@@ -12,7 +12,7 @@ export const routes = {
   notifications: '/notifications',
   profile: '/profile',
   dashboard: '/dashboard',
-  crawlTasks: '/dashboard/crawl-tasks',
+  crawlTasks: '/crawl-tasks',
   login: '/login',
   register: '/register',
 } as const;

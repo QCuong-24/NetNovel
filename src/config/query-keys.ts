@@ -1,6 +1,7 @@
 export const queryKeys = {
   auth: ['auth'] as const,
   novels: ['novels'] as const,
+  genres: ['genres'] as const,
   tags: ['tags'] as const,
   chapters: ['chapters'] as const,
   rankings: ['rankings'] as const,

@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from '@/config/query-keys';
 import { getApiErrorMessage } from '@/lib/api/api-error';
-import { reindexNovels, searchAdvancedNovels, searchPublicNovels } from '../api/search-api';
+import { getSearchSuggestions, reindexNovels, searchAdvancedNovels, searchPublicNovels } from '../api/search-api';
 import type { AdvancedNovelSearchParams, PublicNovelSearchParams } from '../types';
 
 export function usePublicNovelSearch(params: PublicNovelSearchParams, enabled: boolean) {
@@ -18,6 +18,16 @@ export function useAdvancedNovelSearch(params: AdvancedNovelSearchParams, enable
     queryKey: [...queryKeys.search, 'advanced', params],
     queryFn: () => searchAdvancedNovels(params),
     enabled,
+  });
+}
+
+export function useSearchSuggestions(query: string, enabled = true) {
+  const normalizedQuery = query.trim();
+
+  return useQuery({
+    queryKey: [...queryKeys.search, 'suggestions', normalizedQuery],
+    queryFn: () => getSearchSuggestions(normalizedQuery),
+    enabled: enabled && Boolean(normalizedQuery),
   });
 }
 

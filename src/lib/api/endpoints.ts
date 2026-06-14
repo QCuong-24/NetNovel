@@ -24,6 +24,7 @@ export const endpoints = {
   },
   search: {
     novels: '/search/novels',
+    suggestions: '/search/suggestions',
   },
   advancedSearch: {
     novels: '/advanced/search/novels',
@@ -36,8 +37,12 @@ export const endpoints = {
     avatarSignature: '/users/me/avatar/upload-signature',
     avatar: '/users/me/avatar',
   },
+  genres: {
+    list: '/genres',
+  },
   tags: {
     list: '/tags',
+    byNovel: (novelId: string) => `/tags/novels/${novelId}`,
   },
   chapters: {
     byNovel: (novelId: string) => `/novels/${novelId}/chapters`,

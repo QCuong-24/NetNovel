@@ -6,8 +6,10 @@ import {
   createNovel,
   deleteNovel,
   getMyNovelInteraction,
+  getGenres,
   getNovel,
   getNovelList,
+  getNovelTags,
   getSimilarNovels,
   getTags,
   increaseNovelView,
@@ -30,6 +32,23 @@ export function useTags() {
   return useQuery({
     queryKey: queryKeys.tags,
     queryFn: getTags,
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useNovelTags(novelId?: string) {
+  return useQuery({
+    queryKey: [...queryKeys.tags, 'novel', novelId],
+    queryFn: () => getNovelTags(novelId!),
+    enabled: Boolean(novelId),
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useGenres() {
+  return useQuery({
+    queryKey: queryKeys.genres,
+    queryFn: getGenres,
     staleTime: 5 * 60_000,
   });
 }

@@ -1,13 +1,15 @@
-import { ArrowLeft, BookOpen, Eye, Heart, Pencil, Plus, RotateCcw, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, Eye, Heart, Pencil, Plus, RefreshCw, RotateCcw, Trash2, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { routes } from '@/config/routes';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { ChapterListSection } from '@/features/chapters/components/chapter-list-section';
+import { useCreateCrawlTaskMutation } from '@/features/crawl-tasks/hooks/use-crawl-tasks';
 import { NovelCover } from '../components/novel-cover';
 import { NovelForm } from '../components/novel-form';
 import { SimilarNovelsSection } from '../components/similar-novels-section';
@@ -29,6 +31,22 @@ const metricItems = [
   { key: 'likes', labelKey: 'novelPages.metrics.likes', icon: Heart },
 ] as const;
 
+const crawledSourcePattern = /\[Crawled Source:\s*(https?:\/\/[^\]]+)\]/i;
+
+function extractCrawledSourceUrl(description: string) {
+  const sourceUrl = description.match(crawledSourcePattern)?.[1]?.trim();
+
+  if (!sourceUrl) {
+    return null;
+  }
+
+  try {
+    return new URL(sourceUrl).toString();
+  } catch {
+    return null;
+  }
+}
+
 export function NovelDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -45,6 +63,7 @@ export function NovelDetailPage() {
   const deleteNovelMutation = useDeleteNovelMutation(novelId ?? '');
   const followMutation = useToggleNovelFollowMutation(novelId ?? '');
   const likeMutation = useToggleNovelLikeMutation(novelId ?? '');
+  const createCrawlTaskMutation = useCreateCrawlTaskMutation();
 
   useEffect(() => {
     return () => {
@@ -105,6 +124,15 @@ export function NovelDetailPage() {
     setDeleteCountdown(null);
   }
 
+  async function refetchCrawledNovel(sourceUrl: string | null) {
+    if (!sourceUrl) {
+      toast.error(t('novelPages.crawledSourceMissing'));
+      return;
+    }
+
+    await createCrawlTaskMutation.mutateAsync({ url: sourceUrl });
+  }
+
   if (isLoading) {
     return (
       <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
@@ -152,6 +180,10 @@ export function NovelDetailPage() {
     );
   }
 
+  const crawledSourceUrl = extractCrawledSourceUrl(novel.description);
+  const canRefetchCrawledNovel =
+    canEdit && Boolean(crawledSourceUrl) && novel.genres.some((genre) => genre.toLowerCase() === 'crawled');
+
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
       <div className="flex items-center justify-between gap-3">
@@ -169,6 +201,17 @@ export function NovelDetailPage() {
                 {t('novelPages.newChapter')}
               </Link>
             </Button>
+            {canRefetchCrawledNovel ? (
+              <Button
+                disabled={createCrawlTaskMutation.isPending}
+                type="button"
+                variant="outline"
+                onClick={() => refetchCrawledNovel(crawledSourceUrl)}
+              >
+                <RefreshCw className={createCrawlTaskMutation.isPending ? 'animate-spin' : undefined} />
+                {t('novelPages.refetchCrawled')}
+              </Button>
+            ) : null}
             <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
               <Pencil />
               {t('novelPages.editNovel')}
@@ -222,9 +265,9 @@ export function NovelDetailPage() {
           <div className="grid gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <Badge>{t(`novelForm.statusOptions.${novel.status}`)}</Badge>
-              {novel.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  {tag}
+              {novel.genres.map((genre) => (
+                <Badge key={genre} variant="secondary">
+                  {genre}
                 </Badge>
               ))}
             </div>

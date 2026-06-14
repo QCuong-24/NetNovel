@@ -6,6 +6,7 @@ import type {
   NovelSearchPage,
   NovelSearchResultPage,
   PublicNovelSearchParams,
+  SearchSuggestion,
 } from '../types';
 
 function buildSearchParams(params: Record<string, string | number | undefined>) {
@@ -31,7 +32,7 @@ export async function searchPublicNovels(params: PublicNovelSearchParams) {
   const searchParams = buildSearchParams({
     q: params.q,
     status: params.status,
-    tag: params.tag,
+    genre: params.genre,
     sortMode: params.sort ?? 'relevance',
     page: params.page ?? 0,
     size: params.size ?? 20,
@@ -45,6 +46,7 @@ export async function searchAdvancedNovels(params: AdvancedNovelSearchParams) {
   const searchParams = buildSearchParams({
     q: params.q,
     status: params.status,
+    genre: params.genre,
     tag: params.tag,
     source: params.source,
     crawled: params.crawled,
@@ -56,6 +58,16 @@ export async function searchAdvancedNovels(params: AdvancedNovelSearchParams) {
   );
 
   return toNovelPage(response.data);
+}
+
+export async function getSearchSuggestions(query: string, limit = 8) {
+  const searchParams = buildSearchParams({
+    q: query,
+    limit,
+  });
+  const response = await httpClient.get<SearchSuggestion[]>(`${endpoints.search.suggestions}?${searchParams.toString()}`);
+
+  return response.data;
 }
 
 export async function reindexNovels() {

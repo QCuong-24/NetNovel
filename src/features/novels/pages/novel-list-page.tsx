@@ -22,13 +22,13 @@ function clampPage(page: number, totalPages: number) {
 
 export function NovelListPage({ kind }: NovelListPageProps) {
   const { t } = useTranslation();
-  const { tagName } = useParams();
-  const decodedTagName = useMemo(() => (tagName ? decodeURIComponent(tagName) : undefined), [tagName]);
+  const { genreName } = useParams();
+  const decodedGenreName = useMemo(() => (genreName ? decodeURIComponent(genreName) : undefined), [genreName]);
   const [page, setPage] = useState(0);
   const [pageInput, setPageInput] = useState('1');
   const novelsQuery = useNovelList({
     kind,
-    tagName: decodedTagName,
+    genreName: decodedGenreName,
     page,
     size: 20,
   });
@@ -43,8 +43,8 @@ export function NovelListPage({ kind }: NovelListPageProps) {
     setPageInput(String(clampedPage + 1));
   }
 
-  const title = decodedTagName
-    ? t('novelList.tagTitle', { tag: decodedTagName })
+  const title = decodedGenreName
+    ? t('novelList.genreTitle', { genre: decodedGenreName })
     : t(`novelList.titles.${kind}`);
 
   return (

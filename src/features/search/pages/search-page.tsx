@@ -1,6 +1,7 @@
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, RefreshCw, Search } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import type { User } from '@/features/auth/types';
 import { NovelCard } from '@/features/novels/components/novel-card';
-import { useTags } from '@/features/novels/hooks/use-novels';
+import { useGenres, useTags } from '@/features/novels/hooks/use-novels';
 import type { PageResponse, Novel } from '@/features/novels/types';
 import { useAdvancedNovelSearch, usePublicNovelSearch, useReindexNovelsMutation } from '../hooks/use-search';
 import type { AdvancedNovelSearchParams, PublicNovelSearchParams, SearchSort } from '../types';
@@ -31,10 +32,18 @@ function clampPage(page: number, totalPages: number) {
 
 export function SearchPage() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const { data: user } = useCurrentUser();
   const showAdvanced = canUseAdvancedSearch(user);
   const showReindex = isAdmin(user);
+  const publicQuery = searchParams.get('q') ?? '';
   const [activeTab, setActiveTab] = useState<'public' | 'advanced' | 'reindex'>('public');
+
+  useEffect(() => {
+    if (publicQuery.trim()) {
+      setActiveTab('public');
+    }
+  }, [publicQuery]);
 
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
@@ -75,27 +84,41 @@ export function SearchPage() {
         ) : null}
       </div>
 
-      {activeTab === 'public' ? <PublicSearchPanel /> : null}
+      {activeTab === 'public' ? <PublicSearchPanel initialQuery={publicQuery} /> : null}
       {activeTab === 'advanced' && showAdvanced ? <AdvancedSearchPanel /> : null}
       {activeTab === 'reindex' && showReindex ? <ReindexPanel /> : null}
     </main>
   );
 }
 
-function PublicSearchPanel() {
+function PublicSearchPanel({ initialQuery = '' }: { initialQuery?: string }) {
   const { t } = useTranslation();
-  const { data: tags = [] } = useTags();
-  const [form, setForm] = useState({ q: '', status: '', tag: '', sort: 'relevance' as SearchSort });
+  const { data: genres = [] } = useGenres();
+  const normalizedInitialQuery = initialQuery.trim();
+  const [form, setForm] = useState({ q: normalizedInitialQuery, status: '', genre: '', sort: 'relevance' as SearchSort });
   const [params, setParams] = useState<PublicNovelSearchParams>({
-    q: '',
+    q: normalizedInitialQuery,
     status: '',
-    tag: '',
+    genre: '',
     sort: 'relevance',
     page: 0,
     size: 20,
   });
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(Boolean(normalizedInitialQuery));
   const searchQuery = usePublicNovelSearch(params, hasSubmitted);
+
+  useEffect(() => {
+    setForm({ q: normalizedInitialQuery, status: '', genre: '', sort: 'relevance' });
+    setParams((current) => ({
+      q: normalizedInitialQuery,
+      status: '',
+      genre: '',
+      sort: 'relevance',
+      page: 0,
+      size: current.size,
+    }));
+    setHasSubmitted(Boolean(normalizedInitialQuery));
+  }, [normalizedInitialQuery]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -109,7 +132,7 @@ function PublicSearchPanel() {
         <CardTitle>{t('searchPage.public.title')}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_180px_160px_auto]" onSubmit={submit}>
+        <form className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_150px_170px_150px_auto]" onSubmit={submit}>
           <Input
             placeholder={t('searchPage.fields.query')}
             value={form.q}
@@ -126,13 +149,13 @@ function PublicSearchPanel() {
           </select>
           <select
             className="h-10 rounded-md border bg-background px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            value={form.tag}
-            onChange={(event) => setForm((current) => ({ ...current, tag: event.target.value }))}
+            value={form.genre}
+            onChange={(event) => setForm((current) => ({ ...current, genre: event.target.value }))}
           >
-            <option value="">{t('searchPage.fields.anyTag')}</option>
-            {tags.map((tag) => (
-              <option key={tag.tagId} value={tag.name}>
-                {tag.name}
+            <option value="">{t('searchPage.fields.anyGenre')}</option>
+            {genres.map((genre) => (
+              <option key={genre.genreId} value={genre.name}>
+                {genre.name}
               </option>
             ))}
           </select>
@@ -165,11 +188,13 @@ function PublicSearchPanel() {
 
 function AdvancedSearchPanel() {
   const { t } = useTranslation();
+  const { data: genres = [] } = useGenres();
   const { data: tags = [] } = useTags();
-  const [form, setForm] = useState({ q: '', status: '', tag: '', source: '', crawled: '' });
+  const [form, setForm] = useState({ q: '', status: '', genre: '', tag: '', source: '', crawled: '' });
   const [params, setParams] = useState<AdvancedNovelSearchParams>({
     q: '',
     status: '',
+    genre: '',
     tag: '',
     source: '',
     crawled: '',
@@ -194,7 +219,7 @@ function AdvancedSearchPanel() {
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_150px_170px_160px_140px_auto]" onSubmit={submit}>
+        <form className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_140px_150px_150px_140px_130px_auto]" onSubmit={submit}>
           <Input
             placeholder={t('searchPage.fields.query')}
             value={form.q}
@@ -208,6 +233,18 @@ function AdvancedSearchPanel() {
             <option value="">{t('searchPage.fields.anyStatus')}</option>
             <option value="ONGOING">{t('novelForm.statusOptions.ONGOING')}</option>
             <option value="COMPLETED">{t('novelForm.statusOptions.COMPLETED')}</option>
+          </select>
+          <select
+            className="h-10 rounded-md border bg-background px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            value={form.genre}
+            onChange={(event) => setForm((current) => ({ ...current, genre: event.target.value }))}
+          >
+            <option value="">{t('searchPage.fields.anyGenre')}</option>
+            {genres.map((genre) => (
+              <option key={genre.genreId} value={genre.name}>
+                {genre.name}
+              </option>
+            ))}
           </select>
           <select
             className="h-10 rounded-md border bg-background px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
