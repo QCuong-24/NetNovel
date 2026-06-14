@@ -19,6 +19,7 @@ public class PostgresSearchConfig {
                 jdbcTemplate.execute("create extension if not exists pg_trgm");
                 jdbcTemplate.execute("create index if not exists idx_novels_title_trgm on novels using gin (title gin_trgm_ops)");
                 jdbcTemplate.execute("create index if not exists idx_novels_author_trgm on novels using gin (author gin_trgm_ops)");
+                jdbcTemplate.execute("create index if not exists idx_genres_name_trgm on genres using gin (name gin_trgm_ops)");
                 jdbcTemplate.execute("create index if not exists idx_tags_name_trgm on tags using gin (name gin_trgm_ops)");
                 jdbcTemplate.execute("create index if not exists idx_novels_status_update_at on novels (status, update_at desc)");
                 jdbcTemplate.execute("create index if not exists idx_novels_popularity on novels (views desc, follows desc, likes desc)");

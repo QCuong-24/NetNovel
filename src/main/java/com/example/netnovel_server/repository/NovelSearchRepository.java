@@ -31,10 +31,10 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
                       end
                     + case when :q <> '' and exists (
                             select 1
-                            from novel_tags nt_score
-                            join tags t_score on t_score.id = nt_score.tag_id
-                            where nt_score.novel_id = n.id
-                              and lower(t_score.name) like lower(concat('%', :q, '%'))
+                            from novel_genres ng_score
+                            join genres g_score on g_score.id = ng_score.genre_id
+                            where ng_score.novel_id = n.id
+                              and lower(g_score.name) like lower(concat('%', :q, '%'))
                         ) then 18 else 0 end
                     + ln(coalesce(n.views, 0) + 1) * 1.0
                     + ln(coalesce(n.likes, 0) + 1) * 2.0
@@ -42,12 +42,12 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
                 ) as score
             from novels n
             where (:status = '' or n.status = :status)
-              and (:tag = '' or exists (
+              and (:genre = '' or exists (
                     select 1
-                    from novel_tags nt_filter
-                    join tags t_filter on t_filter.id = nt_filter.tag_id
-                    where nt_filter.novel_id = n.id
-                      and lower(trim(t_filter.name)) = lower(trim(:tag))
+                    from novel_genres ng_filter
+                    join genres g_filter on g_filter.id = ng_filter.genre_id
+                    where ng_filter.novel_id = n.id
+                      and lower(trim(g_filter.name)) = lower(trim(:genre))
                 ))
               and (:q = ''
                    or lower(n.title) like lower(concat('%', :q, '%'))
@@ -56,11 +56,12 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
                    or similarity(lower(n.author), lower(:q)) >= 0.18
                    or exists (
                         select 1
-                        from novel_tags nt_query
-                        join tags t_query on t_query.id = nt_query.tag_id
-                        where nt_query.novel_id = n.id
-                          and lower(t_query.name) like lower(concat('%', :q, '%'))
-                   ))
+                        from novel_genres ng_query
+                        join genres g_query on g_query.id = ng_query.genre_id
+                        where ng_query.novel_id = n.id
+                          and lower(g_query.name) like lower(concat('%', :q, '%'))
+                   )
+                   )
             order by
                 case when :sort = 'latest' then extract(epoch from n.update_at) end desc,
                 case when :sort = 'popular' then (coalesce(n.views, 0) + coalesce(n.likes, 0) * 3 + coalesce(n.follows, 0) * 5) end desc,
@@ -71,12 +72,12 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
             select count(*)
             from novels n
             where (:status = '' or n.status = :status)
-              and (:tag = '' or exists (
+              and (:genre = '' or exists (
                     select 1
-                    from novel_tags nt_filter
-                    join tags t_filter on t_filter.id = nt_filter.tag_id
-                    where nt_filter.novel_id = n.id
-                      and lower(trim(t_filter.name)) = lower(trim(:tag))
+                    from novel_genres ng_filter
+                    join genres g_filter on g_filter.id = ng_filter.genre_id
+                    where ng_filter.novel_id = n.id
+                      and lower(trim(g_filter.name)) = lower(trim(:genre))
                 ))
               and (:q = ''
                    or lower(n.title) like lower(concat('%', :q, '%'))
@@ -85,18 +86,19 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
                    or similarity(lower(n.author), lower(:q)) >= 0.18
                    or exists (
                         select 1
-                        from novel_tags nt_query
-                        join tags t_query on t_query.id = nt_query.tag_id
-                        where nt_query.novel_id = n.id
-                          and lower(t_query.name) like lower(concat('%', :q, '%'))
-                   ))
+                        from novel_genres ng_query
+                        join genres g_query on g_query.id = ng_query.genre_id
+                        where ng_query.novel_id = n.id
+                          and lower(g_query.name) like lower(concat('%', :q, '%'))
+                   )
+                   )
             """,
         nativeQuery = true
     )
     Page<NovelSearchProjection> searchNovels(
         @Param("q") String query,
         @Param("status") String status,
-        @Param("tag") String tag,
+        @Param("genre") String genre,
         @Param("sort") String sort,
         Pageable pageable
     );
@@ -106,7 +108,8 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
             select
                 candidate.id as novelId,
                 (
-                    coalesce(tag_scores.match_count, 0) * 10.0
+                    coalesce(genre_scores.match_count, 0) * 12.0
+                    + coalesce(tag_scores.match_count, 0) * 7.0
                     + case when lower(candidate.author) = lower(source.author) then 5.0 else 0.0 end
                     + case when candidate.status = source.status then 2.0 else 0.0 end
                     + ln(coalesce(candidate.views, 0) + 1) * 0.5
@@ -115,6 +118,14 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
                 ) as score
             from novels source
             join novels candidate on candidate.id <> source.id
+            left join (
+                select ng_candidate.novel_id, count(*) as match_count
+                from novel_genres ng_source
+                join novel_genres ng_candidate on ng_candidate.genre_id = ng_source.genre_id
+                where ng_source.novel_id = :novelId
+                  and ng_candidate.novel_id <> :novelId
+                group by ng_candidate.novel_id
+            ) genre_scores on genre_scores.novel_id = candidate.id
             left join (
                 select nt_candidate.novel_id, count(*) as match_count
                 from novel_tags nt_source
@@ -125,6 +136,8 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
             ) tag_scores on tag_scores.novel_id = candidate.id
             where source.id = :novelId
               and (
+                  coalesce(genre_scores.match_count, 0) > 0
+                  or
                   coalesce(tag_scores.match_count, 0) > 0
                   or lower(candidate.author) = lower(source.author)
                   or candidate.status = source.status
@@ -136,6 +149,14 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
             from novels source
             join novels candidate on candidate.id <> source.id
             left join (
+                select ng_candidate.novel_id, count(*) as match_count
+                from novel_genres ng_source
+                join novel_genres ng_candidate on ng_candidate.genre_id = ng_source.genre_id
+                where ng_source.novel_id = :novelId
+                  and ng_candidate.novel_id <> :novelId
+                group by ng_candidate.novel_id
+            ) genre_scores on genre_scores.novel_id = candidate.id
+            left join (
                 select nt_candidate.novel_id, count(*) as match_count
                 from novel_tags nt_source
                 join novel_tags nt_candidate on nt_candidate.tag_id = nt_source.tag_id
@@ -145,6 +166,8 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
             ) tag_scores on tag_scores.novel_id = candidate.id
             where source.id = :novelId
               and (
+                  coalesce(genre_scores.match_count, 0) > 0
+                  or
                   coalesce(tag_scores.match_count, 0) > 0
                   or lower(candidate.author) = lower(source.author)
                   or candidate.status = source.status
@@ -191,17 +214,17 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
                 union all
 
                 select
-                    'TAG' as suggestion_type,
-                    t.id as suggestion_id,
-                    t.name as suggestion_label,
-                    case when lower(t.name) like lower(concat(:q, '%')) then 75
-                         when lower(t.name) like lower(concat('%', :q, '%')) then 45
-                         else similarity(lower(t.name), lower(:q)) * 35
+                    'GENRE' as suggestion_type,
+                    g.id as suggestion_id,
+                    g.name as suggestion_label,
+                    case when lower(g.name) like lower(concat(:q, '%')) then 78
+                         when lower(g.name) like lower(concat('%', :q, '%')) then 48
+                         else similarity(lower(g.name), lower(:q)) * 38
                     end as score
-                from tags t
+                from genres g
                 where :q <> ''
-                  and (lower(t.name) like lower(concat('%', :q, '%'))
-                       or similarity(lower(t.name), lower(:q)) >= 0.18)
+                  and (lower(g.name) like lower(concat('%', :q, '%'))
+                       or similarity(lower(g.name), lower(:q)) >= 0.18)
             ) suggestions
             order by score desc, suggestion_label asc
             limit :limit

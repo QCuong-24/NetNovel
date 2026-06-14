@@ -41,12 +41,13 @@ public class AdminSearchController {
     public ResponseEntity<Page<NovelSearchResultDTO>> searchNovels(
         @RequestParam(required = false) String q,
         @RequestParam(required = false) String status,
+        @RequestParam(required = false) String genre,
         @RequestParam(required = false) String tag,
         @RequestParam(required = false) String source,
         @RequestParam(required = false) Boolean crawled,
         Pageable pageable
     ) {
-        return ResponseEntity.ok(elasticSearchService().searchNovels(q, status, tag, source, crawled, pageable));
+        return ResponseEntity.ok(elasticSearchService().searchNovels(q, status, genre, tag, source, crawled, pageable));
     }
 
     private ElasticNovelSearchIndexer elasticIndexer() {

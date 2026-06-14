@@ -60,6 +60,21 @@ public class Novel {
 
     @ManyToMany
     @JoinTable(
+        name = "novel_genres",
+        joinColumns = @JoinColumn(name = "novel_id"),
+        inverseJoinColumns = @JoinColumn(name = "genre_id"),
+        indexes = {
+            @Index(name = "idx_novel_genres_novel", columnList = "novel_id"),
+            @Index(name = "idx_novel_genres_genre", columnList = "genre_id")
+        }
+    )
+    @Fetch(FetchMode.JOIN)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @Builder.Default
+    private Set<Genre> genres = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
         name = "novel_tags",
         joinColumns = @JoinColumn(name = "novel_id"),
         inverseJoinColumns = @JoinColumn(name = "tag_id"),

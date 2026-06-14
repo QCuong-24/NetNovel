@@ -2,6 +2,7 @@ package com.example.netnovel_server.mapper;
 
 import com.example.netnovel_server.dto.NovelCreateDTO;
 import com.example.netnovel_server.dto.NovelDTO;
+import com.example.netnovel_server.entity.Genre;
 import com.example.netnovel_server.entity.Novel;
 import com.example.netnovel_server.entity.NovelChapterInfo;
 import com.example.netnovel_server.entity.Status;
@@ -33,7 +34,7 @@ public final class NovelMapper {
             .views(novel.getViews())
             .follows(novel.getFollows())
             .likes(novel.getLikes())
-            .tags(toTagNames(novel.getTags()))
+            .genres(toGenreNames(novel.getGenres()))
             .status(novel.getStatus() != null ? novel.getStatus().name() : null)
             .chapterCount(chapterInfo != null ? chapterInfo.getChapterCount() : 0)
             .latestChapterId(chapterInfo != null && chapterInfo.getLatestChapter() != null
@@ -47,7 +48,7 @@ public final class NovelMapper {
             .build();
     }
 
-    public static Novel toEntity(NovelCreateDTO dto, Set<Tag> tags) {
+    public static Novel toEntity(NovelCreateDTO dto, Set<Genre> genres, Set<Tag> tags) {
         if (dto == null) {
             return null;
         }
@@ -58,18 +59,19 @@ public final class NovelMapper {
             .description(dto.getDescription())
             .coverImageUrl(dto.getCoverImageUrl())
             .coverImagePublicId(dto.getCoverImagePublicId())
+            .genres(genres != null ? genres : Collections.emptySet())
             .tags(tags != null ? tags : Collections.emptySet())
             .status(parseStatus(dto.getStatus()))
             .build();
     }
 
-    private static Set<String> toTagNames(Set<Tag> tags) {
-        if (tags == null) {
+    private static Set<String> toGenreNames(Set<Genre> genres) {
+        if (genres == null) {
             return Collections.emptySet();
         }
 
-        return tags.stream()
-            .map(Tag::getName)
+        return genres.stream()
+            .map(Genre::getName)
             .collect(Collectors.toSet());
     }
 

@@ -45,19 +45,19 @@ public class PostgresNovelSearchService {
     public Page<NovelSearchResultDTO> searchNovels(
         String query,
         String status,
-        String tag,
+        String genre,
         String sort,
         Pageable pageable
     ) {
         String normalizedQuery = normalize(query);
         String normalizedStatus = normalizeStatus(status);
-        String normalizedTag = normalizeTag(tag);
+        String normalizedGenre = normalizeCatalogName(genre);
         String normalizedSort = normalizeSort(sort);
 
         Page<NovelSearchProjection> resultPage = novelSearchRepository.searchNovels(
             normalizedQuery,
             normalizedStatus,
-            normalizedTag,
+            normalizedGenre,
             normalizedSort,
             pageable
         );
@@ -120,8 +120,8 @@ public class PostgresNovelSearchService {
         }
     }
 
-    private String normalizeTag(String tag) {
-        String normalized = normalize(tag);
+    private String normalizeCatalogName(String value) {
+        String normalized = normalize(value);
         if (normalized.isBlank()) {
             return "";
         }

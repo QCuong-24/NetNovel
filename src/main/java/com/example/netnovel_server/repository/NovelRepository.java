@@ -39,5 +39,7 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
 
     List<Novel> findTop10ByOrderByLikesDesc();
 
+    List<Novel> findByGenresId(Long genreId);
+
     List<Novel> findByTagsId(Long tagId);
 }

@@ -2,6 +2,7 @@ package com.example.netnovel_server.service;
 
 import com.example.netnovel_server.dto.NovelCreateDTO;
 import com.example.netnovel_server.dto.NovelDTO;
+import com.example.netnovel_server.entity.Genre;
 import com.example.netnovel_server.entity.Novel;
 import com.example.netnovel_server.entity.NovelFollow;
 import com.example.netnovel_server.entity.Status;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class NovelService {
 
     private final NovelRepository novelRepository;
+    private final GenreRepository genreRepository;
     private final TagRepository tagRepository;
     private final NovelFollowRepository novelFollowRepository;
     private final NotificationService notificationService;
@@ -32,12 +34,14 @@ public class NovelService {
 
     public NovelService(
         NovelRepository novelRepository,
+        GenreRepository genreRepository,
         TagRepository tagRepository,
         NovelFollowRepository novelFollowRepository,
         NotificationService notificationService,
         NovelChapterInfoService novelChapterInfoService
     ) {
         this.novelRepository = novelRepository;
+        this.genreRepository = genreRepository;
         this.tagRepository = tagRepository;
         this.novelFollowRepository = novelFollowRepository;
         this.notificationService = notificationService;
@@ -80,10 +84,11 @@ public class NovelService {
             throw new DuplicateResourceException("Novel title already exists");
         }
 
+        Set<Genre> genres = resolveGenres(request.getGenres());
         Set<Tag> tags = resolveTags(request.getTags());
         validateStatus(request.getStatus());
 
-        Novel novel = NovelMapper.toEntity(request, tags);
+        Novel novel = NovelMapper.toEntity(request, genres, tags);
         Novel savedNovel = novelRepository.save(novel);
         novelChapterInfoService.refresh(savedNovel.getId());
         return NovelMapper.toDTO(savedNovel);
@@ -103,6 +108,7 @@ public class NovelService {
         novel.setCoverImageUrl(request.getCoverImageUrl());
         novel.setCoverImagePublicId(request.getCoverImagePublicId());
         novel.setStatus(validateStatus(request.getStatus()));
+        novel.setGenres(resolveGenres(request.getGenres()));
         novel.setTags(resolveTags(request.getTags()));
 
         return NovelMapper.toDTO(novelRepository.save(novel));
@@ -126,6 +132,25 @@ public class NovelService {
     private Novel findNovel(Long novelId) {
         return novelRepository.findById(novelId)
             .orElseThrow(() -> new ResourceNotFoundException("Novel not found"));
+    }
+
+    private Set<Genre> resolveGenres(Set<String> genreNames) {
+        if (genreNames == null || genreNames.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return genreNames.stream()
+            .map(this::findGenreByName)
+            .collect(Collectors.toSet());
+    }
+
+    private Genre findGenreByName(String genreName) {
+        if (genreName == null || genreName.isBlank()) {
+            throw new BadRequestException("Genre name is required");
+        }
+
+        return genreRepository.findByNameIgnoreCase(genreName.trim())
+            .orElseThrow(() -> new BadRequestException("Genre does not exist: " + genreName));
     }
 
     private Set<Tag> resolveTags(Set<String> tagNames) {

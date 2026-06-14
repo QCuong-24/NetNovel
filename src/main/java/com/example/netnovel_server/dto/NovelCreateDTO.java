@@ -21,6 +21,8 @@ public class NovelCreateDTO {
 
     private String coverImagePublicId;
 
+    private Set<String> genres;
+
     private Set<String> tags;
 
     private String status;

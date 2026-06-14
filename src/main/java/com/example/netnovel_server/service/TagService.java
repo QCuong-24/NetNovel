@@ -40,6 +40,14 @@ public class TagService {
         return TagMapper.toDTO(findTag(tagId));
     }
 
+    @Transactional(readOnly = true)
+    public List<TagDTO> getNovelTags(Long novelId) {
+        Novel novel = findNovel(novelId);
+        return novel.getTags().stream()
+            .map(TagMapper::toDTO)
+            .toList();
+    }
+
     @Transactional
     public TagDTO createTag(TagDTO request) {
         String name = normalizeName(request.getName());
@@ -88,9 +96,39 @@ public class TagService {
         tagRepository.delete(tag);
     }
 
+    @Transactional
+    public List<TagDTO> updateNovelTags(Long novelId, List<String> tagNames) {
+        Novel novel = findNovel(novelId);
+        Set<Tag> tags = resolveTags(tagNames);
+
+        novel.setTags(tags);
+        return novelRepository.save(novel).getTags().stream()
+            .map(TagMapper::toDTO)
+            .toList();
+    }
+
     private Tag findTag(Long tagId) {
         return tagRepository.findById(tagId)
             .orElseThrow(() -> new ResourceNotFoundException("Tag not found"));
+    }
+
+    private Novel findNovel(Long novelId) {
+        return novelRepository.findById(novelId)
+            .orElseThrow(() -> new ResourceNotFoundException("Novel not found"));
+    }
+
+    private Set<Tag> resolveTags(List<String> tagNames) {
+        if (tagNames == null) {
+            throw new BadRequestException("Tag list is required");
+        }
+
+        Set<Tag> tags = new LinkedHashSet<>();
+        for (String tagName : tagNames) {
+            String normalizedName = normalizeName(tagName);
+            tags.add(tagRepository.findByNameIgnoreCase(normalizedName)
+                .orElseThrow(() -> new BadRequestException("Tag does not exist: " + normalizedName)));
+        }
+        return tags;
     }
 
     private String normalizeName(String name) {

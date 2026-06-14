@@ -47,13 +47,14 @@ public class ElasticAdminNovelSearchService {
     public Page<NovelSearchResultDTO> searchNovels(
         String query,
         String status,
+        String genre,
         String tag,
         String source,
         Boolean crawled,
         Pageable pageable
     ) {
         indexManager.ensureNovelIndex();
-        Map<String, Object> response = performSearch(query, status, tag, source, crawled, pageable);
+        Map<String, Object> response = performSearch(query, status, genre, tag, source, crawled, pageable);
         Map<String, Object> hitsWrapper = asMap(response.get("hits"));
         List<Map<String, Object>> hits = asList(hitsWrapper.get("hits"));
         long total = totalHits(hitsWrapper.get("total"));
@@ -77,13 +78,14 @@ public class ElasticAdminNovelSearchService {
     private Map<String, Object> performSearch(
         String query,
         String status,
+        String genre,
         String tag,
         String source,
         Boolean crawled,
         Pageable pageable
     ) {
         Request request = new Request("POST", "/" + indexManager.getNovelIndexName() + "/_search");
-        request.setJsonEntity(searchRequestJson(query, status, tag, source, crawled, pageable));
+        request.setJsonEntity(searchRequestJson(query, status, genre, tag, source, crawled, pageable));
         try {
             String responseBody = EntityUtils.toString(restClient.performRequest(request).getEntity());
             return objectMapper.readValue(responseBody, Map.class);
@@ -95,6 +97,7 @@ public class ElasticAdminNovelSearchService {
     private String searchRequestJson(
         String query,
         String status,
+        String genre,
         String tag,
         String source,
         Boolean crawled,
@@ -102,12 +105,16 @@ public class ElasticAdminNovelSearchService {
     ) {
         String normalizedQuery = normalize(query);
         String normalizedStatus = normalizeStatus(status);
+        String normalizedGenre = normalize(genre);
         String normalizedTag = normalize(tag);
         String normalizedSource = normalize(source);
 
         List<String> filters = new ArrayList<>();
         if (!normalizedStatus.isBlank()) {
             filters.add(termFilter("status", normalizedStatus));
+        }
+        if (!normalizedGenre.isBlank()) {
+            filters.add(termFilter("genres", normalizedGenre));
         }
         if (!normalizedTag.isBlank()) {
             filters.add(termFilter("tags", normalizedTag));
@@ -134,6 +141,7 @@ public class ElasticAdminNovelSearchService {
                       "title.suggest^3",
                       "author^3",
                       "author.suggest^2",
+                      "genres^2",
                       "tags^2",
                       "description",
                       "recommendationText"

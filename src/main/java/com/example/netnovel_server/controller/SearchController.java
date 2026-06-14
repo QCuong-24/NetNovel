@@ -28,11 +28,11 @@ public class SearchController {
     public ResponseEntity<Page<NovelSearchResultDTO>> searchNovels(
         @RequestParam(required = false) String q,
         @RequestParam(required = false) String status,
-        @RequestParam(required = false) String tag,
+        @RequestParam(required = false) String genre,
         @RequestParam(defaultValue = "relevance") String sortMode,
         Pageable pageable
     ) {
-        return ResponseEntity.ok(searchService.searchNovels(q, status, tag, sortMode, pageable));
+        return ResponseEntity.ok(searchService.searchNovels(q, status, genre, sortMode, pageable));
     }
 
     @GetMapping("/suggestions")

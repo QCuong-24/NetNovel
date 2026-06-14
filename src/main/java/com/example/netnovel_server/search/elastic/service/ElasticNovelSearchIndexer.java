@@ -109,6 +109,7 @@ public class ElasticNovelSearchIndexer {
         values.put("title", document.getTitle());
         values.put("author", document.getAuthor());
         values.put("description", document.getDescription());
+        values.put("genres", document.getGenres());
         values.put("tags", document.getTags());
         values.put("status", document.getStatus());
         values.put("views", document.getViews());

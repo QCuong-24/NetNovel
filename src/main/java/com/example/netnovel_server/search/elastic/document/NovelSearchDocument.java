@@ -20,6 +20,8 @@ public class NovelSearchDocument {
 
     private String description;
 
+    private Set<String> genres;
+
     private Set<String> tags;
 
     private String status;

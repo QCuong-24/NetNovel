@@ -107,6 +107,7 @@ public class ElasticNovelIndexManager {
                     }
                   },
                   "description": { "type": "text", "analyzer": "folding_text" },
+                  "genres": { "type": "keyword" },
                   "tags": { "type": "keyword" },
                   "status": { "type": "keyword" },
                   "views": { "type": "long" },

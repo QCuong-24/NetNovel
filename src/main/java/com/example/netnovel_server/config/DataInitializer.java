@@ -1,10 +1,10 @@
 package com.example.netnovel_server.config;
 
 import com.example.netnovel_server.entity.AuthProvider;
+import com.example.netnovel_server.entity.Genre;
 import com.example.netnovel_server.entity.Role;
-import com.example.netnovel_server.entity.Tag;
 import com.example.netnovel_server.entity.User;
-import com.example.netnovel_server.repository.TagRepository;
+import com.example.netnovel_server.repository.GenreRepository;
 import com.example.netnovel_server.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +16,7 @@ import java.util.Set;
 @Configuration
 public class DataInitializer {
 
-    private static final String[] DEFAULT_TAGS = {
+    private static final String[] DEFAULT_GENRES = {
         "Fantasy",
         "Sci-Fi",
         "Romance",
@@ -41,7 +41,7 @@ public class DataInitializer {
     @Bean
     public CommandLineRunner seedData(
         UserRepository userRepository,
-        TagRepository tagRepository,
+        GenreRepository genreRepository,
         PasswordEncoder passwordEncoder
     ) {
         return args -> {
@@ -72,8 +72,8 @@ public class DataInitializer {
                 Set.of(Role.USER)
             );
 
-            for (String tagName : DEFAULT_TAGS) {
-                createTagIfMissing(tagRepository, tagName);
+            for (String genreName : DEFAULT_GENRES) {
+                createGenreIfMissing(genreRepository, genreName);
             }
         };
     }
@@ -101,11 +101,11 @@ public class DataInitializer {
         userRepository.save(user);
     }
 
-    private void createTagIfMissing(TagRepository tagRepository, String name) {
-        if (tagRepository.existsByNameIgnoreCase(name)) {
+    private void createGenreIfMissing(GenreRepository genreRepository, String name) {
+        if (genreRepository.existsByNameIgnoreCase(name)) {
             return;
         }
 
-        tagRepository.save(Tag.builder().name(name).build());
+        genreRepository.save(Genre.builder().name(name).build());
     }
 }

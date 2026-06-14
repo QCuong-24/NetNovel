@@ -3,6 +3,7 @@ package com.example.netnovel_server.search.elastic.mapper;
 import com.example.netnovel_server.entity.Novel;
 import com.example.netnovel_server.entity.NovelChapterInfo;
 import com.example.netnovel_server.entity.NovelSource;
+import com.example.netnovel_server.entity.Genre;
 import com.example.netnovel_server.entity.Tag;
 import com.example.netnovel_server.repository.NovelSourceRepository;
 import com.example.netnovel_server.search.elastic.document.NovelSearchDocument;
@@ -27,6 +28,9 @@ public class NovelSearchDocumentMapper {
         NovelChapterInfo chapterInfo = novel.getChapterInfo();
         NovelSource source = novelSourceRepository.findFirstByNovelIdOrderByLastCrawledAtDesc(novel.getId())
             .orElse(null);
+        Set<String> genreNames = novel.getGenres() == null
+            ? Set.of()
+            : novel.getGenres().stream().map(Genre::getName).collect(Collectors.toSet());
         Set<String> tagNames = novel.getTags() == null
             ? Set.of()
             : novel.getTags().stream().map(Tag::getName).collect(Collectors.toSet());
@@ -36,6 +40,7 @@ public class NovelSearchDocumentMapper {
             .title(novel.getTitle())
             .author(novel.getAuthor())
             .description(novel.getDescription())
+            .genres(genreNames)
             .tags(tagNames)
             .status(novel.getStatus() == null ? null : novel.getStatus().name())
             .views(novel.getViews())
@@ -51,7 +56,7 @@ public class NovelSearchDocumentMapper {
             .sourceNovelUrl(source == null ? null : source.getSourceNovelUrl())
             .popularityScore(popularityScore(novel))
             .freshnessScore(freshnessScore(novel, chapterInfo))
-            .recommendationText(recommendationText(novel, tagNames))
+            .recommendationText(recommendationText(novel, genreNames, tagNames))
             .build();
     }
 
@@ -73,10 +78,11 @@ public class NovelSearchDocumentMapper {
         return 1.0 / (1 + days);
     }
 
-    private String recommendationText(Novel novel, Set<String> tags) {
+    private String recommendationText(Novel novel, Set<String> genres, Set<String> tags) {
         return Stream.of(
                 novel.getTitle(),
                 novel.getAuthor(),
+                String.join(" ", genres),
                 String.join(" ", tags),
                 novel.getDescription()
             )
