@@ -8,6 +8,7 @@ import com.example.netnovel_server.utility.SecurityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -15,20 +16,26 @@ public class NovelInteractionService {
 
     private final NovelRepository novelRepository;
     private final UserRepository userRepository;
-    private final NovelViewRepository novelViewRepository;
+    private final NovelViewStatRepository novelViewStatRepository;
+    private final NovelUserViewRepository novelUserViewRepository;
+    private final UserEventRepository userEventRepository;
     private final NovelFollowRepository novelFollowRepository;
     private final NovelLikeRepository novelLikeRepository;
 
     public NovelInteractionService(
         NovelRepository novelRepository,
         UserRepository userRepository,
-        NovelViewRepository novelViewRepository,
+        NovelViewStatRepository novelViewStatRepository,
+        NovelUserViewRepository novelUserViewRepository,
+        UserEventRepository userEventRepository,
         NovelFollowRepository novelFollowRepository,
         NovelLikeRepository novelLikeRepository
     ) {
         this.novelRepository = novelRepository;
         this.userRepository = userRepository;
-        this.novelViewRepository = novelViewRepository;
+        this.novelViewStatRepository = novelViewStatRepository;
+        this.novelUserViewRepository = novelUserViewRepository;
+        this.userEventRepository = userEventRepository;
         this.novelFollowRepository = novelFollowRepository;
         this.novelLikeRepository = novelLikeRepository;
     }
@@ -38,11 +45,15 @@ public class NovelInteractionService {
         Novel novel = findNovel(novelId);
         Optional<User> user = SecurityUtils.getCurrentUserId().map(this::findUser);
 
-        NovelView view = NovelView.builder()
-            .novel(novel)
-            .user(user.orElse(null))
-            .build();
-        novelViewRepository.save(view);
+        novelViewStatRepository.incrementViewCount(novelId, LocalDate.now());
+        user.ifPresent(currentUser -> {
+            novelUserViewRepository.incrementViewCount(novelId, currentUser.getId());
+            userEventRepository.save(UserEvent.builder()
+                .user(currentUser)
+                .novel(novel)
+                .eventType(UserEventType.VIEW_NOVEL)
+                .build());
+        });
 
         novel.setViews(safeIncrement(novel.getViews()));
         novelRepository.save(novel);

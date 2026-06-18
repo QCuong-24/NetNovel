@@ -16,33 +16,37 @@ import java.time.YearMonth;
 @Service
 public class NovelRankingService {
 
-    private final NovelViewRepository novelViewRepository;
+    private final NovelViewStatRepository novelViewStatRepository;
     private final NovelFollowRepository novelFollowRepository;
     private final NovelLikeRepository novelLikeRepository;
 
     public NovelRankingService(
-        NovelViewRepository novelViewRepository,
+        NovelViewStatRepository novelViewStatRepository,
         NovelFollowRepository novelFollowRepository,
         NovelLikeRepository novelLikeRepository
     ) {
-        this.novelViewRepository = novelViewRepository;
+        this.novelViewStatRepository = novelViewStatRepository;
         this.novelFollowRepository = novelFollowRepository;
         this.novelLikeRepository = novelLikeRepository;
     }
 
     @Transactional(readOnly = true)
     public Page<NovelRankingDTO> getTopViewedByDay(LocalDate date, Pageable pageable) {
-        return getTopViewedBetween(DateTimeUtils.startOfDay(date), DateTimeUtils.endOfDay(date), pageable);
+        return getTopViewedBetween(date, date, pageable);
     }
 
     @Transactional(readOnly = true)
     public Page<NovelRankingDTO> getTopViewedByWeek(LocalDate date, Pageable pageable) {
-        return getTopViewedBetween(DateTimeUtils.startOfWeek(date), DateTimeUtils.endOfWeek(date), pageable);
+        return getTopViewedBetween(
+            DateTimeUtils.startOfWeek(date).toLocalDate(),
+            DateTimeUtils.endOfWeek(date).toLocalDate(),
+            pageable
+        );
     }
 
     @Transactional(readOnly = true)
     public Page<NovelRankingDTO> getTopViewedByMonth(YearMonth month, Pageable pageable) {
-        return getTopViewedBetween(DateTimeUtils.startOfMonth(month), DateTimeUtils.endOfMonth(month), pageable);
+        return getTopViewedBetween(month.atDay(1), month.atEndOfMonth(), pageable);
     }
 
     @Transactional(readOnly = true)
@@ -75,8 +79,8 @@ public class NovelRankingService {
         return getTopLikedBetween(DateTimeUtils.startOfMonth(month), DateTimeUtils.endOfMonth(month), pageable);
     }
 
-    private Page<NovelRankingDTO> getTopViewedBetween(LocalDateTime start, LocalDateTime end, Pageable pageable) {
-        return novelViewRepository.findTopViewedNovelsBetween(start, end, pageable)
+    private Page<NovelRankingDTO> getTopViewedBetween(LocalDate start, LocalDate end, Pageable pageable) {
+        return novelViewStatRepository.findTopViewedNovelsBetween(start, end, pageable)
             .map(item -> toRankingDTO(item.getNovel(), item.getViewCount()));
     }
 

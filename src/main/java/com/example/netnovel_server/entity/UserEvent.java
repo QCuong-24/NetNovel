@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-    name = "bookmarks",
+    name = "user_events",
     indexes = {
-        @Index(name = "idx_bookmarks_novel", columnList = "novel_id"),
-        @Index(name = "idx_bookmarks_chapter", columnList = "chapter_id"),
-        @Index(name = "idx_bookmarks_user_created_at", columnList = "user_id, created_at")
+        @Index(name = "idx_user_events_user_event_at", columnList = "user_id, event_at"),
+        @Index(name = "idx_user_events_novel_event_at", columnList = "novel_id, event_at"),
+        @Index(name = "idx_user_events_type_event_at", columnList = "event_type, event_at")
     }
 )
 @Getter
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Bookmark {
+public class UserEvent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,12 +42,20 @@ public class Bookmark {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Chapter chapter;
 
-    // Time when the user bookmarked the novel or chapter.
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", nullable = false)
+    private UserEventType eventType;
+
+    @Column(nullable = false)
+    private LocalDateTime eventAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String metadata;
 
     @PrePersist
-    private void setCreatedAt() {
-        createdAt = LocalDateTime.now();
+    private void setEventAt() {
+        if (eventAt == null) {
+            eventAt = LocalDateTime.now();
+        }
     }
 }
