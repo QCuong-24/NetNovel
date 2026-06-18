@@ -1,4 +1,4 @@
-import { ArrowLeft, BookOpen, Eye, Heart, Pencil, Plus, RefreshCw, RotateCcw, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, Bookmark, Eye, Heart, Pencil, Plus, RefreshCw, RotateCcw, Trash2, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { routes } from '@/config/routes';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { ChapterListSection } from '@/features/chapters/components/chapter-list-section';
+import { useNovelBookmarkStatus, useToggleNovelBookmarkMutation } from '@/features/collection/hooks/use-collection';
 import { useCreateCrawlTaskMutation } from '@/features/crawl-tasks/hooks/use-crawl-tasks';
 import { NovelCover } from '../components/novel-cover';
 import { NovelForm } from '../components/novel-form';
@@ -63,6 +64,8 @@ export function NovelDetailPage() {
   const deleteNovelMutation = useDeleteNovelMutation(novelId ?? '');
   const followMutation = useToggleNovelFollowMutation(novelId ?? '');
   const likeMutation = useToggleNovelLikeMutation(novelId ?? '');
+  const { data: isNovelBookmarked = false } = useNovelBookmarkStatus(novelId);
+  const bookmarkMutation = useToggleNovelBookmarkMutation(novelId ?? '', isNovelBookmarked);
   const createCrawlTaskMutation = useCreateCrawlTaskMutation();
 
   useEffect(() => {
@@ -317,6 +320,15 @@ export function NovelDetailPage() {
                   <Heart />
                   {interaction?.liked ? t('novelPages.liked') : t('novelPages.like')}
                 </Button>
+                <Button
+                  disabled={bookmarkMutation.isPending}
+                  type="button"
+                  variant={isNovelBookmarked ? 'default' : 'outline'}
+                  onClick={() => bookmarkMutation.mutate()}
+                >
+                  <Bookmark />
+                  {isNovelBookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}
+                </Button>
               </>
             ) : (
               <>
@@ -330,6 +342,12 @@ export function NovelDetailPage() {
                   <Link to={routes.login}>
                     <Heart />
                     {t('novelPages.like')}
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to={routes.login}>
+                    <Bookmark />
+                    {t('bookmarkActions.bookmark')}
                   </Link>
                 </Button>
               </>

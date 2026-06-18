@@ -25,6 +25,10 @@ export const resources = {
         foundationReady: 'Foundation is ready. This page will be wired to backend features next.',
         notFound: 'Page not found',
       },
+      bookmarkActions: {
+        bookmark: 'Bookmark',
+        bookmarked: 'Bookmarked',
+      },
       auth: {
         login: 'Login',
         register: 'Register',
@@ -237,6 +241,32 @@ export const resources = {
         editTitle: 'Chapter {{number}}: {{title}}',
         editNoPermission: 'You need a manager role to edit chapters.',
       },
+      collection: {
+        eyebrow: 'Personal library',
+        title: 'Collection',
+        description: 'Continue from recent reads, revisit bookmarks, and keep up with followed novels.',
+        loading: 'Loading collection...',
+        open: 'Open',
+        lastReading: {
+          title: 'Last reading',
+          empty: 'No reading history yet. Open a chapter to start building this list.',
+          lastReadAt: 'Last read {{date}}',
+        },
+        bookmarks: {
+          title: 'Bookmarks',
+          empty: 'No bookmarks yet.',
+          chapterTitle: 'Chapter {{number}}: {{title}}',
+          filters: {
+            novels: 'Novels',
+            chapters: 'Chapters',
+          },
+        },
+        followedNovels: {
+          title: 'Followed novels',
+          empty: 'You are not following any novels yet.',
+          followedAt: 'Followed {{date}}',
+        },
+      },
       crawlTasks: {
         menu: 'Crawl data',
         eyebrow: 'Crawler workspace',
@@ -398,6 +428,10 @@ export const resources = {
         searchPlaceholder: 'Tìm truyện, tác giả, thể loại, thẻ',
         foundationReady: 'Nền tảng đã sẵn sàng. Trang này sẽ được nối với backend ở bước sau.',
         notFound: 'Không tìm thấy trang',
+      },
+      bookmarkActions: {
+        bookmark: 'Bookmark',
+        bookmarked: 'Đã bookmark',
       },
       auth: {
         login: 'Đăng nhập',
@@ -610,6 +644,32 @@ export const resources = {
         editEyebrow: 'Chỉnh sửa chương',
         editTitle: 'Chương {{number}}: {{title}}',
         editNoPermission: 'Bạn cần quyền manager để chỉnh sửa chương.',
+      },
+      collection: {
+        eyebrow: 'Thư viện cá nhân',
+        title: 'Bộ sưu tập',
+        description: 'Đọc tiếp truyện gần đây, mở lại bookmark và theo dõi các truyện bạn quan tâm.',
+        loading: 'Đang tải bộ sưu tập...',
+        open: 'Mở',
+        lastReading: {
+          title: 'Đọc gần đây',
+          empty: 'Chưa có lịch sử đọc. Hãy mở một chương để bắt đầu danh sách này.',
+          lastReadAt: 'Đọc lần cuối {{date}}',
+        },
+        bookmarks: {
+          title: 'Bookmark',
+          empty: 'Chưa có bookmark nào.',
+          chapterTitle: 'Chương {{number}}: {{title}}',
+          filters: {
+            novels: 'Truyện',
+            chapters: 'Chương',
+          },
+        },
+        followedNovels: {
+          title: 'Truyện đang theo dõi',
+          empty: 'Bạn chưa theo dõi truyện nào.',
+          followedAt: 'Theo dõi {{date}}',
+        },
       },
       crawlTasks: {
         menu: 'Crawl dữ liệu',

@@ -33,6 +33,24 @@ export const endpoints = {
   recommendations: {
     similarNovels: (novelId: string) => `/recommendations/novels/${novelId}/similar`,
   },
+  lastReads: {
+    list: '/last-reads',
+    updateNovelChapter: (novelId: string, chapterId: string) => `/last-reads/novels/${novelId}/chapters/${chapterId}`,
+  },
+  bookmarks: {
+    list: '/bookmarks',
+    novels: '/bookmarks/novels',
+    chapters: '/bookmarks/chapters',
+    novelExists: (novelId: string) => `/bookmarks/novels/${novelId}/exists`,
+    chapterExists: (chapterId: string) => `/bookmarks/chapters/${chapterId}/exists`,
+    createNovel: (novelId: string) => `/bookmarks/novels/${novelId}`,
+    createChapter: (chapterId: string) => `/bookmarks/chapters/${chapterId}`,
+    deleteNovel: (novelId: string) => `/bookmarks/novels/${novelId}`,
+    deleteChapter: (chapterId: string) => `/bookmarks/chapters/${chapterId}`,
+  },
+  follows: {
+    novels: '/follows/novels',
+  },
   users: {
     avatarSignature: '/users/me/avatar/upload-signature',
     avatar: '/users/me/avatar',

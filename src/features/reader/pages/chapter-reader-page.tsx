@@ -4,6 +4,8 @@ import { AdSlot } from '@/features/ads/components/ad-slot';
 import { Button } from '@/components/ui/button';
 import { ChapterNavigation } from '@/features/chapters/components/chapter-navigation';
 import { useChapter, useNovelChapters } from '@/features/chapters/hooks/use-chapters';
+import { hasAuthTokens } from '@/features/auth/lib/auth-storage';
+import { useUpdateLastReadMutation } from '@/features/collection/hooks/use-collection';
 import { useIncreaseNovelViewMutation } from '@/features/novels/hooks/use-novels';
 import { cn } from '@/lib/utils';
 import { ReaderToolbar } from '../components/reader-toolbar';
@@ -17,6 +19,7 @@ export function ChapterReaderPage() {
   const chapterNovelId = chapter?.novelId ? String(chapter.novelId) : novelId;
   const viewedChapterRef = useRef<string | null>(null);
   const increaseViewMutation = useIncreaseNovelViewMutation(chapterNovelId);
+  const updateLastReadMutation = useUpdateLastReadMutation();
   const { data: chapters = [] } = useNovelChapters(chapterNovelId);
   const backToNovel = chapter?.novelId ? `/novels/${chapter.novelId}` : `/novels/${novelId ?? ''}`;
   const editTo =
@@ -52,7 +55,13 @@ export function ChapterReaderPage() {
 
     viewedChapterRef.current = viewKey;
     increaseViewMutation.mutate();
-  }, [chapter?.chapterId, chapterNovelId, increaseViewMutation]);
+    if (hasAuthTokens()) {
+      updateLastReadMutation.mutate({
+        chapterId: String(chapter.chapterId),
+        novelId: chapterNovelId,
+      });
+    }
+  }, [chapter?.chapterId, chapterNovelId, increaseViewMutation, updateLastReadMutation]);
 
   useEffect(() => {
     function isEditableTarget(target: EventTarget | null) {
