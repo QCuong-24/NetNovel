@@ -23,7 +23,6 @@ const navItems = [
   { to: routes.collection, key: 'nav.collection' },
   { to: routes.rankings, key: 'nav.rankings' },
   { to: routes.dashboard, key: 'nav.dashboard' },
-  { to: routes.notifications, key: 'nav.notifications' },
 ];
 
 const libraryItems = [
@@ -138,8 +137,8 @@ export function MobileNav({ user }: MobileNavProps) {
           <Menu />
         </Button>
       </SheetTrigger>
-      <SheetContent>
-        <div className="grid gap-6">
+      <SheetContent className="overflow-y-auto">
+        <div className="grid min-h-full content-start gap-6 pb-4">
           <div className="grid gap-1 pr-10">
             <SheetTitle className="flex items-center gap-2 text-left text-lg font-extrabold text-primary">
               <LibraryBig className="size-6" />
