@@ -120,7 +120,7 @@ export function CollectionPage() {
               <div className="grid gap-2" key={item.followId}>
                 <NovelCard novel={item.novel} />
                 <p className="text-xs font-semibold text-muted-foreground">
-                  {t('collection.followedNovels.followedAt', { date: formatDateTime(item.followedAt) })}
+                  {t('collection.followedNovels.followedAt', { date: formatDateTime(item.followedAt ?? undefined) })}
                 </p>
               </div>
             ))}
@@ -204,7 +204,7 @@ function BookmarkRow({ bookmark }: { bookmark: BookmarkItem }) {
         <Link className="line-clamp-1 text-sm text-muted-foreground hover:text-foreground" to={novelHref}>
           {bookmark.novelTitle}
         </Link>
-        <p className="text-xs text-muted-foreground">{formatDateTime(bookmark.createdAt)}</p>
+        <p className="text-xs text-muted-foreground">{formatDateTime(bookmark.createdAt ?? undefined)}</p>
       </div>
       <Button className="self-center" size="sm" variant="outline" asChild>
         <Link to={primaryHref}>{t('collection.open')}</Link>
@@ -243,7 +243,7 @@ function LastReadingRow({ item }: { item: LastReadNovel }) {
           {item.novelTitle}
         </Link>
         <p className="text-xs text-muted-foreground">
-          {t('collection.lastReading.lastReadAt', { date: formatDateTime(item.lastReadAt) })}
+          {t('collection.lastReading.lastReadAt', { date: formatDateTime(item.lastReadAt ?? undefined) })}
         </p>
       </div>
       <Button className="self-center" size="sm" variant="outline" asChild>

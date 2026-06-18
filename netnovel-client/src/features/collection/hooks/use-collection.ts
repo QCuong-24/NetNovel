@@ -69,7 +69,13 @@ export function useToggleNovelBookmarkMutation(novelId: string, bookmarked?: boo
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => (bookmarked ? deleteNovelBookmark(novelId) : createNovelBookmark(novelId)),
+    mutationFn: async () => {
+      if (bookmarked) {
+        await deleteNovelBookmark(novelId);
+      } else {
+        await createNovelBookmark(novelId);
+      }
+    },
     onSuccess: () => {
       queryClient.setQueryData([...queryKeys.collection, 'bookmarkStatus', 'novel', novelId], !bookmarked);
       queryClient.invalidateQueries({ queryKey: queryKeys.collection });
@@ -85,7 +91,13 @@ export function useToggleChapterBookmarkMutation(chapterId: string, bookmarked?:
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => (bookmarked ? deleteChapterBookmark(chapterId) : createChapterBookmark(chapterId)),
+    mutationFn: async () => {
+      if (bookmarked) {
+        await deleteChapterBookmark(chapterId);
+      } else {
+        await createChapterBookmark(chapterId);
+      }
+    },
     onSuccess: () => {
       queryClient.setQueryData([...queryKeys.collection, 'bookmarkStatus', 'chapter', chapterId], !bookmarked);
       queryClient.invalidateQueries({ queryKey: queryKeys.collection });
