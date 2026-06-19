@@ -19,6 +19,9 @@ import { ProfilePage } from '@/features/users/pages/profile-page';
 import { CrawlTasksPage } from '@/features/crawl-tasks/pages/crawl-tasks-page';
 import { SearchPage } from '@/features/search/pages/search-page';
 import { CollectionPage } from '@/features/collection/pages/collection-page';
+import { RankingPage } from '@/features/rankings/pages/ranking-page';
+import { DashboardPage } from '@/features/dashboard/pages/dashboard-page';
+import { NotificationPage } from '@/features/notifications/pages/notification-page';
 
 export const router = createBrowserRouter([
   {
@@ -31,7 +34,7 @@ export const router = createBrowserRouter([
       { path: 'novels/completed', element: <NovelListPage kind="completed" /> },
       { path: 'novels/genres/:genreName', element: <NovelListPage kind="genre" /> },
       { path: 'search', element: <SearchPage /> },
-      { path: 'rankings', element: <PlaceholderPage titleKey="nav.rankings" /> },
+      { path: 'rankings', element: <RankingPage /> },
       {
         element: <ProtectedRoute />,
         children: [
@@ -39,14 +42,14 @@ export const router = createBrowserRouter([
           { path: 'novels/:novelId/chapters/new', element: <ChapterCreatePage /> },
           { path: 'novels/:novelId/chapters/:chapterId/edit', element: <ChapterEditPage /> },
           { path: 'collection', element: <CollectionPage /> },
-          { path: 'notifications', element: <PlaceholderPage titleKey="nav.notifications" /> },
+          { path: 'notifications', element: <NotificationPage /> },
           { path: 'profile', element: <ProfilePage /> },
           { path: 'crawl-tasks', element: <CrawlTasksPage /> },
           {
             path: 'dashboard',
             element: <DashboardLayout />,
             children: [
-              { index: true, element: <PlaceholderPage titleKey="nav.dashboard" /> },
+              { index: true, element: <DashboardPage /> },
               { path: 'novels', element: <PlaceholderPage titleKey="nav.myNovels" /> },
             ],
           },

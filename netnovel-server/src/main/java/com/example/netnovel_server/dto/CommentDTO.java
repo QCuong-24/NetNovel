@@ -29,6 +29,8 @@ public class CommentDTO {
 
     private Boolean deleted;
 
+    private Long replyCount;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime lastActivityAt;

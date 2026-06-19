@@ -21,6 +21,7 @@ public class NovelInteractionService {
     private final UserEventRepository userEventRepository;
     private final NovelFollowRepository novelFollowRepository;
     private final NovelLikeRepository novelLikeRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     public NovelInteractionService(
         NovelRepository novelRepository,
@@ -29,7 +30,8 @@ public class NovelInteractionService {
         NovelUserViewRepository novelUserViewRepository,
         UserEventRepository userEventRepository,
         NovelFollowRepository novelFollowRepository,
-        NovelLikeRepository novelLikeRepository
+        NovelLikeRepository novelLikeRepository,
+        BookmarkRepository bookmarkRepository
     ) {
         this.novelRepository = novelRepository;
         this.userRepository = userRepository;
@@ -38,6 +40,7 @@ public class NovelInteractionService {
         this.userEventRepository = userEventRepository;
         this.novelFollowRepository = novelFollowRepository;
         this.novelLikeRepository = novelLikeRepository;
+        this.bookmarkRepository = bookmarkRepository;
     }
 
     @Transactional
@@ -107,6 +110,29 @@ public class NovelInteractionService {
         return buildInteractionDTO(novel, Optional.of(userId));
     }
 
+    @Transactional
+    public NovelInteractionDTO toggleBookmark(Long novelId) {
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+        User user = findUser(userId);
+        Novel novel = findNovel(novelId);
+
+        Optional<Bookmark> existingBookmark = bookmarkRepository.findByUserIdAndNovelId(userId, novelId);
+        if (existingBookmark.isPresent()) {
+            bookmarkRepository.delete(existingBookmark.get());
+            novel.setBookmarks(safeDecrement(novel.getBookmarks()));
+        } else {
+            Bookmark bookmark = Bookmark.builder()
+                .user(user)
+                .novel(novel)
+                .build();
+            bookmarkRepository.save(bookmark);
+            novel.setBookmarks(safeIncrement(novel.getBookmarks()));
+        }
+
+        novelRepository.save(novel);
+        return buildInteractionDTO(novel, Optional.of(userId));
+    }
+
     @Transactional(readOnly = true)
     public NovelInteractionDTO getMyInteraction(Long novelId) {
         Long userId = SecurityUtils.getCurrentUserIdOrThrow();
@@ -121,14 +147,19 @@ public class NovelInteractionService {
         boolean liked = userId
             .map(id -> novelLikeRepository.existsByUserIdAndNovelId(id, novel.getId()))
             .orElse(false);
+        boolean bookmarked = userId
+            .map(id -> bookmarkRepository.existsByUserIdAndNovelId(id, novel.getId()))
+            .orElse(false);
 
         return NovelInteractionDTO.builder()
             .novelId(novel.getId())
             .followed(followed)
             .liked(liked)
+            .bookmarked(bookmarked)
             .views(novel.getViews())
             .follows(novel.getFollows())
             .likes(novel.getLikes())
+            .bookmarks(novel.getBookmarks())
             .build();
     }
 

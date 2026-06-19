@@ -30,6 +30,7 @@ public final class CommentMapper {
             .userAvatarUrl(user != null ? user.getProfilePictureUrl() : null)
             .content(comment.getContent())
             .deleted(comment.getDeleted())
+            .replyCount(comment.getReplyCount())
             .createdAt(comment.getCreatedAt())
             .lastActivityAt(comment.getLastActivityAt())
             .build();

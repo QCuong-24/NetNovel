@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -80,5 +81,12 @@ public class CommentController {
     @Operation(summary = "Soft delete own comment")
     public ResponseEntity<CommentDTO> deleteComment(@PathVariable Long commentId) {
         return ResponseEntity.ok(commentService.deleteComment(commentId));
+    }
+
+    @DeleteMapping("/api/comments/{commentId}/moderation")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Soft delete a comment as manager or admin")
+    public ResponseEntity<CommentDTO> moderateDeleteComment(@PathVariable Long commentId) {
+        return ResponseEntity.ok(commentService.moderateDeleteComment(commentId));
     }
 }

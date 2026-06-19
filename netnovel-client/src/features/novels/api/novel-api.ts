@@ -108,6 +108,12 @@ export async function toggleNovelLike(novelId: string) {
   return response.data;
 }
 
+export async function toggleNovelBookmark(novelId: string) {
+  const response = await httpClient.post<NovelInteraction>(endpoints.novels.toggleBookmark(novelId));
+
+  return response.data;
+}
+
 export async function getTags() {
   const response = await httpClient.get<Tag[]>(endpoints.tags.list);
 

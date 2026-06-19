@@ -17,6 +17,8 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final String NOTIFICATION_STREAM_PATH = "/api/notifications/stream";
+
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
 
@@ -32,13 +34,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         FilterChain filterChain
     ) throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
+        String token = null;
 
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            token = authorizationHeader.substring(7);
+        } else if (isNotificationStreamRequest(request)) {
+            token = request.getParameter("access_token");
+        }
+
+        if (token == null || token.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authorizationHeader.substring(7);
         try {
             Long userId = jwtService.extractUserId(token);
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -56,5 +64,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isNotificationStreamRequest(HttpServletRequest request) {
+        return NOTIFICATION_STREAM_PATH.equals(request.getServletPath());
     }
 }

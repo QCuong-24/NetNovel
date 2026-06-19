@@ -15,9 +15,13 @@ public class NovelInteractionDTO {
 
     private Boolean liked;
 
+    private Boolean bookmarked;
+
     private Long views;
 
     private Long follows;
 
     private Long likes;
+
+    private Long bookmarks;
 }

@@ -1,4 +1,4 @@
-import { DatabaseZap, LayoutDashboard, LogOut, Upload, UserRound } from 'lucide-react';
+import { Bell, DatabaseZap, LayoutDashboard, LogOut, Upload, UserRound } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -74,6 +74,12 @@ export function UserMenu({ user, isLoggingOut = false, onLogout }: UserMenuProps
             <Link to={routes.profile}>
               <UserRound />
               {t('nav.profile')}
+            </Link>
+          </Button>
+          <Button asChild className="justify-start" variant="ghost">
+            <Link to={routes.notifications}>
+              <Bell />
+              {t('nav.notifications')}
             </Link>
           </Button>
           <Button asChild className="justify-start" variant="ghost">

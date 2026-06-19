@@ -34,6 +34,7 @@ public final class NovelMapper {
             .views(novel.getViews())
             .follows(novel.getFollows())
             .likes(novel.getLikes())
+            .bookmarks(novel.getBookmarks())
             .genres(toGenreNames(novel.getGenres()))
             .status(novel.getStatus() != null ? novel.getStatus().name() : null)
             .chapterCount(chapterInfo != null ? chapterInfo.getChapterCount() : 0)

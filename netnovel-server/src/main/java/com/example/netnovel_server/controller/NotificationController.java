@@ -1,14 +1,17 @@
 package com.example.netnovel_server.controller;
 
+import com.example.netnovel_server.dto.NotificationCreateDTO;
 import com.example.netnovel_server.dto.NotificationDTO;
 import com.example.netnovel_server.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,15 +26,19 @@ public class NotificationController {
     }
 
     @GetMapping
-    @Operation(summary = "Get current user's notifications")
-    public ResponseEntity<List<NotificationDTO>> getMyNotifications() {
-        return ResponseEntity.ok(notificationService.getMyNotifications());
+    @Operation(summary = "Get current user's notifications with optional filters")
+    public ResponseEntity<Page<NotificationDTO>> getMyNotifications(
+        @RequestParam(required = false) Boolean isRead,
+        @RequestParam(required = false) String type,
+        Pageable pageable
+    ) {
+        return ResponseEntity.ok(notificationService.getMyNotifications(isRead, type, pageable));
     }
 
     @GetMapping("/unread")
     @Operation(summary = "Get current user's unread notifications")
-    public ResponseEntity<List<NotificationDTO>> getMyUnreadNotifications() {
-        return ResponseEntity.ok(notificationService.getMyUnreadNotifications());
+    public ResponseEntity<Page<NotificationDTO>> getMyUnreadNotifications(Pageable pageable) {
+        return ResponseEntity.ok(notificationService.getMyUnreadNotifications(pageable));
     }
 
     @GetMapping("/unread/count")
@@ -71,5 +78,15 @@ public class NotificationController {
     public ResponseEntity<Void> deleteAllMyNotifications() {
         notificationService.deleteAllMyNotifications();
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/users/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Send a manual notification to a user")
+    public ResponseEntity<NotificationDTO> sendNotificationToUser(
+        @PathVariable Long userId,
+        @RequestBody NotificationCreateDTO request
+    ) {
+        return ResponseEntity.ok(notificationService.sendAdminNotificationToUser(userId, request));
     }
 }

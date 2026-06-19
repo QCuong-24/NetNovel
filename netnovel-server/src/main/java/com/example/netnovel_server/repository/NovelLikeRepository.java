@@ -27,6 +27,13 @@ public interface NovelLikeRepository extends JpaRepository<NovelLike, Long> {
     void deleteByNovelId(Long novelId);
 
     @Query("""
+        select count(l)
+        from NovelLike l
+        where l.likedAt between :start and :end
+        """)
+    long countTotalLikesBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("""
         select l.novel as novel, count(l.id) as likeCount
         from NovelLike l
         where l.likedAt between :start and :end

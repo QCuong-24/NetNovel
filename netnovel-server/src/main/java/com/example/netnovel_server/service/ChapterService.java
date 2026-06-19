@@ -21,15 +21,18 @@ public class ChapterService {
 
     private final ChapterRepository chapterRepository;
     private final NovelRepository novelRepository;
+    private final BookmarkRepository bookmarkRepository;
     private final NovelChapterInfoService novelChapterInfoService;
 
     public ChapterService(
         ChapterRepository chapterRepository,
         NovelRepository novelRepository,
+        BookmarkRepository bookmarkRepository,
         NovelChapterInfoService novelChapterInfoService
     ) {
         this.chapterRepository = chapterRepository;
         this.novelRepository = novelRepository;
+        this.bookmarkRepository = bookmarkRepository;
         this.novelChapterInfoService = novelChapterInfoService;
     }
 
@@ -88,7 +91,11 @@ public class ChapterService {
     @Transactional
     public void deleteChapter(Long chapterId) {
         Chapter chapter = findChapter(chapterId);
-        Long novelId = chapter.getNovel().getId();
+        Novel novel = chapter.getNovel();
+        Long novelId = novel.getId();
+        long bookmarkCount = bookmarkRepository.countByChapterId(chapterId);
+        novel.setBookmarks(safeSubtract(novel.getBookmarks(), bookmarkCount));
+        novelRepository.save(novel);
         chapterRepository.delete(chapter);
         chapterRepository.flush();
         novelChapterInfoService.refresh(novelId);
@@ -103,6 +110,13 @@ public class ChapterService {
         if (!novelRepository.existsById(novelId)) {
             throw new ResourceNotFoundException("Novel not found");
         }
+    }
+
+    private Long safeSubtract(Long value, long amount) {
+        if (value == null || value <= amount) {
+            return 0L;
+        }
+        return value - amount;
     }
 
 }

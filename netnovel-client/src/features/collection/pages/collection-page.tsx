@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { NovelCard } from '@/features/novels/components/novel-card';
 import { formatDateTime } from '@/features/novels/lib/novel-format';
+import { useHashTab } from '@/hooks/use-hash-tab';
 import { cn } from '@/lib/utils';
 import { useBookmarks, useFollowedNovels, useLastReading } from '../hooks/use-collection';
 import type { Bookmark as BookmarkItem, BookmarkKind, LastReadNovel } from '../types';
@@ -19,10 +20,11 @@ const collectionTabs: Array<{ icon: typeof BookOpen; key: CollectionTab; labelKe
   { icon: Bookmark, key: 'bookmarks', labelKey: 'collection.bookmarks.title' },
   { icon: HeartHandshake, key: 'followedNovels', labelKey: 'collection.followedNovels.title' },
 ];
+const collectionTabKeys = collectionTabs.map((tab) => tab.key);
 
 export function CollectionPage() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<CollectionTab>('lastReading');
+  const [activeTab, setActiveTab] = useHashTab(collectionTabKeys, 'lastReading');
   const [bookmarkKind, setBookmarkKind] = useState<BookmarkKind>('novels');
   const lastReadingQuery = useLastReading();
   const bookmarksQuery = useBookmarks(bookmarkKind);

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { routes } from '@/config/routes';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { ChapterListSection } from '@/features/chapters/components/chapter-list-section';
-import { useNovelBookmarkStatus, useToggleNovelBookmarkMutation } from '@/features/collection/hooks/use-collection';
+import { CommentSection } from '@/features/comments/components/comment-section';
 import { useCreateCrawlTaskMutation } from '@/features/crawl-tasks/hooks/use-crawl-tasks';
 import { NovelCover } from '../components/novel-cover';
 import { NovelForm } from '../components/novel-form';
@@ -21,6 +21,7 @@ import {
   useMyNovelInteraction,
   useNovel,
   useToggleNovelFollowMutation,
+  useToggleNovelBookmarkMutation,
   useToggleNovelLikeMutation,
   useUpdateNovelMutation,
 } from '../hooks/use-novels';
@@ -28,8 +29,9 @@ import type { NovelPayload } from '../types';
 
 const metricItems = [
   { key: 'views', labelKey: 'novelPages.metrics.views', icon: Eye },
-  { key: 'follows', labelKey: 'novelPages.metrics.follows', icon: Users },
   { key: 'likes', labelKey: 'novelPages.metrics.likes', icon: Heart },
+  { key: 'bookmarks', labelKey: 'novelPages.metrics.bookmarks', icon: Bookmark },
+  { key: 'follows', labelKey: 'novelPages.metrics.follows', icon: Users },
 ] as const;
 
 const crawledSourcePattern = /\[Crawled Source:\s*(https?:\/\/[^\]]+)\]/i;
@@ -64,8 +66,7 @@ export function NovelDetailPage() {
   const deleteNovelMutation = useDeleteNovelMutation(novelId ?? '');
   const followMutation = useToggleNovelFollowMutation(novelId ?? '');
   const likeMutation = useToggleNovelLikeMutation(novelId ?? '');
-  const { data: isNovelBookmarked = false } = useNovelBookmarkStatus(novelId);
-  const bookmarkMutation = useToggleNovelBookmarkMutation(novelId ?? '', isNovelBookmarked);
+  const bookmarkMutation = useToggleNovelBookmarkMutation(novelId ?? '');
   const createCrawlTaskMutation = useCreateCrawlTaskMutation();
 
   useEffect(() => {
@@ -283,7 +284,7 @@ export function NovelDetailPage() {
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {metricItems.map((item) => (
               <Card key={item.key}>
                 <CardContent className="flex items-center gap-3 p-4">
@@ -323,11 +324,11 @@ export function NovelDetailPage() {
                 <Button
                   disabled={bookmarkMutation.isPending}
                   type="button"
-                  variant={isNovelBookmarked ? 'default' : 'outline'}
+                  variant={interaction?.bookmarked ? 'default' : 'outline'}
                   onClick={() => bookmarkMutation.mutate()}
                 >
                   <Bookmark />
-                  {isNovelBookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}
+                  {interaction?.bookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}
                 </Button>
               </>
             ) : (
@@ -382,6 +383,7 @@ export function NovelDetailPage() {
           <ChapterListSection novelId={String(novel.novelId)} />
         </div>
       </section>
+      <CommentSection target={{ id: String(novel.novelId), type: 'novel' }} />
       <SimilarNovelsSection novelId={String(novel.novelId)} />
     </main>
   );

@@ -11,6 +11,7 @@ import type { User } from '@/features/auth/types';
 import { NovelCard } from '@/features/novels/components/novel-card';
 import { useGenres, useTags } from '@/features/novels/hooks/use-novels';
 import type { PageResponse, Novel } from '@/features/novels/types';
+import { useHashTab } from '@/hooks/use-hash-tab';
 import { useAdvancedNovelSearch, usePublicNovelSearch, useReindexNovelsMutation } from '../hooks/use-search';
 import type { AdvancedNovelSearchParams, PublicNovelSearchParams, SearchSort } from '../types';
 
@@ -30,6 +31,8 @@ function clampPage(page: number, totalPages: number) {
   return Math.min(Math.max(page, 0), totalPages - 1);
 }
 
+const searchTabs = ['public', 'advanced', 'reindex'] as const;
+
 export function SearchPage() {
   const { t } = useTranslation();
   const [searchParams] = useSearchParams();
@@ -37,13 +40,13 @@ export function SearchPage() {
   const showAdvanced = canUseAdvancedSearch(user);
   const showReindex = isAdmin(user);
   const publicQuery = searchParams.get('q') ?? '';
-  const [activeTab, setActiveTab] = useState<'public' | 'advanced' | 'reindex'>('public');
+  const [activeTab, setActiveTab] = useHashTab(searchTabs, 'public');
 
   useEffect(() => {
     if (publicQuery.trim()) {
       setActiveTab('public');
     }
-  }, [publicQuery]);
+  }, [publicQuery, setActiveTab]);
 
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">

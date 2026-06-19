@@ -70,6 +70,10 @@ public class Comment {
     @Builder.Default
     private Boolean deleted = false;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Long replyCount = 0L;
+
     private LocalDateTime deletedAt;
 
     @PrePersist
@@ -79,6 +83,9 @@ public class Comment {
         lastActivityAt = now;
         if (deleted == null) {
             deleted = false;
+        }
+        if (replyCount == null) {
+            replyCount = 0L;
         }
     }
 

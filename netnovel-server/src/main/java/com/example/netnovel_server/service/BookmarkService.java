@@ -127,7 +127,11 @@ public class BookmarkService {
             .novel(novel)
             .build();
 
-        return BookmarkMapper.toDTO(bookmarkRepository.save(bookmark));
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+        novel.setBookmarks(safeIncrement(novel.getBookmarks()));
+        novelRepository.save(novel);
+
+        return BookmarkMapper.toDTO(savedBookmark);
     }
 
     @Transactional
@@ -145,13 +149,20 @@ public class BookmarkService {
             .chapter(chapter)
             .build();
 
-        return BookmarkMapper.toDTO(bookmarkRepository.save(bookmark));
+        Bookmark savedBookmark = bookmarkRepository.save(bookmark);
+        Novel novel = chapter.getNovel();
+        novel.setBookmarks(safeIncrement(novel.getBookmarks()));
+        novelRepository.save(novel);
+
+        return BookmarkMapper.toDTO(savedBookmark);
     }
 
     @Transactional
     public void deleteMyBookmark(Long bookmarkId) {
         Long userId = SecurityUtils.getCurrentUserIdOrThrow();
-        bookmarkRepository.delete(findOwnedBookmark(bookmarkId, userId));
+        Bookmark bookmark = findOwnedBookmark(bookmarkId, userId);
+        decrementNovelBookmarkCount(bookmark);
+        bookmarkRepository.delete(bookmark);
     }
 
     @Transactional
@@ -160,7 +171,10 @@ public class BookmarkService {
         if (!bookmarkRepository.existsByUserIdAndNovelId(userId, novelId)) {
             throw new ResourceNotFoundException("Novel bookmark not found");
         }
-        bookmarkRepository.deleteByUserIdAndNovelId(userId, novelId);
+        Bookmark bookmark = bookmarkRepository.findByUserIdAndNovelId(userId, novelId)
+            .orElseThrow(() -> new ResourceNotFoundException("Novel bookmark not found"));
+        decrementNovelBookmarkCount(bookmark);
+        bookmarkRepository.delete(bookmark);
     }
 
     @Transactional
@@ -169,7 +183,10 @@ public class BookmarkService {
         if (!bookmarkRepository.existsByUserIdAndChapterId(userId, chapterId)) {
             throw new ResourceNotFoundException("Chapter bookmark not found");
         }
-        bookmarkRepository.deleteByUserIdAndChapterId(userId, chapterId);
+        Bookmark bookmark = bookmarkRepository.findByUserIdAndChapterId(userId, chapterId)
+            .orElseThrow(() -> new ResourceNotFoundException("Chapter bookmark not found"));
+        decrementNovelBookmarkCount(bookmark);
+        bookmarkRepository.delete(bookmark);
     }
 
     private Bookmark findOwnedBookmark(Long bookmarkId, Long userId) {
@@ -190,5 +207,28 @@ public class BookmarkService {
     private Chapter findChapter(Long chapterId) {
         return chapterRepository.findById(chapterId)
             .orElseThrow(() -> new ResourceNotFoundException("Chapter not found"));
+    }
+
+    private void decrementNovelBookmarkCount(Bookmark bookmark) {
+        Novel novel = bookmark.getNovel();
+        if (novel == null && bookmark.getChapter() != null) {
+            novel = bookmark.getChapter().getNovel();
+        }
+        if (novel == null) {
+            return;
+        }
+        novel.setBookmarks(safeDecrement(novel.getBookmarks()));
+        novelRepository.save(novel);
+    }
+
+    private Long safeIncrement(Long value) {
+        return value == null ? 1L : value + 1;
+    }
+
+    private Long safeDecrement(Long value) {
+        if (value == null || value <= 0) {
+            return 0L;
+        }
+        return value - 1;
     }
 }

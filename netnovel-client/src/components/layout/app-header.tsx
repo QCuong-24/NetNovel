@@ -1,9 +1,10 @@
-import { Bell, ChevronDown, LibraryBig, Search } from 'lucide-react';
+import { ChevronDown, LibraryBig, Search } from 'lucide-react';
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser, useLogoutMutation } from '@/features/auth/hooks/use-auth';
+import { NotificationDropdown } from '@/features/notifications/components/notification-dropdown';
 import { useSearchSuggestions } from '@/features/search/hooks/use-search';
 import type { SearchSuggestion } from '@/features/search/types';
 import { LanguageSwitcher } from './language-switcher';
@@ -316,11 +317,7 @@ export function AppHeader() {
         <div className="ml-auto flex items-center gap-1 lg:ml-0">
           <ThemeToggle />
           <LanguageSwitcher />
-          <Button aria-label={t('nav.notifications')} size="icon" variant="ghost" asChild>
-            <Link to={routes.notifications}>
-              <Bell />
-            </Link>
-          </Button>
+          {user ? <NotificationDropdown /> : null}
           {user ? (
             <UserMenu
               user={user}

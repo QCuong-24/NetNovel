@@ -1,4 +1,4 @@
-import { Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -27,11 +27,15 @@ export function ChapterListSection({ novelId }: ChapterListSectionProps) {
   const deleteChapterMutation = useDeleteChapterMutation(novelId);
   const canEditChapter = canManageNovels(user);
   const [showAllChapters, setShowAllChapters] = useState(false);
+  const [isDescending, setIsDescending] = useState(false);
   const [pendingDeleteCountdowns, setPendingDeleteCountdowns] = useState<Record<number, number>>({});
   const deleteTimeoutsRef = useRef(new Map<number, ReturnType<typeof setTimeout>>());
   const deleteIntervalsRef = useRef(new Map<number, ReturnType<typeof setInterval>>());
-  const visibleChapters = showAllChapters ? chapters : chapters.slice(0, 10);
-  const hasHiddenChapters = chapters.length > visibleChapters.length;
+  const sortedChapters = [...chapters].sort((left, right) =>
+    isDescending ? right.chapterNumber - left.chapterNumber : left.chapterNumber - right.chapterNumber,
+  );
+  const visibleChapters = showAllChapters ? sortedChapters : sortedChapters.slice(0, 10);
+  const hasHiddenChapters = sortedChapters.length > visibleChapters.length;
 
   useEffect(() => {
     const timeouts = deleteTimeoutsRef.current;
@@ -97,13 +101,25 @@ export function ChapterListSection({ novelId }: ChapterListSectionProps) {
     <Card>
       <CardHeader className="flex w-full flex-row items-center justify-between gap-3">
         <CardTitle>{t('chapters.title')}</CardTitle>
-        {canEditChapter ? (
-          <Button aria-label={t('chapters.newChapter')} asChild className="ml-auto" size="icon" variant="outline">
-            <Link to={`/novels/${novelId}/chapters/new`}>
-              <Plus />
-            </Link>
+        <div className="ml-auto flex gap-2">
+          <Button
+            aria-label={isDescending ? t('chapters.sortAscending') : t('chapters.sortDescending')}
+            size="icon"
+            title={isDescending ? t('chapters.sortAscending') : t('chapters.sortDescending')}
+            type="button"
+            variant="outline"
+            onClick={() => setIsDescending((current) => !current)}
+          >
+            {isDescending ? <ArrowUpAZ /> : <ArrowDownAZ />}
           </Button>
-        ) : null}
+          {canEditChapter ? (
+            <Button aria-label={t('chapters.newChapter')} asChild size="icon" variant="outline">
+              <Link to={`/novels/${novelId}/chapters/new`}>
+                <Plus />
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       </CardHeader>
       <CardContent className="grid gap-2">
         {isLoading ? <p className="text-sm text-muted-foreground">{t('chapters.loading')}</p> : null}
@@ -179,7 +195,7 @@ export function ChapterListSection({ novelId }: ChapterListSectionProps) {
             onClick={() => setShowAllChapters((current) => !current)}
           >
             {hasHiddenChapters
-              ? t('chapters.viewMore', { count: chapters.length - visibleChapters.length })
+              ? t('chapters.viewMore', { count: sortedChapters.length - visibleChapters.length })
               : t('chapters.viewLess')}
           </Button>
         ) : null}

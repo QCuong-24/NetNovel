@@ -1,0 +1,17 @@
+services:
+  postgres:
+    ports: !override
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  rabbitmq:
+    ports: !override
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+
+  elasticsearch:
+    ports: !override
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+
+  server:
+    ports: !override
+      - "${APP_PORT:-8080}:8080"

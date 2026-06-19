@@ -109,6 +109,9 @@ public class CommentService {
         root.setLastActivityAt(LocalDateTime.now());
         commentRepository.save(root);
 
+        parent.setReplyCount(safeIncrement(parent.getReplyCount()));
+        commentRepository.save(parent);
+
         Comment savedReply = commentRepository.save(reply);
         sendReplyNotification(parent, savedReply);
         return CommentMapper.toDTO(savedReply);
@@ -134,6 +137,16 @@ public class CommentService {
         Comment comment = findComment(commentId);
         ensureOwner(comment);
 
+        return softDelete(comment);
+    }
+
+    @Transactional
+    public CommentDTO moderateDeleteComment(Long commentId) {
+        Comment comment = findComment(commentId);
+        return softDelete(comment);
+    }
+
+    private CommentDTO softDelete(Comment comment) {
         comment.setContent(DELETED_COMMENT_CONTENT);
         comment.setDeleted(true);
         comment.setDeletedAt(LocalDateTime.now());
@@ -191,6 +204,10 @@ public class CommentService {
             root.setLastActivityAt(LocalDateTime.now());
             commentRepository.save(root);
         }
+    }
+
+    private Long safeIncrement(Long value) {
+        return value == null ? 1L : value + 1;
     }
 
     private void sendReplyNotification(Comment parent, Comment reply) {

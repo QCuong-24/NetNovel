@@ -1,4 +1,4 @@
-import { BookOpen, Eye, Heart, Users } from 'lucide-react';
+import { BookOpen, Bookmark, Eye, Heart, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
@@ -21,18 +21,22 @@ export function NovelCard({ novel }: NovelCardProps) {
           <Link to={`/novels/${novel.novelId}`}>
             <NovelCover className="rounded-md" src={novel.coverImageUrl} title={novel.title} />
           </Link>
-          <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+          <div className="grid grid-cols-4 gap-2 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Eye className="size-3.5" />
               {formatCount(novel.views)}
             </span>
             <span className="flex items-center gap-1">
-              <Users className="size-3.5" />
-              {formatCount(novel.follows)}
-            </span>
-            <span className="flex items-center gap-1">
               <Heart className="size-3.5" />
               {formatCount(novel.likes)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Bookmark className="size-3.5" />
+              {formatCount(novel.bookmarks)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Users className="size-3.5" />
+              {formatCount(novel.follows)}
             </span>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import type { User } from '@/features/auth/types';
 import { formatDateTime } from '@/features/novels/lib/novel-format';
 import { canManageNovels } from '@/features/novels/lib/novel-permissions';
+import { useHashTab } from '@/hooks/use-hash-tab';
 import {
   useCreateCrawlTaskMutation,
   useCrawlChapterRecords,
@@ -28,6 +29,7 @@ const taskStatuses: CrawlTaskStatus[] = [
 ];
 
 const chapterStatuses: CrawlChapterStatus[] = ['SUCCESS', 'FAILED'];
+const crawlTaskTabs = ['tasks', 'records'] as const;
 
 function isAdmin(user?: User) {
   return Boolean(user?.roles?.includes('ADMIN'));
@@ -65,7 +67,7 @@ export function CrawlTasksPage() {
   const { data: user, isLoading: isUserLoading } = useCurrentUser();
   const canAccessTasks = canManageNovels(user);
   const canAccessRecords = isAdmin(user);
-  const [activeTab, setActiveTab] = useState<'tasks' | 'records'>('tasks');
+  const [activeTab, setActiveTab] = useHashTab(crawlTaskTabs, 'tasks');
 
   if (isUserLoading) {
     return (

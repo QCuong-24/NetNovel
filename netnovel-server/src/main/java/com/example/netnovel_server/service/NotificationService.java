@@ -1,13 +1,17 @@
 package com.example.netnovel_server.service;
 
 import com.example.netnovel_server.dto.NotificationDTO;
+import com.example.netnovel_server.dto.NotificationCreateDTO;
 import com.example.netnovel_server.entity.Notification;
 import com.example.netnovel_server.entity.User;
+import com.example.netnovel_server.exception.BadRequestException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.NotificationMapper;
 import com.example.netnovel_server.repository.NotificationRepository;
 import com.example.netnovel_server.repository.UserRepository;
 import com.example.netnovel_server.utility.SecurityUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -19,6 +23,8 @@ import java.util.List;
 public class NotificationService {
 
     public static final String TYPE_WELCOME = "WELCOME";
+    public static final String TYPE_SYSTEM = "SYSTEM";
+    public static final String TYPE_ADMIN = "ADMIN";
     public static final String TYPE_COMMENT_REPLY = "COMMENT_REPLY";
     public static final String TYPE_NOVEL_DELETED = "NOVEL_DELETED";
     // Reserved for later async/batched follower notifications.
@@ -40,19 +46,17 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<NotificationDTO> getMyNotifications() {
+    public Page<NotificationDTO> getMyNotifications(Boolean isRead, String type, Pageable pageable) {
         Long userId = SecurityUtils.getCurrentUserIdOrThrow();
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-            .map(NotificationMapper::toDTO)
-            .toList();
+        return notificationRepository.findMyNotifications(userId, isRead, normalizeType(type), pageable)
+            .map(NotificationMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
-    public List<NotificationDTO> getMyUnreadNotifications() {
+    public Page<NotificationDTO> getMyUnreadNotifications(Pageable pageable) {
         Long userId = SecurityUtils.getCurrentUserIdOrThrow();
-        return notificationRepository.findByUserIdAndIsReadOrderByCreatedAtDesc(userId, false).stream()
-            .map(NotificationMapper::toDTO)
-            .toList();
+        return notificationRepository.findByUserIdAndIsReadOrderByCreatedAtDesc(userId, false, pageable)
+            .map(NotificationMapper::toDTO);
     }
 
     @Transactional(readOnly = true)
@@ -115,6 +119,18 @@ public class NotificationService {
     }
 
     @Transactional
+    public NotificationDTO sendAdminNotificationToUser(Long userId, NotificationCreateDTO request) {
+        User user = findUser(userId);
+        return createNotification(
+            user,
+            normalizeCreateType(request),
+            requireText(request != null ? request.getTitle() : null, "Notification title is required"),
+            requireText(request != null ? request.getMessage() : null, "Notification message is required"),
+            request != null ? normalizeNullableText(request.getLink()) : null
+        );
+    }
+
+    @Transactional
     public void createNotifications(Collection<User> users, String type, String title, String message, String link) {
         for (User user : users) {
             createNotification(user, type, title, message, link);
@@ -124,5 +140,33 @@ public class NotificationService {
     public User findUser(Long userId) {
         return userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    private String normalizeType(String type) {
+        if (type == null || type.isBlank()) {
+            return null;
+        }
+        return type.trim().toUpperCase();
+    }
+
+    private String normalizeCreateType(NotificationCreateDTO request) {
+        if (request == null || request.getType() == null || request.getType().isBlank()) {
+            return TYPE_ADMIN;
+        }
+        return request.getType().trim().toUpperCase();
+    }
+
+    private String requireText(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new BadRequestException(message);
+        }
+        return value.trim();
+    }
+
+    private String normalizeNullableText(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

@@ -10,6 +10,7 @@ export type Novel = {
   views: number;
   follows: number;
   likes: number;
+  bookmarks: number;
   genres: string[];
   status: NovelStatus;
   chapterCount: number;
@@ -69,7 +70,9 @@ export type NovelInteraction = {
   novelId: number;
   followed: boolean;
   liked: boolean;
+  bookmarked: boolean;
   views: number;
   follows: number;
   likes: number;
+  bookmarks: number;
 };

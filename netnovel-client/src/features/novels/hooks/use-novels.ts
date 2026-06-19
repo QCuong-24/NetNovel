@@ -13,6 +13,7 @@ import {
   getSimilarNovels,
   getTags,
   increaseNovelView,
+  toggleNovelBookmark,
   toggleNovelFollow,
   toggleNovelLike,
   updateNovel,
@@ -78,6 +79,7 @@ function mergeNovelInteraction(novel: Novel | undefined, interaction: NovelInter
     views: interaction.views,
     follows: interaction.follows,
     likes: interaction.likes,
+    bookmarks: interaction.bookmarks,
   };
 }
 
@@ -133,6 +135,23 @@ export function useToggleNovelLikeMutation(novelId: string) {
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'Could not update like'));
+    },
+  });
+}
+
+export function useToggleNovelBookmarkMutation(novelId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => toggleNovelBookmark(novelId),
+    onSuccess: (interaction) => {
+      queryClient.setQueryData<Novel | undefined>([...queryKeys.novels, novelId], (novel) =>
+        mergeNovelInteraction(novel, interaction),
+      );
+      queryClient.setQueryData([...queryKeys.novels, novelId, 'interaction'], interaction);
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Could not update bookmark'));
     },
   });
 }

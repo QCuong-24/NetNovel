@@ -9,4 +9,6 @@ export const queryKeys = {
   crawlTasks: ['crawlTasks'] as const,
   search: ['search'] as const,
   collection: ['collection'] as const,
+  adminUsers: ['adminUsers'] as const,
+  comments: ['comments'] as const,
 } as const;

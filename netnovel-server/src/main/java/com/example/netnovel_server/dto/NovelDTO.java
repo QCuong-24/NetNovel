@@ -30,6 +30,8 @@ public class NovelDTO {
 
     private Long likes;
 
+    private Long bookmarks;
+
     private Set<String> genres;
 
     private String status;

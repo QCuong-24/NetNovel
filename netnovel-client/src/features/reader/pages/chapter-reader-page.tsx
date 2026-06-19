@@ -4,6 +4,7 @@ import { AdSlot } from '@/features/ads/components/ad-slot';
 import { Button } from '@/components/ui/button';
 import { ChapterNavigation } from '@/features/chapters/components/chapter-navigation';
 import { useChapter, useNovelChapters } from '@/features/chapters/hooks/use-chapters';
+import { CommentSection } from '@/features/comments/components/comment-section';
 import { hasAuthTokens } from '@/features/auth/lib/auth-storage';
 import { useUpdateLastReadMutation } from '@/features/collection/hooks/use-collection';
 import { useIncreaseNovelViewMutation } from '@/features/novels/hooks/use-novels';
@@ -143,6 +144,7 @@ export function ChapterReaderPage() {
             </div>
             <ChapterNavigation chapters={chapters} currentChapterId={chapter.chapterId} />
             <AdSlot slot="reader_after_chapter" />
+            <CommentSection target={{ id: String(chapter.chapterId), type: 'chapter' }} />
           </>
         ) : null}
       </article>

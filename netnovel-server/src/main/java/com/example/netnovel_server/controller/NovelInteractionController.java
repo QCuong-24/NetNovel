@@ -36,6 +36,12 @@ public class NovelInteractionController {
         return ResponseEntity.ok(novelInteractionService.toggleLike(novelId));
     }
 
+    @PostMapping("/bookmark/toggle")
+    @Operation(summary = "Toggle bookmark for current user")
+    public ResponseEntity<NovelInteractionDTO> toggleBookmark(@PathVariable Long novelId) {
+        return ResponseEntity.ok(novelInteractionService.toggleBookmark(novelId));
+    }
+
     @GetMapping("/me")
     @Operation(summary = "Get current user's interaction state for a novel")
     public ResponseEntity<NovelInteractionDTO> getMyInteraction(@PathVariable Long novelId) {
