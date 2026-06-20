@@ -13,6 +13,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 public class CrawlTaskWorker {
@@ -22,6 +23,7 @@ public class CrawlTaskWorker {
     private final CrawlTaskRepository crawlTaskRepository;
     private final SourceRegistry sourceRegistry;
     private final CrawlerAdapterDispatcher crawlerAdapterDispatcher;
+    private final ReentrantLock processingLock = new ReentrantLock(true);
 
     public CrawlTaskWorker(
         CrawlTaskRepository crawlTaskRepository,
@@ -36,31 +38,45 @@ public class CrawlTaskWorker {
     @RabbitListener(queues = "${app.crawl.rabbit.novel-request-queue:crawl.novel.request}")
     public void handleNovelCrawlRequest(CrawlNovelRequestMessage message) {
         log.info("Received crawl task message. taskId={}, url={}", message.getTaskId(), message.getUrl());
-        if (!claimPendingTask(message.getTaskId())) {
-            log.info("Ignoring crawl task message because the task is no longer pending. taskId={}", message.getTaskId());
-            return;
-        }
+        processingLock.lock();
+        try {
+            if (!claimPendingTask(message.getTaskId())) {
+                log.info("Ignoring crawl task message because the task is no longer pending. taskId={}", message.getTaskId());
+                return;
+            }
 
-        processClaimedTask(message.getTaskId(), message.getUrl(), message);
+            processClaimedTask(message.getTaskId(), message.getUrl(), message);
+        } finally {
+            processingLock.unlock();
+        }
     }
 
     public void recoverOldestPendingTask() {
-        crawlTaskRepository.findFirstByStatusOrderByCreateAtAsc(CrawlTaskStatus.PENDING)
-            .ifPresent(task -> {
-                if (!claimPendingTask(task.getId())) {
-                    return;
-                }
+        if (!processingLock.tryLock()) {
+            log.debug("Skipping pending recovery because another crawl task is running.");
+            return;
+        }
 
-                log.info("Recovering oldest pending crawl task. taskId={}, url={}", task.getId(), task.getUrl());
-                processClaimedTask(
-                    task.getId(),
-                    task.getUrl(),
-                    CrawlNovelRequestMessage.builder()
-                        .taskId(task.getId())
-                        .url(task.getUrl())
-                        .build()
-                );
-            });
+        try {
+            crawlTaskRepository.findFirstByStatusOrderByCreateAtAsc(CrawlTaskStatus.PENDING)
+                .ifPresent(task -> {
+                    if (!claimPendingTask(task.getId())) {
+                        return;
+                    }
+
+                    log.info("Recovering oldest pending crawl task. taskId={}, url={}", task.getId(), task.getUrl());
+                    processClaimedTask(
+                        task.getId(),
+                        task.getUrl(),
+                        CrawlNovelRequestMessage.builder()
+                            .taskId(task.getId())
+                            .url(task.getUrl())
+                            .build()
+                    );
+                });
+        } finally {
+            processingLock.unlock();
+        }
     }
 
     private boolean claimPendingTask(Long taskId) {

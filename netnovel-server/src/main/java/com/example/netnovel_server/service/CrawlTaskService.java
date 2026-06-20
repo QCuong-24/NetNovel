@@ -1,6 +1,5 @@
 package com.example.netnovel_server.service;
 
-import com.example.netnovel_server.dto.CrawlNovelRequestMessage;
 import com.example.netnovel_server.dto.CrawlChapterRecordDTO;
 import com.example.netnovel_server.dto.CrawlTaskCreateDTO;
 import com.example.netnovel_server.dto.CrawlTaskDTO;
@@ -9,6 +8,7 @@ import com.example.netnovel_server.entity.CrawlChapterStatus;
 import com.example.netnovel_server.entity.CrawlTask;
 import com.example.netnovel_server.entity.CrawlTaskStatus;
 import com.example.netnovel_server.entity.User;
+import com.example.netnovel_server.event.CrawlTaskCreatedEvent;
 import com.example.netnovel_server.exception.BadRequestException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.CrawlChapterRecordMapper;
@@ -17,9 +17,7 @@ import com.example.netnovel_server.repository.CrawlChapterRecordRepository;
 import com.example.netnovel_server.repository.CrawlTaskRepository;
 import com.example.netnovel_server.repository.UserRepository;
 import com.example.netnovel_server.utility.SecurityUtils;
-import org.springframework.amqp.AmqpException;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,24 +34,18 @@ public class CrawlTaskService {
     private final CrawlTaskRepository crawlTaskRepository;
     private final CrawlChapterRecordRepository crawlChapterRecordRepository;
     private final UserRepository userRepository;
-    private final RabbitTemplate rabbitTemplate;
-    private final String crawlExchangeName;
-    private final String crawlNovelRequestRoutingKey;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CrawlTaskService(
         CrawlTaskRepository crawlTaskRepository,
         CrawlChapterRecordRepository crawlChapterRecordRepository,
         UserRepository userRepository,
-        RabbitTemplate rabbitTemplate,
-        @Value("${app.crawl.rabbit.exchange:netnovel.crawl}") String crawlExchangeName,
-        @Value("${app.crawl.rabbit.novel-request-routing-key:crawl.novel.request}") String crawlNovelRequestRoutingKey
+        ApplicationEventPublisher eventPublisher
     ) {
         this.crawlTaskRepository = crawlTaskRepository;
         this.crawlChapterRecordRepository = crawlChapterRecordRepository;
         this.userRepository = userRepository;
-        this.rabbitTemplate = rabbitTemplate;
-        this.crawlExchangeName = crawlExchangeName;
-        this.crawlNovelRequestRoutingKey = crawlNovelRequestRoutingKey;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -69,22 +61,13 @@ public class CrawlTaskService {
             .status(CrawlTaskStatus.PENDING)
             .build());
 
-        try {
-            rabbitTemplate.convertAndSend(
-                crawlExchangeName,
-                crawlNovelRequestRoutingKey,
-                CrawlNovelRequestMessage.builder()
-                    .taskId(task.getId())
-                    .url(task.getUrl())
-                    .requestedByUserId(requestedBy == null ? null : requestedBy.getId())
-                    .build()
-            );
-        } catch (AmqpException exception) {
-            task.setStatus(CrawlTaskStatus.FAILED);
-            task.setErrorMessage("Failed to publish crawl task: " + exception.getMessage());
-        }
+        eventPublisher.publishEvent(new CrawlTaskCreatedEvent(
+            task.getId(),
+            task.getUrl(),
+            requestedBy == null ? null : requestedBy.getId()
+        ));
 
-        return CrawlTaskMapper.toDTO(crawlTaskRepository.save(task));
+        return CrawlTaskMapper.toDTO(task);
     }
 
     @Transactional(readOnly = true)

@@ -33,6 +33,7 @@ public class WuxiaworldJsoupCrawler {
     private static final Pattern NUMBER_PATTERN = Pattern.compile("(\\d+)");
     private static final String SOURCE_MARKER_TEMPLATE = "[Crawled Source: %s]";
     private static final long CHAPTER_FETCH_DELAY_MILLIS = 200L;
+    private static final int WUXIAWORLD_COVER_WIDTH = 400;
 
     private final WuxiaworldProperties properties;
     private final NovelRepository novelRepository;
@@ -80,17 +81,28 @@ public class WuxiaworldJsoupCrawler {
         ));
         Set<String> genreNames = extractNames(novelDocument, properties.genreSelector());
         Set<String> tagNames = extractNames(novelDocument, properties.tagSelector());
+        String coverImageUrl = extractCoverImageUrl(novelDocument);
         log.info(
-            "Parsed Wuxiaworld novel detail. taskId={}, title=\"{}\", author=\"{}\", totalChapters={}, genres={}, tags={}",
+            "Parsed Wuxiaworld novel detail. taskId={}, title=\"{}\", author=\"{}\", totalChapters={}, genres={}, tags={}, hasCoverImage={}",
             message.getTaskId(),
             title,
             author,
             totalChapters,
             genreNames,
-            tagNames
+            tagNames,
+            !coverImageUrl.isBlank()
         );
 
-        Novel novel = upsertNovel(source, message.getUrl(), title, author, description, genreNames, tagNames);
+        Novel novel = upsertNovel(
+            source,
+            message.getUrl(),
+            title,
+            author,
+            description,
+            coverImageUrl,
+            genreNames,
+            tagNames
+        );
         log.info("Novel upserted. taskId={}, novelId={}, title=\"{}\"", message.getTaskId(), novel.getId(), novel.getTitle());
         String slug = extractSlug(message.getUrl());
         for (int chapterNumber = 1; chapterNumber <= totalChapters; chapterNumber++) {
@@ -169,6 +181,7 @@ public class WuxiaworldJsoupCrawler {
         String title,
         String author,
         String description,
+        String coverImageUrl,
         Set<String> genreNames,
         Set<String> tagNames
     ) {
@@ -184,6 +197,7 @@ public class WuxiaworldJsoupCrawler {
             addGenres(novel, genreNames);
             addTags(novel, tagNames);
             novel.getTags().add(resolveCrawledTag());
+            updateCoverFromCrawl(novel, coverImageUrl, source);
             Novel savedNovel = novelRepository.save(novel);
             existingSource.get().setLastCrawledAt(LocalDateTime.now());
             novelSourceRepository.save(existingSource.get());
@@ -195,6 +209,7 @@ public class WuxiaworldJsoupCrawler {
             .title(title)
             .author(author)
             .description(description)
+            .coverImageUrl(blankToNull(coverImageUrl))
             .status(Status.ONGOING)
             .build();
         addGenres(novel, genreNames);
@@ -210,6 +225,73 @@ public class WuxiaworldJsoupCrawler {
             .build());
         log.info("Created new crawled novel source. source={}, sourceUrl={}, novelId={}", source.name(), sourceNovelUrl, savedNovel.getId());
         return savedNovel;
+    }
+
+    private String extractCoverImageUrl(Document document) {
+        Element image = document.selectFirst(properties.coverImageSelector());
+        if (image == null) {
+            log.warn("Could not find Wuxiaworld cover image with selector: {}", properties.coverImageSelector());
+            return "";
+        }
+
+        String imageUrl = image.absUrl("src").trim();
+        if (!isHttpUrl(imageUrl)) {
+            log.warn("Ignoring invalid Wuxiaworld cover image URL: {}", imageUrl);
+            return "";
+        }
+        return increaseCoverWidth(imageUrl);
+    }
+
+    private String increaseCoverWidth(String imageUrl) {
+        return imageUrl.replaceFirst(
+            "([?&])width=150(?=(&|#|$))",
+            "$1width=" + WUXIAWORLD_COVER_WIDTH
+        );
+    }
+
+    private void updateCoverFromCrawl(Novel novel, String crawledCoverImageUrl, CrawlerSource source) {
+        if (crawledCoverImageUrl.isBlank()) {
+            return;
+        }
+        if (novel.getCoverImagePublicId() != null && !novel.getCoverImagePublicId().isBlank()) {
+            log.info("Keeping managed cover image. novelId={}", novel.getId());
+            return;
+        }
+
+        String existingCoverImageUrl = novel.getCoverImageUrl();
+        if (existingCoverImageUrl == null || existingCoverImageUrl.isBlank() || isFromSourceDomain(existingCoverImageUrl, source.domain())) {
+            novel.setCoverImageUrl(crawledCoverImageUrl);
+            log.info("Updated crawled cover image. novelId={}", novel.getId());
+        } else {
+            log.info("Keeping non-source cover image. novelId={}", novel.getId());
+        }
+    }
+
+    private boolean isFromSourceDomain(String url, String sourceDomain) {
+        try {
+            String host = URI.create(url).getHost();
+            if (host == null) {
+                return false;
+            }
+            String normalizedHost = host.toLowerCase();
+            String normalizedSourceDomain = sourceDomain.toLowerCase();
+            return normalizedHost.equals(normalizedSourceDomain) || normalizedHost.endsWith("." + normalizedSourceDomain);
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    private boolean isHttpUrl(String url) {
+        try {
+            String scheme = URI.create(url).getScheme();
+            return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 
     private void addGenres(Novel novel, Set<String> genreNames) {

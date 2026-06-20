@@ -63,7 +63,7 @@ export function NovelDetailPage() {
   const { data: user } = useCurrentUser();
   const canEdit = canManageNovels(user);
   const { data: novel, isError, isLoading } = useNovel(novelId);
-  const novelTagsQuery = useNovelTags(canEdit && isTagsOpen ? novelId : undefined);
+  const novelTagsQuery = useNovelTags(canEdit ? novelId : undefined);
   const { data: interaction } = useMyNovelInteraction(novelId);
   const updateNovelMutation = useUpdateNovelMutation(novelId ?? '');
   const deleteNovelMutation = useDeleteNovelMutation(novelId ?? '');
@@ -188,8 +188,9 @@ export function NovelDetailPage() {
   }
 
   const crawledSourceUrl = extractCrawledSourceUrl(novel.description);
+  const hasCrawledTag = novelTagsQuery.data?.some((tag) => tag.name.toLowerCase() === 'crawled') ?? false;
   const canRefetchCrawledNovel =
-    canEdit && Boolean(crawledSourceUrl) && novel.genres.some((genre) => genre.toLowerCase() === 'crawled');
+    canEdit && Boolean(crawledSourceUrl) && hasCrawledTag;
 
   function toggleMetricInteraction(metric: 'likes' | 'bookmarks' | 'follows') {
     if (!user) {

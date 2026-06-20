@@ -12,6 +12,7 @@ public class WuxiaworldProperties {
     private static final String CHAPTER_CONTENT_SELECTOR = "div#chapterText.mantine-Text-root.mantine-1ekvxsp";
     private static final String GENRE_SELECTOR = "div.mantine-Badge-root.mantine-1wmuzd5";
     private static final String TAG_SELECTOR = "div.mantine-Badge-root.mantine-6lmnus";
+    private static final String COVER_IMAGE_SELECTOR = "div.mantine-Image-root.mantine-yxmaw9 img.mantine-fp9t1o.mantine-Image-image";
 
     public String titleSelector() {
         return TITLE_SELECTOR;
@@ -39,5 +40,9 @@ public class WuxiaworldProperties {
 
     public String tagSelector() {
         return TAG_SELECTOR;
+    }
+
+    public String coverImageSelector() {
+        return COVER_IMAGE_SELECTOR;
     }
 }
