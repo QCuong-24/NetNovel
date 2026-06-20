@@ -1,4 +1,4 @@
-import { ArrowLeft, BookOpen, Bookmark, Eye, Heart, Pencil, Plus, RefreshCw, RotateCcw, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, BookOpen, Bookmark, ChevronDown, Eye, Heart, Pencil, Plus, RefreshCw, RotateCcw, Trash2, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -20,6 +20,7 @@ import {
   useDeleteNovelMutation,
   useMyNovelInteraction,
   useNovel,
+  useNovelTags,
   useToggleNovelFollowMutation,
   useToggleNovelBookmarkMutation,
   useToggleNovelLikeMutation,
@@ -55,12 +56,14 @@ export function NovelDetailPage() {
   const navigate = useNavigate();
   const { novelId } = useParams();
   const [isEditing, setIsEditing] = useState(false);
+  const [isTagsOpen, setIsTagsOpen] = useState(false);
   const [deleteCountdown, setDeleteCountdown] = useState<number | null>(null);
   const deleteIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { data: user } = useCurrentUser();
   const canEdit = canManageNovels(user);
   const { data: novel, isError, isLoading } = useNovel(novelId);
+  const novelTagsQuery = useNovelTags(canEdit && isTagsOpen ? novelId : undefined);
   const { data: interaction } = useMyNovelInteraction(novelId);
   const updateNovelMutation = useUpdateNovelMutation(novelId ?? '');
   const deleteNovelMutation = useDeleteNovelMutation(novelId ?? '');
@@ -188,6 +191,33 @@ export function NovelDetailPage() {
   const canRefetchCrawledNovel =
     canEdit && Boolean(crawledSourceUrl) && novel.genres.some((genre) => genre.toLowerCase() === 'crawled');
 
+  function toggleMetricInteraction(metric: 'likes' | 'bookmarks' | 'follows') {
+    if (!user) {
+      navigate(routes.login);
+      return;
+    }
+
+    if (metric === 'likes') {
+      likeMutation.mutate();
+    } else if (metric === 'bookmarks') {
+      bookmarkMutation.mutate();
+    } else {
+      followMutation.mutate();
+    }
+  }
+
+  function isMetricInteractionPending(metric: 'likes' | 'bookmarks' | 'follows') {
+    return metric === 'likes'
+      ? likeMutation.isPending
+      : metric === 'bookmarks'
+        ? bookmarkMutation.isPending
+        : followMutation.isPending;
+  }
+
+  function isMetricInteractionActive(metric: 'likes' | 'bookmarks' | 'follows') {
+    return metric === 'likes' ? interaction?.liked : metric === 'bookmarks' ? interaction?.bookmarked : interaction?.followed;
+  }
+
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
       <div className="flex items-center justify-between gap-3">
@@ -199,36 +229,38 @@ export function NovelDetailPage() {
         </Button>
         {canEdit ? (
           <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline">
+            <Button aria-label={t('novelPages.newChapter')} asChild size="icon" title={t('novelPages.newChapter')} variant="outline">
               <Link to={`/novels/${novel.novelId}/chapters/new`}>
                 <Plus />
-                {t('novelPages.newChapter')}
               </Link>
             </Button>
             {canRefetchCrawledNovel ? (
               <Button
+                aria-label={t('novelPages.refetchCrawled')}
                 disabled={createCrawlTaskMutation.isPending}
+                size="icon"
+                title={t('novelPages.refetchCrawled')}
                 type="button"
                 variant="outline"
                 onClick={() => refetchCrawledNovel(crawledSourceUrl)}
               >
                 <RefreshCw className={createCrawlTaskMutation.isPending ? 'animate-spin' : undefined} />
-                {t('novelPages.refetchCrawled')}
               </Button>
             ) : null}
-            <Button type="button" variant="outline" onClick={() => setIsEditing(true)}>
+            <Button aria-label={t('novelPages.editNovel')} size="icon" title={t('novelPages.editNovel')} type="button" variant="outline" onClick={() => setIsEditing(true)}>
               <Pencil />
-              {t('novelPages.editNovel')}
             </Button>
             {deleteCountdown === null ? (
               <Button
+                aria-label={t('novelPages.deleteNovel')}
                 disabled={deleteNovelMutation.isPending}
+                size="icon"
+                title={t('novelPages.deleteNovel')}
                 type="button"
                 variant="destructive"
                 onClick={scheduleDeleteNovel}
               >
                 <Trash2 />
-                {t('novelPages.deleteNovel')}
               </Button>
             ) : (
               <Button
@@ -263,6 +295,40 @@ export function NovelDetailPage() {
               </Link>
             </Button>
           ) : null}
+          {canEdit ? (
+            <div className="grid gap-2">
+              <Button
+                aria-expanded={isTagsOpen}
+                aria-label={t(isTagsOpen ? 'novelPages.hideTags' : 'novelPages.showTags')}
+                className="w-fit"
+                title={t(isTagsOpen ? 'novelPages.hideTags' : 'novelPages.showTags')}
+                type="button"
+                variant="outline"
+                onClick={() => setIsTagsOpen((current) => !current)}
+              >
+                <ChevronDown className={isTagsOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                {t(isTagsOpen ? 'novelPages.hideTags' : 'novelPages.showTags')}
+              </Button>
+              {isTagsOpen ? (
+                <div className="grid gap-2 rounded-lg border bg-muted/40 p-3">
+                  <p className="text-sm font-bold">{t('novelPages.tags')}</p>
+                  {novelTagsQuery.isLoading ? (
+                    <p className="text-sm text-muted-foreground">{t('novelPages.loadingTags')}</p>
+                  ) : novelTagsQuery.data?.length ? (
+                    <div className="flex flex-wrap gap-2">
+                      {novelTagsQuery.data.map((tag) => (
+                        <Badge key={tag.tagId} variant="secondary">
+                          {tag.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t('novelPages.noTags')}</p>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         <div className="grid gap-5">
@@ -285,74 +351,40 @@ export function NovelDetailPage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {metricItems.map((item) => (
-              <Card key={item.key}>
-                <CardContent className="flex items-center gap-3 p-4">
-                  <item.icon className="size-5 text-primary" />
-                  <div>
-                    <p className="text-lg font-bold">{formatCount(interaction?.[item.key] ?? novel[item.key])}</p>
-                    <p className="text-xs font-semibold uppercase text-muted-foreground">
-                      {t(item.labelKey)}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+            {metricItems.map((item) => {
+              const isInteractive = item.key !== 'views';
+              const isPending = isInteractive && isMetricInteractionPending(item.key);
+              const isActive = isInteractive && isMetricInteractionActive(item.key);
 
-          <div className="flex flex-wrap gap-2">
-            {user ? (
-              <>
-                <Button
-                  disabled={followMutation.isPending}
-                  type="button"
-                  variant={interaction?.followed ? 'default' : 'outline'}
-                  onClick={() => followMutation.mutate()}
-                >
-                  <Users />
-                  {interaction?.followed ? t('novelPages.following') : t('novelPages.follow')}
-                </Button>
-                <Button
-                  disabled={likeMutation.isPending}
-                  type="button"
-                  variant={interaction?.liked ? 'default' : 'outline'}
-                  onClick={() => likeMutation.mutate()}
-                >
-                  <Heart />
-                  {interaction?.liked ? t('novelPages.liked') : t('novelPages.like')}
-                </Button>
-                <Button
-                  disabled={bookmarkMutation.isPending}
-                  type="button"
-                  variant={interaction?.bookmarked ? 'default' : 'outline'}
-                  onClick={() => bookmarkMutation.mutate()}
-                >
-                  <Bookmark />
-                  {interaction?.bookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button asChild variant="outline">
-                  <Link to={routes.login}>
-                    <Users />
-                    {t('novelPages.follow')}
-                  </Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to={routes.login}>
-                    <Heart />
-                    {t('novelPages.like')}
-                  </Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to={routes.login}>
-                    <Bookmark />
-                    {t('bookmarkActions.bookmark')}
-                  </Link>
-                </Button>
-              </>
-            )}
+              return (
+                <Card key={item.key} className={isActive ? 'border-primary/70 bg-primary/20 dark:border-primary/80 dark:bg-primary/30' : undefined}>
+                  {isInteractive ? (
+                    <button
+                      aria-label={t(item.labelKey)}
+                      aria-pressed={isActive}
+                      className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={isPending}
+                      type="button"
+                      onClick={() => toggleMetricInteraction(item.key)}
+                    >
+                      <item.icon className="size-5 text-primary" fill={isActive ? 'currentColor' : 'none'} />
+                      <div>
+                        <p className="text-lg font-bold">{formatCount(interaction?.[item.key] ?? novel[item.key])}</p>
+                        <p className="text-xs font-semibold uppercase text-muted-foreground">{t(item.labelKey)}</p>
+                      </div>
+                    </button>
+                  ) : (
+                    <CardContent className="flex items-center gap-3 p-4">
+                      <item.icon className="size-5 text-primary" />
+                      <div>
+                        <p className="text-lg font-bold">{formatCount(interaction?.[item.key] ?? novel[item.key])}</p>
+                        <p className="text-xs font-semibold uppercase text-muted-foreground">{t(item.labelKey)}</p>
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
           </div>
 
           <Card>

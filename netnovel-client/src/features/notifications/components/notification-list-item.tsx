@@ -37,7 +37,7 @@ export function NotificationListItem({
             <span className="text-xs font-semibold text-muted-foreground">{formatDateTime(notification.createdAt ?? undefined)}</span>
           </div>
           {!notification.isRead ? (
-            <Button className="h-7 shrink-0 px-2 text-xs" type="button" variant="ghost" onClick={onMarkRead}>
+            <Button className="h-7 shrink-0 px-2 text-xs hover:underline" type="button" variant="ghost" onClick={onMarkRead}>
               {markReadLabel}
             </Button>
           ) : null}
@@ -61,13 +61,13 @@ export function NotificationListItem({
   const actions = (
     <div className="flex shrink-0 flex-wrap justify-end gap-2">
       {!notification.isRead ? (
-        <Button className="h-8 px-2 text-xs" type="button" variant="ghost" onClick={onMarkRead}>
+        <Button className="h-8 px-2 text-xs hover:underline" type="button" variant="ghost" onClick={onMarkRead}>
           {markReadLabel}
         </Button>
       ) : null}
       {deleteLabel && onDelete ? (
         <Button
-          className="h-8 px-2 text-xs text-destructive hover:text-destructive"
+          className="h-8 px-2 text-xs text-destructive hover:text-destructive hover:underline"
           type="button"
           variant="ghost"
           onClick={onDelete}

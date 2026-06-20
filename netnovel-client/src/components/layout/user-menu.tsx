@@ -1,4 +1,4 @@
-import { Bell, DatabaseZap, LayoutDashboard, LogOut, Upload, UserRound } from 'lucide-react';
+import { Bell, Bookmark, DatabaseZap, LayoutDashboard, LogOut, Upload, UserRound } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -83,13 +83,19 @@ export function UserMenu({ user, isLoggingOut = false, onLogout }: UserMenuProps
             </Link>
           </Button>
           <Button asChild className="justify-start" variant="ghost">
-            <Link to={routes.dashboard}>
-              <LayoutDashboard />
-              {t('nav.dashboard')}
+            <Link to={routes.collection}>
+              <Bookmark />
+              {t('nav.collection')}
             </Link>
           </Button>
           {canCreateNovel ? (
             <>
+              <Button asChild className="justify-start" variant="ghost">
+                <Link to={routes.dashboard}>
+                  <LayoutDashboard />
+                  {t('nav.dashboard')}
+                </Link>
+              </Button>
               <Button asChild className="justify-start" variant="ghost">
                 <Link to={routes.crawlTasks}>
                   <DatabaseZap />

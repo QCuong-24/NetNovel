@@ -20,9 +20,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: routes.search, key: 'nav.search' },
-  { to: routes.collection, key: 'nav.collection' },
   { to: routes.rankings, key: 'nav.rankings' },
-  { to: routes.dashboard, key: 'nav.dashboard' },
 ];
 
 const libraryItems = [
