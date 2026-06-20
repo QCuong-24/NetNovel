@@ -17,7 +17,8 @@ import java.util.Set;
         @Index(name = "idx_novels_update_at", columnList = "update_at"),
         @Index(name = "idx_novels_views", columnList = "views"),
         @Index(name = "idx_novels_follows", columnList = "follows"),
-        @Index(name = "idx_novels_likes", columnList = "likes")
+        @Index(name = "idx_novels_likes", columnList = "likes"),
+        @Index(name = "idx_novels_bookmarks", columnList = "bookmarks")
     }
 )
 @Getter
@@ -55,6 +56,10 @@ public class Novel {
     @Column(nullable = false)
     @Builder.Default
     private Long likes = 0L;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Long bookmarks = 0L;
 
     @ManyToMany
     @JoinTable(
