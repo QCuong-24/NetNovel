@@ -152,6 +152,7 @@ public class WuxiaworldJsoupCrawler {
             chapter.setTitle(title);
             chapter.setContent(content);
             Chapter savedChapter = chapterRepository.save(chapter);
+            novelRepository.advanceUpdateAt(novel.getId(), savedChapter.getUpdateAt());
             saveChapterRecord(source.name(), chapterUrl, novel, savedChapter, CrawlChapterStatus.SUCCESS, null);
             log.info(
                 "Chapter crawl success. taskId={}, novelId={}, chapterId={}, chapterNumber={}, title=\"{}\", contentLength={}",

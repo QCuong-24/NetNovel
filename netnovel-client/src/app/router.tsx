@@ -16,6 +16,7 @@ import { NovelCreatePage } from '@/features/novels/pages/novel-create-page';
 import { ChapterCreatePage } from '@/features/chapters/pages/chapter-create-page';
 import { ChapterEditPage } from '@/features/chapters/pages/chapter-edit-page';
 import { ProfilePage } from '@/features/users/pages/profile-page';
+import { UserProfilePage } from '@/features/users/pages/user-profile-page';
 import { CrawlTasksPage } from '@/features/crawl-tasks/pages/crawl-tasks-page';
 import { SearchPage } from '@/features/search/pages/search-page';
 import { CollectionPage } from '@/features/collection/pages/collection-page';
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
       { path: 'novels/genres/:genreName', element: <NovelListPage kind="genre" /> },
       { path: 'search', element: <SearchPage /> },
       { path: 'rankings', element: <RankingPage /> },
+      { path: 'users/:userId', element: <UserProfilePage /> },
       {
         element: <ProtectedRoute />,
         children: [

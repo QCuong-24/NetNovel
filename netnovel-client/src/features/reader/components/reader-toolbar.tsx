@@ -1,4 +1,4 @@
-import { ArrowLeft, Bookmark, Pencil, Settings, Trash2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Settings, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,6 @@ import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { UserMenu } from '@/components/layout/user-menu';
 import { useCurrentUser, useLogoutMutation } from '@/features/auth/hooks/use-auth';
 import { useDeleteChapterMutation } from '@/features/chapters/hooks/use-chapters';
-import { useChapterBookmarkStatus, useToggleChapterBookmarkMutation } from '@/features/collection/hooks/use-collection';
 import { canManageNovels } from '@/features/novels/lib/novel-permissions';
 import { ReaderSettingsPanel } from './reader-settings-panel';
 import type { ReaderSettings } from '../types';
@@ -32,8 +31,6 @@ export function ReaderToolbar({ backTo, editTo, chapterId, novelId, settings, on
   const { data: user } = useCurrentUser();
   const logoutMutation = useLogoutMutation();
   const deleteChapterMutation = useDeleteChapterMutation(novelId ?? '');
-  const { data: isChapterBookmarked = false } = useChapterBookmarkStatus(chapterId);
-  const bookmarkMutation = useToggleChapterBookmarkMutation(chapterId ?? '', isChapterBookmarked);
   const canEditChapter = canManageNovels(user);
   const canDeleteChapter = canEditChapter && Boolean(chapterId && novelId);
 
@@ -103,21 +100,6 @@ export function ReaderToolbar({ backTo, editTo, chapterId, novelId, settings, on
         <div className="ml-auto flex items-center gap-1">
           <ThemeToggle />
           <LanguageSwitcher />
-          {user && chapterId ? (
-            <Button
-              aria-label={isChapterBookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}
-              disabled={bookmarkMutation.isPending}
-              size="sm"
-              type="button"
-              variant={isChapterBookmarked ? 'default' : 'outline'}
-              onClick={() => bookmarkMutation.mutate()}
-            >
-              <Bookmark />
-              <span className="hidden sm:inline">
-                {isChapterBookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}
-              </span>
-            </Button>
-          ) : null}
           <Button
             aria-label={t('reader.settings')}
             type="button"

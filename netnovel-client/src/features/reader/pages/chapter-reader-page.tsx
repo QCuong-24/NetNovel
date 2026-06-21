@@ -1,26 +1,37 @@
+import { Bookmark } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AdSlot } from '@/features/ads/components/ad-slot';
 import { Button } from '@/components/ui/button';
 import { ChapterNavigation } from '@/features/chapters/components/chapter-navigation';
 import { useChapter, useNovelChapters } from '@/features/chapters/hooks/use-chapters';
 import { CommentSection } from '@/features/comments/components/comment-section';
 import { hasAuthTokens } from '@/features/auth/lib/auth-storage';
-import { useUpdateLastReadMutation } from '@/features/collection/hooks/use-collection';
+import {
+  useChapterBookmarkStatus,
+  useToggleChapterBookmarkMutation,
+  useUpdateLastReadMutation,
+} from '@/features/collection/hooks/use-collection';
+import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { useIncreaseNovelViewMutation } from '@/features/novels/hooks/use-novels';
 import { cn } from '@/lib/utils';
 import { ReaderToolbar } from '../components/reader-toolbar';
 import { useReaderSettings } from '../hooks/use-reader-settings';
 
 export function ChapterReaderPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { chapterId, novelId } = useParams();
   const { settings, classes, updateSetting } = useReaderSettings();
+  const { data: user } = useCurrentUser();
   const { data: chapter, isError, isLoading } = useChapter(chapterId);
   const chapterNovelId = chapter?.novelId ? String(chapter.novelId) : novelId;
   const viewedChapterRef = useRef<string | null>(null);
   const increaseViewMutation = useIncreaseNovelViewMutation(chapterNovelId);
   const updateLastReadMutation = useUpdateLastReadMutation();
+  const { data: isChapterBookmarked = false } = useChapterBookmarkStatus(chapterId);
+  const bookmarkMutation = useToggleChapterBookmarkMutation(chapterId ?? '', isChapterBookmarked);
   const { data: chapters = [] } = useNovelChapters(chapterNovelId);
   const backToNovel = chapter?.novelId ? `/novels/${chapter.novelId}` : `/novels/${novelId ?? ''}`;
   const editTo =
@@ -95,7 +106,7 @@ export function ChapterReaderPage() {
   }, [navigate, nextChapter, previousChapter]);
 
   return (
-    <div className={cn('min-h-screen text-reader-page-foreground', classes.background)}>
+    <div className={cn('min-h-screen min-w-0 max-w-full overflow-x-hidden text-reader-page-foreground', classes.background)}>
       <ReaderToolbar
         backTo={backToNovel}
         chapterId={chapter?.chapterId ? String(chapter.chapterId) : chapterId}
@@ -104,7 +115,24 @@ export function ChapterReaderPage() {
         settings={settings}
         onChange={updateSetting}
       />
-      <article className={cn('mx-auto grid gap-8 px-4 py-8 md:py-12', classes.container)}>
+      {user && chapterId ? (
+        <Button
+          aria-label={isChapterBookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}
+          className={cn(
+            'fixed right-4 top-[4.5rem] z-30 bg-background/70 shadow-md backdrop-blur transition-opacity hover:bg-background/90',
+            !isChapterBookmarked && 'opacity-40 hover:opacity-100',
+          )}
+          disabled={bookmarkMutation.isPending}
+          size="icon"
+          title={isChapterBookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}
+          type="button"
+          variant="outline"
+          onClick={() => bookmarkMutation.mutate()}
+        >
+          <Bookmark fill={isChapterBookmarked ? 'currentColor' : 'none'} />
+        </Button>
+      ) : null}
+      <article className={cn('mx-auto grid w-full min-w-0 max-w-full gap-8 px-4 py-8 md:py-12', classes.container)}>
         {isLoading ? (
           <div className="grid min-h-64 place-items-center text-sm font-semibold text-muted-foreground">
             Loading chapter...
@@ -135,11 +163,15 @@ export function ChapterReaderPage() {
               </h1>
             </header>
             <ChapterNavigation chapters={chapters} currentChapterId={chapter.chapterId} />
-            <div className={cn('grid gap-6 whitespace-pre-wrap', classes.content)}>
+            <div className={cn('grid w-full min-w-0 max-w-full gap-6 whitespace-pre-wrap break-all [overflow-wrap:anywhere]', classes.content)}>
               {paragraphs?.length ? (
-                paragraphs.map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>)
+                paragraphs.map((paragraph, index) => (
+                  <p className="min-w-0 max-w-full break-all [overflow-wrap:anywhere]" key={`${index}-${paragraph.slice(0, 24)}`}>
+                    {paragraph}
+                  </p>
+                ))
               ) : (
-                <p>{chapter.content}</p>
+                <p className="min-w-0 max-w-full break-all [overflow-wrap:anywhere]">{chapter.content}</p>
               )}
             </div>
             <ChapterNavigation chapters={chapters} currentChapterId={chapter.chapterId} />

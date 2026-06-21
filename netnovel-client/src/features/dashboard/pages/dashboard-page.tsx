@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { Bell, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import {
 } from '@/features/admin-users/hooks/use-admin-users';
 import { useSendNotificationToUserMutation } from '@/features/notifications/hooks/use-notifications';
 import { useHashTab } from '@/hooks/use-hash-tab';
+import { routes } from '@/config/routes';
 import { cn } from '@/lib/utils';
 
 type DashboardTab = 'statistic' | 'users';
@@ -265,9 +267,13 @@ function UserRow({ user }: { user: User }) {
     <div className="grid gap-3 rounded-lg border bg-background p-3">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px_auto] lg:items-center">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-primary text-sm font-extrabold text-primary-foreground">
+          <Link
+            aria-label={`View ${user.username}'s profile`}
+            className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-full bg-primary text-sm font-extrabold text-primary-foreground transition-opacity hover:opacity-80"
+            to={routes.userProfile(user.userId)}
+          >
             {user.profilePictureUrl ? <img alt={user.username} className="size-full object-cover" src={user.profilePictureUrl} /> : user.username.slice(0, 2).toUpperCase()}
-          </div>
+          </Link>
           <div className="min-w-0">
             <h3 className="truncate text-sm font-extrabold">{user.username}</h3>
             <p className="truncate text-sm font-semibold text-muted-foreground">{user.email}</p>

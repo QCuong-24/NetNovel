@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { AppHeader } from '@/components/layout/app-header';
+import { BackToTopButton } from '@/components/layout/back-to-top-button';
 import { AppFooter } from '@/components/layout/app-footer';
 import { ScrollToTop } from '@/components/layout/scroll-to-top';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
@@ -15,6 +16,7 @@ export function RootLayout() {
       <AppHeader />
       <Outlet />
       <AppFooter />
+      <BackToTopButton />
     </div>
   );
 }

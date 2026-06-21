@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { routes } from '@/config/routes';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { ChapterListSection } from '@/features/chapters/components/chapter-list-section';
+import { useNovelChapters } from '@/features/chapters/hooks/use-chapters';
 import { CommentSection } from '@/features/comments/components/comment-section';
 import { useCreateCrawlTaskMutation } from '@/features/crawl-tasks/hooks/use-crawl-tasks';
 import { NovelCover } from '../components/novel-cover';
@@ -63,6 +64,7 @@ export function NovelDetailPage() {
   const { data: user } = useCurrentUser();
   const canEdit = canManageNovels(user);
   const { data: novel, isError, isLoading } = useNovel(novelId);
+  const { data: chapters = [] } = useNovelChapters(novelId);
   const novelTagsQuery = useNovelTags(canEdit ? novelId : undefined);
   const { data: interaction } = useMyNovelInteraction(novelId);
   const updateNovelMutation = useUpdateNovelMutation(novelId ?? '');
@@ -191,6 +193,7 @@ export function NovelDetailPage() {
   const hasCrawledTag = novelTagsQuery.data?.some((tag) => tag.name.toLowerCase() === 'crawled') ?? false;
   const canRefetchCrawledNovel =
     canEdit && Boolean(crawledSourceUrl) && hasCrawledTag;
+  const firstChapter = [...chapters].sort((left, right) => left.chapterNumber - right.chapterNumber)[0];
 
   function toggleMetricInteraction(metric: 'likes' | 'bookmarks' | 'follows') {
     if (!user) {
@@ -282,12 +285,19 @@ export function NovelDetailPage() {
       <section className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <div className="grid content-start gap-4">
           <NovelCover src={novel.coverImageUrl} title={novel.title} />
-          <Button asChild>
-            <Link to={`/novels/${novel.novelId}/chapters/1`}>
+          {firstChapter ? (
+            <Button asChild>
+              <Link to={`/novels/${novel.novelId}/chapters/${firstChapter.chapterId}`}>
+                <BookOpen />
+                {t('novelPages.startReading')}
+              </Link>
+            </Button>
+          ) : (
+            <Button disabled>
               <BookOpen />
               {t('novelPages.startReading')}
-            </Link>
-          </Button>
+            </Button>
+          )}
           {novel.latestChapterId ? (
             <Button asChild variant="outline">
               <Link to={`/novels/${novel.novelId}/chapters/${novel.latestChapterId}`}>

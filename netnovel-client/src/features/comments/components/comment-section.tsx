@@ -139,7 +139,7 @@ function CommentItem({ comment }: { comment: Comment }) {
   return (
     <article className={cn('grid gap-3 rounded-lg border bg-background p-4', comment.deleted && 'opacity-75')}>
       <div className="flex gap-3">
-        <Avatar name={comment.username} src={comment.userAvatarUrl} />
+        <Avatar name={comment.username} src={comment.userAvatarUrl} userId={comment.userId} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-extrabold">{comment.username}</h3>
@@ -322,10 +322,14 @@ function CommentForm({
   );
 }
 
-function Avatar({ name, src }: { name: string; src?: string | null }) {
+function Avatar({ name, src, userId }: { name: string; src?: string | null; userId: number }) {
   return (
-    <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-primary text-xs font-extrabold text-primary-foreground">
+    <Link
+      aria-label={`View ${name}'s profile`}
+      className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-primary text-xs font-extrabold text-primary-foreground transition-opacity hover:opacity-80"
+      to={routes.userProfile(userId)}
+    >
       {src ? <img alt={name} className="size-full object-cover" src={src} /> : name.slice(0, 2).toUpperCase()}
-    </div>
+    </Link>
   );
 }

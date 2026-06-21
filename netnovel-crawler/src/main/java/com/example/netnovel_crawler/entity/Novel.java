@@ -106,8 +106,4 @@ public class Novel {
         updateAt = now;
     }
 
-    @PreUpdate
-    private void setUpdateTime() {
-        updateAt = LocalDateTime.now();
-    }
 }

@@ -5,6 +5,9 @@ import com.example.netnovel_server.entity.Status;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -42,4 +45,52 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
     List<Novel> findByGenresId(Long genreId);
 
     List<Novel> findByTagsId(Long tagId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+        update Novel novel
+        set novel.updateAt = :updatedAt
+        where novel.id = :novelId
+          and novel.updateAt < :updatedAt
+        """)
+    void advanceUpdateAt(@Param("novelId") Long novelId, @Param("updatedAt") LocalDateTime updatedAt);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Novel novel set novel.views = novel.views + 1 where novel.id = :novelId")
+    void incrementViews(@Param("novelId") Long novelId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Novel novel set novel.follows = novel.follows + 1 where novel.id = :novelId")
+    void incrementFollows(@Param("novelId") Long novelId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Novel novel set novel.follows = case when novel.follows > 0 then novel.follows - 1 else 0 end where novel.id = :novelId")
+    void decrementFollows(@Param("novelId") Long novelId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Novel novel set novel.likes = novel.likes + 1 where novel.id = :novelId")
+    void incrementLikes(@Param("novelId") Long novelId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Novel novel set novel.likes = case when novel.likes > 0 then novel.likes - 1 else 0 end where novel.id = :novelId")
+    void decrementLikes(@Param("novelId") Long novelId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Novel novel set novel.bookmarks = novel.bookmarks + 1 where novel.id = :novelId")
+    void incrementBookmarks(@Param("novelId") Long novelId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Novel novel set novel.bookmarks = case when novel.bookmarks > 0 then novel.bookmarks - 1 else 0 end where novel.id = :novelId")
+    void decrementBookmarks(@Param("novelId") Long novelId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+        update Novel novel
+        set novel.bookmarks = case
+            when novel.bookmarks > :amount then novel.bookmarks - :amount
+            else 0
+        end
+        where novel.id = :novelId
+        """)
+    void decrementBookmarksBy(@Param("novelId") Long novelId, @Param("amount") long amount);
 }

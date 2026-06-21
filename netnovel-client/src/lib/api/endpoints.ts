@@ -53,6 +53,7 @@ export const endpoints = {
     novels: '/follows/novels',
   },
   users: {
+    detail: (userId: string) => `/users/${userId}`,
     avatarSignature: '/users/me/avatar/upload-signature',
     avatar: '/users/me/avatar',
   },

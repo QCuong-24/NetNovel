@@ -58,10 +58,8 @@ public class NovelInteractionService {
                 .build());
         });
 
-        novel.setViews(safeIncrement(novel.getViews()));
-        novelRepository.save(novel);
-
-        return buildInteractionDTO(novel, user.map(User::getId));
+        novelRepository.incrementViews(novelId);
+        return buildInteractionDTO(findNovel(novelId), user.map(User::getId));
     }
 
     @Transactional
@@ -73,18 +71,17 @@ public class NovelInteractionService {
         Optional<NovelFollow> existingFollow = novelFollowRepository.findByUserIdAndNovelId(userId, novelId);
         if (existingFollow.isPresent()) {
             novelFollowRepository.delete(existingFollow.get());
-            novel.setFollows(safeDecrement(novel.getFollows()));
+            novelRepository.decrementFollows(novelId);
         } else {
             NovelFollow follow = NovelFollow.builder()
                 .user(user)
                 .novel(novel)
                 .build();
             novelFollowRepository.save(follow);
-            novel.setFollows(safeIncrement(novel.getFollows()));
+            novelRepository.incrementFollows(novelId);
         }
 
-        novelRepository.save(novel);
-        return buildInteractionDTO(novel, Optional.of(userId));
+        return buildInteractionDTO(findNovel(novelId), Optional.of(userId));
     }
 
     @Transactional
@@ -96,18 +93,17 @@ public class NovelInteractionService {
         Optional<NovelLike> existingLike = novelLikeRepository.findByUserIdAndNovelId(userId, novelId);
         if (existingLike.isPresent()) {
             novelLikeRepository.delete(existingLike.get());
-            novel.setLikes(safeDecrement(novel.getLikes()));
+            novelRepository.decrementLikes(novelId);
         } else {
             NovelLike like = NovelLike.builder()
                 .user(user)
                 .novel(novel)
                 .build();
             novelLikeRepository.save(like);
-            novel.setLikes(safeIncrement(novel.getLikes()));
+            novelRepository.incrementLikes(novelId);
         }
 
-        novelRepository.save(novel);
-        return buildInteractionDTO(novel, Optional.of(userId));
+        return buildInteractionDTO(findNovel(novelId), Optional.of(userId));
     }
 
     @Transactional
@@ -119,18 +115,17 @@ public class NovelInteractionService {
         Optional<Bookmark> existingBookmark = bookmarkRepository.findByUserIdAndNovelId(userId, novelId);
         if (existingBookmark.isPresent()) {
             bookmarkRepository.delete(existingBookmark.get());
-            novel.setBookmarks(safeDecrement(novel.getBookmarks()));
+            novelRepository.decrementBookmarks(novelId);
         } else {
             Bookmark bookmark = Bookmark.builder()
                 .user(user)
                 .novel(novel)
                 .build();
             bookmarkRepository.save(bookmark);
-            novel.setBookmarks(safeIncrement(novel.getBookmarks()));
+            novelRepository.incrementBookmarks(novelId);
         }
 
-        novelRepository.save(novel);
-        return buildInteractionDTO(novel, Optional.of(userId));
+        return buildInteractionDTO(findNovel(novelId), Optional.of(userId));
     }
 
     @Transactional(readOnly = true)
@@ -173,14 +168,4 @@ public class NovelInteractionService {
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    private Long safeIncrement(Long value) {
-        return value == null ? 1L : value + 1;
-    }
-
-    private Long safeDecrement(Long value) {
-        if (value == null || value <= 0) {
-            return 0L;
-        }
-        return value - 1;
-    }
 }

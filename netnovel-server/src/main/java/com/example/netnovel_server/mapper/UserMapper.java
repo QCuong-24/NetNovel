@@ -1,6 +1,7 @@
 package com.example.netnovel_server.mapper;
 
 import com.example.netnovel_server.dto.UserDTO;
+import com.example.netnovel_server.dto.UserProfileDTO;
 import com.example.netnovel_server.entity.Role;
 import com.example.netnovel_server.entity.User;
 
@@ -26,6 +27,20 @@ public final class UserMapper {
             .profilePicturePublicId(user.getProfilePicturePublicId())
             .roles(toRoleNames(user.getRoles()))
             .provider(user.getProvider() != null ? user.getProvider().name() : null)
+            .createAt(user.getCreateAt())
+            .build();
+    }
+
+    public static UserProfileDTO toProfileDTO(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        return UserProfileDTO.builder()
+            .userId(user.getId())
+            .username(user.getUsername())
+            .profilePictureUrl(user.getProfilePictureUrl())
+            .roles(toRoleNames(user.getRoles()))
             .createAt(user.getCreateAt())
             .build();
     }

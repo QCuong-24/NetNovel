@@ -65,6 +65,7 @@ public class ChapterService {
         }
 
         Chapter chapter = chapterRepository.save(ChapterMapper.toEntity(request, novel));
+        novelRepository.advanceUpdateAt(novelId, chapter.getUpdateAt());
         novelChapterInfoService.refresh(novelId);
         return ChapterMapper.toContentDTO(chapter);
     }
@@ -84,6 +85,7 @@ public class ChapterService {
         chapter.setContent(request.getContent());
 
         Chapter savedChapter = chapterRepository.save(chapter);
+        novelRepository.advanceUpdateAt(novelId, savedChapter.getUpdateAt());
         novelChapterInfoService.refresh(novelId);
         return ChapterMapper.toContentDTO(savedChapter);
     }
@@ -94,10 +96,9 @@ public class ChapterService {
         Novel novel = chapter.getNovel();
         Long novelId = novel.getId();
         long bookmarkCount = bookmarkRepository.countByChapterId(chapterId);
-        novel.setBookmarks(safeSubtract(novel.getBookmarks(), bookmarkCount));
-        novelRepository.save(novel);
         chapterRepository.delete(chapter);
         chapterRepository.flush();
+        novelRepository.decrementBookmarksBy(novelId, bookmarkCount);
         novelChapterInfoService.refresh(novelId);
     }
 
@@ -110,13 +111,6 @@ public class ChapterService {
         if (!novelRepository.existsById(novelId)) {
             throw new ResourceNotFoundException("Novel not found");
         }
-    }
-
-    private Long safeSubtract(Long value, long amount) {
-        if (value == null || value <= amount) {
-            return 0L;
-        }
-        return value - amount;
     }
 
 }

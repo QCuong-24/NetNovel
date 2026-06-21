@@ -11,6 +11,7 @@ export const routes = {
   collection: '/collection',
   notifications: '/notifications',
   profile: '/profile',
+  userProfile: (userId: string | number) => `/users/${userId}`,
   dashboard: '/dashboard',
   crawlTasks: '/crawl-tasks',
   login: '/login',
