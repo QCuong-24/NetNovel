@@ -7,6 +7,9 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-netnovel}
       POSTGRES_USER: ${POSTGRES_USER:-netnovel}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-netnovel}
+      TZ: Asia/Ho_Chi_Minh
+      PGTZ: Asia/Ho_Chi_Minh
+    command: postgres -c timezone=Asia/Ho_Chi_Minh
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -67,6 +70,8 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
+      TZ: Asia/Ho_Chi_Minh
+      JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Ho_Chi_Minh
       SERVER_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-netnovel}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-netnovel}
@@ -105,6 +110,8 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
+      TZ: Asia/Ho_Chi_Minh
+      JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Ho_Chi_Minh
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-netnovel}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-netnovel}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-netnovel}
