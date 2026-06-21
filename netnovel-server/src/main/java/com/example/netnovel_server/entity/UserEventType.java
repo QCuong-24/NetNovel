@@ -50,6 +50,16 @@ public enum UserEventType {
     UNBOOKMARK_NOVEL,
 
     /**
+     * User created a root comment on a novel or chapter.
+     */
+    CREATE_COMMENT,
+
+    /**
+     * User replied to an existing comment.
+     */
+    REPLY_COMMENT,
+
+    /**
      * User searched for novels.
      */
     SEARCH,

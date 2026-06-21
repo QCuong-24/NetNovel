@@ -27,19 +27,22 @@ public class CommentService {
     private final ChapterRepository chapterRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final UserEventService userEventService;
 
     public CommentService(
         CommentRepository commentRepository,
         NovelRepository novelRepository,
         ChapterRepository chapterRepository,
         UserRepository userRepository,
-        NotificationService notificationService
+        NotificationService notificationService,
+        UserEventService userEventService
     ) {
         this.commentRepository = commentRepository;
         this.novelRepository = novelRepository;
         this.chapterRepository = chapterRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.userEventService = userEventService;
     }
 
     @Transactional(readOnly = true)
@@ -71,7 +74,9 @@ public class CommentService {
             .orElseThrow(() -> new ResourceNotFoundException("Novel not found"));
 
         Comment comment = CommentMapper.toEntity(validateContent(request), user, novel, null, null, null);
-        return CommentMapper.toDTO(commentRepository.save(comment));
+        Comment savedComment = commentRepository.save(comment);
+        userEventService.recordForCurrentUser(UserEventType.CREATE_COMMENT, novel, null);
+        return CommentMapper.toDTO(savedComment);
     }
 
     @Transactional
@@ -88,7 +93,9 @@ public class CommentService {
             null,
             null
         );
-        return CommentMapper.toDTO(commentRepository.save(comment));
+        Comment savedComment = commentRepository.save(comment);
+        userEventService.recordForCurrentUser(UserEventType.CREATE_COMMENT, chapter.getNovel(), chapter);
+        return CommentMapper.toDTO(savedComment);
     }
 
     @Transactional
@@ -114,6 +121,7 @@ public class CommentService {
 
         Comment savedReply = commentRepository.save(reply);
         sendReplyNotification(parent, savedReply);
+        userEventService.recordForCurrentUser(UserEventType.REPLY_COMMENT, savedReply.getNovel(), savedReply.getChapter());
         return CommentMapper.toDTO(savedReply);
     }
 
