@@ -3,6 +3,8 @@ package com.example.netnovel_server.controller;
 import com.example.netnovel_server.dto.NovelSearchResultDTO;
 import com.example.netnovel_server.dto.SearchSuggestionDTO;
 import com.example.netnovel_server.service.PostgresNovelSearchService;
+import com.example.netnovel_server.entity.UserEventType;
+import com.example.netnovel_server.service.UserEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
@@ -18,9 +20,11 @@ import java.util.List;
 public class SearchController {
 
     private final PostgresNovelSearchService searchService;
+    private final UserEventService userEventService;
 
-    public SearchController(PostgresNovelSearchService searchService) {
+    public SearchController(PostgresNovelSearchService searchService, UserEventService userEventService) {
         this.searchService = searchService;
+        this.userEventService = userEventService;
     }
 
     @GetMapping("/novels")
@@ -32,6 +36,9 @@ public class SearchController {
         @RequestParam(defaultValue = "relevance") String sortMode,
         Pageable pageable
     ) {
+        if (q != null && !q.isBlank()) {
+            userEventService.recordForCurrentUser(UserEventType.SEARCH);
+        }
         return ResponseEntity.ok(searchService.searchNovels(q, status, genre, sortMode, pageable));
     }
 

@@ -18,7 +18,7 @@ public class NovelInteractionService {
     private final UserRepository userRepository;
     private final NovelViewStatRepository novelViewStatRepository;
     private final NovelUserViewRepository novelUserViewRepository;
-    private final UserEventRepository userEventRepository;
+    private final UserEventService userEventService;
     private final NovelFollowRepository novelFollowRepository;
     private final NovelLikeRepository novelLikeRepository;
     private final BookmarkRepository bookmarkRepository;
@@ -28,7 +28,7 @@ public class NovelInteractionService {
         UserRepository userRepository,
         NovelViewStatRepository novelViewStatRepository,
         NovelUserViewRepository novelUserViewRepository,
-        UserEventRepository userEventRepository,
+        UserEventService userEventService,
         NovelFollowRepository novelFollowRepository,
         NovelLikeRepository novelLikeRepository,
         BookmarkRepository bookmarkRepository
@@ -37,7 +37,7 @@ public class NovelInteractionService {
         this.userRepository = userRepository;
         this.novelViewStatRepository = novelViewStatRepository;
         this.novelUserViewRepository = novelUserViewRepository;
-        this.userEventRepository = userEventRepository;
+        this.userEventService = userEventService;
         this.novelFollowRepository = novelFollowRepository;
         this.novelLikeRepository = novelLikeRepository;
         this.bookmarkRepository = bookmarkRepository;
@@ -49,14 +49,8 @@ public class NovelInteractionService {
         Optional<User> user = SecurityUtils.getCurrentUserId().map(this::findUser);
 
         novelViewStatRepository.incrementViewCount(novelId, LocalDate.now());
-        user.ifPresent(currentUser -> {
-            novelUserViewRepository.incrementViewCount(novelId, currentUser.getId());
-            userEventRepository.save(UserEvent.builder()
-                .user(currentUser)
-                .novel(novel)
-                .eventType(UserEventType.VIEW_NOVEL)
-                .build());
-        });
+        user.ifPresent(currentUser -> novelUserViewRepository.incrementViewCount(novelId, currentUser.getId()));
+        userEventService.recordForCurrentUser(UserEventType.VIEW_NOVEL, novel);
 
         novelRepository.incrementViews(novelId);
         return buildInteractionDTO(findNovel(novelId), user.map(User::getId));
@@ -72,6 +66,7 @@ public class NovelInteractionService {
         if (existingFollow.isPresent()) {
             novelFollowRepository.delete(existingFollow.get());
             novelRepository.decrementFollows(novelId);
+            userEventService.recordForCurrentUser(UserEventType.UNFOLLOW_NOVEL, novel);
         } else {
             NovelFollow follow = NovelFollow.builder()
                 .user(user)
@@ -79,6 +74,7 @@ public class NovelInteractionService {
                 .build();
             novelFollowRepository.save(follow);
             novelRepository.incrementFollows(novelId);
+            userEventService.recordForCurrentUser(UserEventType.FOLLOW_NOVEL, novel);
         }
 
         return buildInteractionDTO(findNovel(novelId), Optional.of(userId));
@@ -94,6 +90,7 @@ public class NovelInteractionService {
         if (existingLike.isPresent()) {
             novelLikeRepository.delete(existingLike.get());
             novelRepository.decrementLikes(novelId);
+            userEventService.recordForCurrentUser(UserEventType.UNLIKE_NOVEL, novel);
         } else {
             NovelLike like = NovelLike.builder()
                 .user(user)
@@ -101,6 +98,7 @@ public class NovelInteractionService {
                 .build();
             novelLikeRepository.save(like);
             novelRepository.incrementLikes(novelId);
+            userEventService.recordForCurrentUser(UserEventType.LIKE_NOVEL, novel);
         }
 
         return buildInteractionDTO(findNovel(novelId), Optional.of(userId));
@@ -116,6 +114,7 @@ public class NovelInteractionService {
         if (existingBookmark.isPresent()) {
             bookmarkRepository.delete(existingBookmark.get());
             novelRepository.decrementBookmarks(novelId);
+            userEventService.recordForCurrentUser(UserEventType.UNBOOKMARK_NOVEL, novel);
         } else {
             Bookmark bookmark = Bookmark.builder()
                 .user(user)
@@ -123,6 +122,7 @@ public class NovelInteractionService {
                 .build();
             bookmarkRepository.save(bookmark);
             novelRepository.incrementBookmarks(novelId);
+            userEventService.recordForCurrentUser(UserEventType.BOOKMARK_NOVEL, novel);
         }
 
         return buildInteractionDTO(findNovel(novelId), Optional.of(userId));
