@@ -4,6 +4,9 @@
 !.env.example
 !**/.env.example
 
+# Recommendation seeder run artifacts
+.tools/
+
 # Java / Maven
 **/target/
 **/.mvn/wrapper/maven-wrapper.jar

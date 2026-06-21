@@ -50,8 +50,6 @@ public class NovelInteractionService {
 
         novelViewStatRepository.incrementViewCount(novelId, LocalDate.now());
         user.ifPresent(currentUser -> novelUserViewRepository.incrementViewCount(novelId, currentUser.getId()));
-        userEventService.recordForCurrentUser(UserEventType.VIEW_NOVEL, novel);
-
         novelRepository.incrementViews(novelId);
         return buildInteractionDTO(findNovel(novelId), user.map(User::getId));
     }

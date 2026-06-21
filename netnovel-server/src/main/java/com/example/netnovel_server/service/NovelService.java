@@ -7,6 +7,7 @@ import com.example.netnovel_server.entity.Novel;
 import com.example.netnovel_server.entity.NovelFollow;
 import com.example.netnovel_server.entity.Status;
 import com.example.netnovel_server.entity.Tag;
+import com.example.netnovel_server.entity.UserEventType;
 import com.example.netnovel_server.exception.BadRequestException;
 import com.example.netnovel_server.exception.DuplicateResourceException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
@@ -31,6 +32,7 @@ public class NovelService {
     private final NovelFollowRepository novelFollowRepository;
     private final NotificationService notificationService;
     private final NovelChapterInfoService novelChapterInfoService;
+    private final UserEventService userEventService;
 
     public NovelService(
         NovelRepository novelRepository,
@@ -38,7 +40,8 @@ public class NovelService {
         TagRepository tagRepository,
         NovelFollowRepository novelFollowRepository,
         NotificationService notificationService,
-        NovelChapterInfoService novelChapterInfoService
+        NovelChapterInfoService novelChapterInfoService,
+        UserEventService userEventService
     ) {
         this.novelRepository = novelRepository;
         this.genreRepository = genreRepository;
@@ -46,6 +49,7 @@ public class NovelService {
         this.novelFollowRepository = novelFollowRepository;
         this.notificationService = notificationService;
         this.novelChapterInfoService = novelChapterInfoService;
+        this.userEventService = userEventService;
     }
 
     @Transactional(readOnly = true)
@@ -53,9 +57,11 @@ public class NovelService {
         return novelRepository.findAll(pageable).map(NovelMapper::toDTO);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public NovelDTO getNovel(Long novelId) {
-        return NovelMapper.toDTO(findNovel(novelId));
+        Novel novel = findNovel(novelId);
+        userEventService.recordForCurrentUser(UserEventType.VIEW_NOVEL, novel);
+        return NovelMapper.toDTO(novel);
     }
 
     @Transactional(readOnly = true)
