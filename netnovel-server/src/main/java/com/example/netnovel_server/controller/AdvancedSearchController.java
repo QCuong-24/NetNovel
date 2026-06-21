@@ -2,8 +2,10 @@ package com.example.netnovel_server.controller;
 
 import com.example.netnovel_server.dto.ElasticReindexResponseDTO;
 import com.example.netnovel_server.dto.NovelSearchResultDTO;
+import com.example.netnovel_server.entity.UserEventType;
 import com.example.netnovel_server.search.elastic.service.ElasticAdminNovelSearchService;
 import com.example.netnovel_server.search.elastic.service.ElasticNovelSearchIndexer;
+import com.example.netnovel_server.service.UserEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.ObjectProvider;
@@ -17,17 +19,20 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/advanced/search")
 @Tag(name = "Advanced Search", description = "Elasticsearch-backed advanced search APIs")
-public class AdminSearchController {
+public class AdvancedSearchController {
 
     private final ObjectProvider<ElasticNovelSearchIndexer> indexerProvider;
     private final ObjectProvider<ElasticAdminNovelSearchService> searchServiceProvider;
+    private final UserEventService userEventService;
 
-    public AdminSearchController(
+    public AdvancedSearchController(
         ObjectProvider<ElasticNovelSearchIndexer> indexerProvider,
-        ObjectProvider<ElasticAdminNovelSearchService> searchServiceProvider
+        ObjectProvider<ElasticAdminNovelSearchService> searchServiceProvider,
+        UserEventService userEventService
     ) {
         this.indexerProvider = indexerProvider;
         this.searchServiceProvider = searchServiceProvider;
+        this.userEventService = userEventService;
     }
 
     @PostMapping("/reindex/novels")
@@ -47,6 +52,9 @@ public class AdminSearchController {
         @RequestParam(required = false) Boolean crawled,
         Pageable pageable
     ) {
+        if (q != null && !q.isBlank()) {
+            userEventService.recordForCurrentUser(UserEventType.SEARCH);
+        }
         return ResponseEntity.ok(elasticSearchService().searchNovels(q, status, genre, tag, source, crawled, pageable));
     }
 
