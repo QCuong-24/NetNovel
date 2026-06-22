@@ -13,6 +13,7 @@ import {
   getSimilarNovels,
   getTags,
   increaseNovelView,
+  recordNovelView,
   toggleNovelBookmark,
   toggleNovelFollow,
   toggleNovelLike,
@@ -95,7 +96,7 @@ export function useIncreaseNovelViewMutation(novelId?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => increaseNovelView(novelId!),
+    mutationFn: (chapterId: string) => increaseNovelView(novelId!, chapterId),
     onSuccess: (interaction) => {
       queryClient.setQueryData<Novel | undefined>([...queryKeys.novels, novelId], (novel) =>
         mergeNovelInteraction(novel, interaction),
@@ -136,6 +137,12 @@ export function useToggleNovelLikeMutation(novelId: string) {
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'Could not update like'));
     },
+  });
+}
+
+export function useRecordNovelViewMutation(novelId?: string) {
+  return useMutation({
+    mutationFn: () => recordNovelView(novelId!),
   });
 }
 

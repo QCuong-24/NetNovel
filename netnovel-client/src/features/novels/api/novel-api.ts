@@ -84,10 +84,14 @@ export async function deleteNovel(novelId: string) {
   await httpClient.delete(endpoints.novels.delete(novelId));
 }
 
-export async function increaseNovelView(novelId: string) {
-  const response = await httpClient.post<NovelInteraction>(endpoints.novels.view(novelId));
+export async function increaseNovelView(novelId: string, chapterId: string) {
+  const response = await httpClient.post<NovelInteraction>(`${endpoints.novels.view(novelId)}?chapterId=${chapterId}`);
 
   return response.data;
+}
+
+export async function recordNovelView(novelId: string) {
+  await httpClient.post(endpoints.novels.viewEvent(novelId));
 }
 
 export async function getMyNovelInteraction(novelId: string) {

@@ -14,6 +14,7 @@ export const endpoints = {
     update: (novelId: string) => `/novels/${novelId}`,
     delete: (novelId: string) => `/novels/${novelId}`,
     view: (novelId: string) => `/novels/${novelId}/view`,
+    viewEvent: (novelId: string) => `/novels/${novelId}/view-event`,
     myInteraction: (novelId: string) => `/novels/${novelId}/me`,
     toggleFollow: (novelId: string) => `/novels/${novelId}/follow/toggle`,
     toggleLike: (novelId: string) => `/novels/${novelId}/like/toggle`,

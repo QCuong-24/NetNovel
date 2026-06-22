@@ -19,9 +19,16 @@ public class NovelInteractionController {
     }
 
     @PostMapping("/view")
-    @Operation(summary = "Increase novel view count")
-    public ResponseEntity<NovelInteractionDTO> increaseView(@PathVariable Long novelId) {
-        return ResponseEntity.ok(novelInteractionService.increaseView(novelId));
+    @Operation(summary = "Increase novel view count and record a chapter view")
+    public ResponseEntity<NovelInteractionDTO> increaseView(@PathVariable Long novelId, @RequestParam Long chapterId) {
+        return ResponseEntity.ok(novelInteractionService.increaseView(novelId, chapterId));
+    }
+
+    @PostMapping("/view-event")
+    @Operation(summary = "Record a novel detail view for the current user")
+    public ResponseEntity<Void> recordNovelView(@PathVariable Long novelId) {
+        novelInteractionService.recordNovelView(novelId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/follow/toggle")

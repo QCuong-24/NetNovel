@@ -5,7 +5,6 @@ import com.example.netnovel_server.dto.ChapterCreateDTO;
 import com.example.netnovel_server.dto.ChapterDTO;
 import com.example.netnovel_server.entity.Chapter;
 import com.example.netnovel_server.entity.Novel;
-import com.example.netnovel_server.entity.UserEventType;
 import com.example.netnovel_server.exception.DuplicateResourceException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.ChapterMapper;
@@ -24,20 +23,17 @@ public class ChapterService {
     private final NovelRepository novelRepository;
     private final BookmarkRepository bookmarkRepository;
     private final NovelChapterInfoService novelChapterInfoService;
-    private final UserEventService userEventService;
 
     public ChapterService(
         ChapterRepository chapterRepository,
         NovelRepository novelRepository,
         BookmarkRepository bookmarkRepository,
-        NovelChapterInfoService novelChapterInfoService,
-        UserEventService userEventService
+        NovelChapterInfoService novelChapterInfoService
     ) {
         this.chapterRepository = chapterRepository;
         this.novelRepository = novelRepository;
         this.bookmarkRepository = bookmarkRepository;
         this.novelChapterInfoService = novelChapterInfoService;
-        this.userEventService = userEventService;
     }
 
     @Transactional(readOnly = true)
@@ -54,11 +50,9 @@ public class ChapterService {
             .toList();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ChapterContentDTO getChapter(Long chapterId) {
-        Chapter chapter = findChapter(chapterId);
-        userEventService.recordForCurrentUser(UserEventType.VIEW_CHAPTER, chapter.getNovel(), chapter);
-        return ChapterMapper.toContentDTO(chapter);
+        return ChapterMapper.toContentDTO(findChapter(chapterId));
     }
 
     @Transactional

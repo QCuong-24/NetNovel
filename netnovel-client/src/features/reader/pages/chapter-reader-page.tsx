@@ -66,7 +66,7 @@ export function ChapterReaderPage() {
     }
 
     viewedChapterRef.current = viewKey;
-    increaseViewMutation.mutate();
+    increaseViewMutation.mutate(String(chapter.chapterId));
     if (hasAuthTokens()) {
       updateLastReadMutation.mutate({
         chapterId: String(chapter.chapterId),

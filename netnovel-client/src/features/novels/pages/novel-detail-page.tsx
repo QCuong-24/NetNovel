@@ -22,6 +22,7 @@ import {
   useMyNovelInteraction,
   useNovel,
   useNovelTags,
+  useRecordNovelViewMutation,
   useToggleNovelFollowMutation,
   useToggleNovelBookmarkMutation,
   useToggleNovelLikeMutation,
@@ -61,6 +62,7 @@ export function NovelDetailPage() {
   const [deleteCountdown, setDeleteCountdown] = useState<number | null>(null);
   const deleteIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const viewedNovelRef = useRef<string | null>(null);
   const { data: user } = useCurrentUser();
   const canEdit = canManageNovels(user);
   const { data: novel, isError, isLoading } = useNovel(novelId);
@@ -72,6 +74,7 @@ export function NovelDetailPage() {
   const followMutation = useToggleNovelFollowMutation(novelId ?? '');
   const likeMutation = useToggleNovelLikeMutation(novelId ?? '');
   const bookmarkMutation = useToggleNovelBookmarkMutation(novelId ?? '');
+  const recordNovelViewMutation = useRecordNovelViewMutation(novelId);
   const createCrawlTaskMutation = useCreateCrawlTaskMutation();
 
   useEffect(() => {
@@ -84,6 +87,15 @@ export function NovelDetailPage() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!user || !novel?.novelId || viewedNovelRef.current === String(novel.novelId)) {
+      return;
+    }
+
+    viewedNovelRef.current = String(novel.novelId);
+    recordNovelViewMutation.mutate();
+  }, [novel?.novelId, recordNovelViewMutation, user]);
 
   async function handleUpdate(payload: NovelPayload) {
     await updateNovelMutation.mutateAsync(payload);

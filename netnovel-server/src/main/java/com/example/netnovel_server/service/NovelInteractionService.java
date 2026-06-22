@@ -2,6 +2,7 @@ package com.example.netnovel_server.service;
 
 import com.example.netnovel_server.dto.NovelInteractionDTO;
 import com.example.netnovel_server.entity.*;
+import com.example.netnovel_server.exception.BadRequestException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.repository.*;
 import com.example.netnovel_server.utility.SecurityUtils;
@@ -18,6 +19,7 @@ public class NovelInteractionService {
     private final UserRepository userRepository;
     private final NovelViewStatRepository novelViewStatRepository;
     private final NovelUserViewRepository novelUserViewRepository;
+    private final ChapterRepository chapterRepository;
     private final UserEventService userEventService;
     private final NovelFollowRepository novelFollowRepository;
     private final NovelLikeRepository novelLikeRepository;
@@ -28,6 +30,7 @@ public class NovelInteractionService {
         UserRepository userRepository,
         NovelViewStatRepository novelViewStatRepository,
         NovelUserViewRepository novelUserViewRepository,
+        ChapterRepository chapterRepository,
         UserEventService userEventService,
         NovelFollowRepository novelFollowRepository,
         NovelLikeRepository novelLikeRepository,
@@ -37,6 +40,7 @@ public class NovelInteractionService {
         this.userRepository = userRepository;
         this.novelViewStatRepository = novelViewStatRepository;
         this.novelUserViewRepository = novelUserViewRepository;
+        this.chapterRepository = chapterRepository;
         this.userEventService = userEventService;
         this.novelFollowRepository = novelFollowRepository;
         this.novelLikeRepository = novelLikeRepository;
@@ -44,14 +48,26 @@ public class NovelInteractionService {
     }
 
     @Transactional
-    public NovelInteractionDTO increaseView(Long novelId) {
+    public NovelInteractionDTO increaseView(Long novelId, Long chapterId) {
         Novel novel = findNovel(novelId);
+        Chapter chapter = chapterRepository.findById(chapterId)
+            .orElseThrow(() -> new ResourceNotFoundException("Chapter not found"));
+        if (!chapter.getNovel().getId().equals(novelId)) {
+            throw new BadRequestException("Chapter does not belong to novel");
+        }
+
         Optional<User> user = SecurityUtils.getCurrentUserId().map(this::findUser);
 
         novelViewStatRepository.incrementViewCount(novelId, LocalDate.now());
         user.ifPresent(currentUser -> novelUserViewRepository.incrementViewCount(novelId, currentUser.getId()));
+        userEventService.recordForCurrentUser(UserEventType.VIEW_CHAPTER, novel, chapter);
         novelRepository.incrementViews(novelId);
         return buildInteractionDTO(findNovel(novelId), user.map(User::getId));
+    }
+
+    @Transactional
+    public void recordNovelView(Long novelId) {
+        userEventService.recordForCurrentUser(UserEventType.VIEW_NOVEL, findNovel(novelId));
     }
 
     @Transactional
