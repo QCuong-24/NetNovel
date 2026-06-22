@@ -66,7 +66,7 @@ export function NovelDetailPage() {
   const { data: user } = useCurrentUser();
   const canEdit = canManageNovels(user);
   const { data: novel, isError, isLoading } = useNovel(novelId);
-  const { data: chapters = [] } = useNovelChapters(novelId);
+  const { data: chapters = [], isLoading: isChaptersLoading } = useNovelChapters(novelId);
   const novelTagsQuery = useNovelTags(canEdit ? novelId : undefined);
   const { data: interaction } = useMyNovelInteraction(novelId);
   const updateNovelMutation = useUpdateNovelMutation(novelId ?? '');
@@ -438,7 +438,7 @@ export function NovelDetailPage() {
           <ChapterListSection novelId={String(novel.novelId)} />
         </div>
       </section>
-      <CommentSection target={{ id: String(novel.novelId), type: 'novel' }} />
+      <CommentSection isAnchorReady={!isChaptersLoading} target={{ id: String(novel.novelId), type: 'novel' }} />
       <SimilarNovelsSection novelId={String(novel.novelId)} />
     </main>
   );

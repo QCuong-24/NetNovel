@@ -1,6 +1,6 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MessageCircle, Pencil, RefreshCw, Reply, Trash2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { formatDateTime } from '@/features/novels/lib/novel-format';
 import { cn } from '@/lib/utils';
 import {
   useCommentReplies,
+  useCommentContext,
   useComments,
   useCreateCommentMutation,
   useCreateCommentReplyMutation,
@@ -21,6 +22,7 @@ import {
 import type { Comment, CommentTarget } from '../types';
 
 type CommentSectionProps = {
+  isAnchorReady?: boolean;
   target: CommentTarget;
 };
 
@@ -28,11 +30,18 @@ function canModerateComments(user?: User) {
   return Boolean(user?.roles?.some((role) => role === 'MANAGER' || role === 'ADMIN'));
 }
 
-export function CommentSection({ target }: CommentSectionProps) {
+function getCommentIdFromHash(hash: string) {
+  return hash.match(/^#comment-(\d+)$/)?.[1];
+}
+
+export function CommentSection({ isAnchorReady = true, target }: CommentSectionProps) {
   const { t } = useTranslation();
+  const location = useLocation();
   const [page, setPage] = useState(0);
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
+  const [selectedCommentId, setSelectedCommentId] = useState<string | undefined>(() => getCommentIdFromHash(location.hash));
   const commentsQuery = useComments(target, { page, size: 10, sort: `createdAt,${sortDirection}` });
+  const commentContextQuery = useCommentContext(selectedCommentId);
   const createMutation = useCreateCommentMutation(target);
   const commentsPage = commentsQuery.data;
   const comments = [...(commentsPage?.content ?? [])].sort((left, right) => {
@@ -41,6 +50,55 @@ export function CommentSection({ target }: CommentSectionProps) {
 
     return sortDirection === 'desc' ? rightTime - leftTime : leftTime - rightTime;
   });
+  const commentContext = [...(commentContextQuery.data ?? [])].reverse();
+  const contextRoot = commentContext[0];
+  const contextBelongsToTarget = contextRoot
+    ? target.type === 'novel'
+      ? String(contextRoot.novelId) === target.id
+      : String(contextRoot.chapterId) === target.id
+    : false;
+  const visibleComments =
+    contextRoot && contextBelongsToTarget && !comments.some((comment) => comment.commentId === contextRoot.commentId)
+      ? [contextRoot, ...comments]
+      : comments;
+  const contextReplyParentIds = new Set(commentContext.slice(0, -1).map((comment) => comment.commentId));
+
+  useEffect(() => {
+    setSelectedCommentId(getCommentIdFromHash(location.hash));
+  }, [location.hash]);
+
+  useEffect(() => {
+    if (!selectedCommentId || commentContextQuery.isLoading || !isAnchorReady) {
+      return;
+    }
+
+    let scrollTimeoutId: number | undefined;
+    const intervalId = window.setInterval(() => {
+      const commentElement = document.getElementById(`comment-${selectedCommentId}`);
+
+      if (commentElement) {
+        window.clearInterval(intervalId);
+        scrollTimeoutId = window.setTimeout(() => {
+          commentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 250);
+      }
+    }, 100);
+    const timeoutId = window.setTimeout(() => window.clearInterval(intervalId), 3000);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.clearTimeout(timeoutId);
+      if (scrollTimeoutId) {
+        window.clearTimeout(scrollTimeoutId);
+      }
+    };
+  }, [commentContextQuery.isLoading, isAnchorReady, selectedCommentId]);
+
+  function selectComment(commentId: number) {
+    const hash = `#comment-${commentId}`;
+    window.history.replaceState(null, '', hash);
+    setSelectedCommentId(String(commentId));
+  }
 
   return (
     <Card>
@@ -78,16 +136,22 @@ export function CommentSection({ target }: CommentSectionProps) {
           </div>
         ) : null}
 
-        {!commentsQuery.isLoading && !comments.length ? (
+        {!commentsQuery.isLoading && !visibleComments.length ? (
           <div className="rounded-lg border border-dashed p-5 text-sm font-semibold text-muted-foreground">
             {t('comments.empty')}
           </div>
         ) : null}
 
-        {comments.length ? (
+        {visibleComments.length ? (
           <div className="grid gap-4">
-            {comments.map((comment) => (
-              <CommentItem comment={comment} key={comment.commentId} />
+            {visibleComments.map((comment) => (
+              <CommentItem
+                activeCommentId={selectedCommentId}
+                comment={comment}
+                contextReplyParentIds={contextReplyParentIds}
+                key={comment.commentId}
+                onSelect={selectComment}
+              />
             ))}
           </div>
         ) : null}
@@ -122,7 +186,17 @@ export function CommentSection({ target }: CommentSectionProps) {
   );
 }
 
-function CommentItem({ comment }: { comment: Comment }) {
+function CommentItem({
+  activeCommentId,
+  comment,
+  contextReplyParentIds,
+  onSelect,
+}: {
+  activeCommentId?: string;
+  comment: Comment;
+  contextReplyParentIds: Set<number>;
+  onSelect: (commentId: number) => void;
+}) {
   const { t } = useTranslation();
   const { data: user } = useCurrentUser();
   const [showReplies, setShowReplies] = useState(false);
@@ -136,8 +210,22 @@ function CommentItem({ comment }: { comment: Comment }) {
   const updateMutation = useUpdateCommentMutation();
   const deleteMutation = useDeleteCommentMutation();
 
+  useEffect(() => {
+    if (contextReplyParentIds.has(comment.commentId)) {
+      setShowReplies(true);
+    }
+  }, [comment.commentId, contextReplyParentIds]);
+
   return (
-    <article className={cn('grid gap-3 rounded-lg border bg-background p-4', comment.deleted && 'opacity-75')}>
+    <article
+      className={cn(
+        'grid gap-3 rounded-lg border bg-background p-4 transition-colors',
+        comment.deleted && 'opacity-75',
+        String(comment.commentId) === activeCommentId && 'border-primary bg-primary/10 dark:bg-primary/20',
+      )}
+      id={`comment-${comment.commentId}`}
+      onClick={() => onSelect(comment.commentId)}
+    >
       <div className="flex gap-3">
         <Avatar name={comment.username} src={comment.userAvatarUrl} userId={comment.userId} />
         <div className="min-w-0 flex-1">
@@ -247,7 +335,13 @@ function CommentItem({ comment }: { comment: Comment }) {
           ) : null}
 
           {repliesQuery.data?.map((reply) => (
-            <CommentItem comment={reply} key={reply.commentId} />
+            <CommentItem
+              activeCommentId={activeCommentId}
+              comment={reply}
+              contextReplyParentIds={contextReplyParentIds}
+              key={reply.commentId}
+              onSelect={onSelect}
+            />
           ))}
         </div>
       ) : null}

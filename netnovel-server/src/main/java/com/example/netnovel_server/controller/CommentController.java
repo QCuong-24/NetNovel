@@ -41,6 +41,12 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getReplies(commentId));
     }
 
+    @GetMapping("/api/comments/{commentId}/context")
+    @Operation(summary = "Get a comment and its parent chain through the root comment")
+    public ResponseEntity<List<CommentDTO>> getCommentContext(@PathVariable Long commentId) {
+        return ResponseEntity.ok(commentService.getCommentContext(commentId));
+    }
+
     @PostMapping("/api/novels/{novelId}/comments")
     @Operation(summary = "Create a root comment for a novel")
     public ResponseEntity<CommentDTO> createNovelComment(

@@ -35,6 +35,12 @@ export async function getCommentReplies(commentId: string) {
   return response.data;
 }
 
+export async function getCommentContext(commentId: string) {
+  const response = await httpClient.get<Comment[]>(endpoints.comments.context(commentId));
+
+  return response.data;
+}
+
 export async function createComment(target: CommentTarget, payload: CommentPayload) {
   const response = await httpClient.post<Comment>(targetEndpoint(target), payload);
 

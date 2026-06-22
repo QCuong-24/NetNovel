@@ -87,6 +87,7 @@ export const endpoints = {
     byNovel: (novelId: string) => `/novels/${novelId}/comments`,
     byChapter: (chapterId: string) => `/chapters/${chapterId}/comments`,
     replies: (commentId: string) => `/comments/${commentId}/replies`,
+    context: (commentId: string) => `/comments/${commentId}/context`,
     detail: (commentId: string) => `/comments/${commentId}`,
     moderationDelete: (commentId: string) => `/comments/${commentId}/moderation`,
   },

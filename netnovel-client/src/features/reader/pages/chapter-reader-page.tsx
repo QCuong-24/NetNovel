@@ -32,7 +32,7 @@ export function ChapterReaderPage() {
   const updateLastReadMutation = useUpdateLastReadMutation();
   const { data: isChapterBookmarked = false } = useChapterBookmarkStatus(chapterId);
   const bookmarkMutation = useToggleChapterBookmarkMutation(chapterId ?? '', isChapterBookmarked);
-  const { data: chapters = [] } = useNovelChapters(chapterNovelId);
+  const { data: chapters = [], isLoading: isChaptersLoading } = useNovelChapters(chapterNovelId);
   const backToNovel = chapter?.novelId ? `/novels/${chapter.novelId}` : `/novels/${novelId ?? ''}`;
   const editTo =
     chapter?.novelId && chapter?.chapterId
@@ -176,7 +176,7 @@ export function ChapterReaderPage() {
             </div>
             <ChapterNavigation chapters={chapters} currentChapterId={chapter.chapterId} />
             <AdSlot slot="reader_after_chapter" />
-            <CommentSection target={{ id: String(chapter.chapterId), type: 'chapter' }} />
+            <CommentSection isAnchorReady={!isChaptersLoading} target={{ id: String(chapter.chapterId), type: 'chapter' }} />
           </>
         ) : null}
       </article>

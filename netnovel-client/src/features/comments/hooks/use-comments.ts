@@ -7,6 +7,7 @@ import {
   createCommentReply,
   deleteComment,
   getCommentReplies,
+  getCommentContext,
   getComments,
   moderateDeleteComment,
   updateComment,
@@ -32,6 +33,14 @@ export function useCommentReplies(commentId: string, enabled: boolean) {
     queryKey: [...queryKeys.comments, 'replies', commentId],
     queryFn: () => getCommentReplies(commentId),
     enabled,
+  });
+}
+
+export function useCommentContext(commentId?: string) {
+  return useQuery({
+    queryKey: [...queryKeys.comments, 'context', commentId],
+    queryFn: () => getCommentContext(commentId ?? ''),
+    enabled: Boolean(commentId),
   });
 }
 

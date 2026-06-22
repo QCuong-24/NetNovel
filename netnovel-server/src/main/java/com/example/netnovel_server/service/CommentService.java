@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -65,6 +66,19 @@ public class CommentService {
         return commentRepository.findByParentCommentIdOrderByCreatedAtAsc(commentId).stream()
             .map(CommentMapper::toDTO)
             .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CommentDTO> getCommentContext(Long commentId) {
+        List<CommentDTO> context = new ArrayList<>();
+        Comment current = findComment(commentId);
+
+        while (current != null) {
+            context.add(CommentMapper.toDTO(current));
+            current = current.getParentComment();
+        }
+
+        return context;
     }
 
     @Transactional
@@ -227,9 +241,9 @@ public class CommentService {
         notificationService.createNotification(
             recipient,
             NotificationService.TYPE_COMMENT_REPLY,
-            "New reply to your comment",
-            reply.getUser().getUsername() + " replied to your comment.",
-            "/comments/" + parent.getId() + "/replies"
+            "New reply to your comment in novel \"" + reply.getNovel().getTitle() + "\"",
+            reply.getUser().getUsername() + " replied: \"" + reply.getContent() + "\"",
+            "/novels/" + reply.getNovel().getId() + "#comment-" + reply.getId()
         );
     }
 }
