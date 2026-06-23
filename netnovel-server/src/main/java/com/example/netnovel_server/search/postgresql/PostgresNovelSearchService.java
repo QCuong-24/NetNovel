@@ -1,4 +1,4 @@
-package com.example.netnovel_server.service;
+package com.example.netnovel_server.search.postgresql;
 
 import com.example.netnovel_server.dto.NovelSearchResultDTO;
 import com.example.netnovel_server.dto.SearchSuggestionDTO;
@@ -7,9 +7,6 @@ import com.example.netnovel_server.entity.Status;
 import com.example.netnovel_server.exception.BadRequestException;
 import com.example.netnovel_server.mapper.NovelMapper;
 import com.example.netnovel_server.repository.NovelRepository;
-import com.example.netnovel_server.repository.NovelSearchProjection;
-import com.example.netnovel_server.repository.NovelSearchRepository;
-import com.example.netnovel_server.repository.SearchSuggestionProjection;
 import com.example.netnovel_server.utility.TextUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

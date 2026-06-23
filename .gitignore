@@ -7,6 +7,9 @@
 # Local recommendation seeder tool
 tools/recommendation-seeder/
 
+# Documentation
+document/
+
 # Java / Maven
 **/target/
 **/.mvn/wrapper/maven-wrapper.jar

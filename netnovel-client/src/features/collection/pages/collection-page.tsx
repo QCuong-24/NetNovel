@@ -1,4 +1,4 @@
-import { BookOpen, Bookmark, HeartHandshake } from 'lucide-react';
+import { BookOpen, Bookmark, HeartHandshake, Sparkles } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -9,16 +9,18 @@ import { NovelCard } from '@/features/novels/components/novel-card';
 import { formatDateTime } from '@/features/novels/lib/novel-format';
 import { useHashTab } from '@/hooks/use-hash-tab';
 import { cn } from '@/lib/utils';
+import { useForYouRecommendations } from '@/features/recommendations/hooks/use-recommendations';
 import { useBookmarks, useFollowedNovels, useLastReading } from '../hooks/use-collection';
 import type { Bookmark as BookmarkItem, BookmarkKind, LastReadNovel } from '../types';
 
 const bookmarkKinds: BookmarkKind[] = ['novels', 'chapters'];
-type CollectionTab = 'lastReading' | 'bookmarks' | 'followedNovels';
+type CollectionTab = 'lastReading' | 'bookmarks' | 'followedNovels' | 'recommendations';
 
 const collectionTabs: Array<{ icon: typeof BookOpen; key: CollectionTab; labelKey: string }> = [
   { icon: BookOpen, key: 'lastReading', labelKey: 'collection.lastReading.title' },
   { icon: Bookmark, key: 'bookmarks', labelKey: 'collection.bookmarks.title' },
   { icon: HeartHandshake, key: 'followedNovels', labelKey: 'collection.followedNovels.title' },
+  { icon: Sparkles, key: 'recommendations', labelKey: 'collection.recommendations.title' },
 ];
 const collectionTabKeys = collectionTabs.map((tab) => tab.key);
 
@@ -29,9 +31,11 @@ export function CollectionPage() {
   const lastReadingQuery = useLastReading();
   const bookmarksQuery = useBookmarks(bookmarkKind);
   const followedNovelsQuery = useFollowedNovels();
+  const recommendationsQuery = useForYouRecommendations();
   const lastReading = lastReadingQuery.data?.content ?? [];
   const bookmarks = bookmarksQuery.data?.content ?? [];
   const followedNovels = followedNovelsQuery.data?.content ?? [];
+  const recommendations = recommendationsQuery.data ?? [];
 
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
@@ -124,6 +128,25 @@ export function CollectionPage() {
                 <p className="text-xs font-semibold text-muted-foreground">
                   {t('collection.followedNovels.followedAt', { date: formatDateTime(item.followedAt ?? undefined) })}
                 </p>
+              </div>
+            ))}
+          </div>
+        </CollectionSection>
+      ) : null}
+
+      {activeTab === 'recommendations' ? (
+        <CollectionSection
+          hasContent={recommendations.length > 0}
+          icon={<Sparkles className="size-5 text-primary" />}
+          isLoading={recommendationsQuery.isLoading}
+          title={t('collection.recommendations.title')}
+          emptyText={t('collection.recommendations.empty')}
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {recommendations.map((item) => (
+              <div className="grid gap-2" key={item.novel.novelId}>
+                <NovelCard novel={item.novel} />
+                <p className="text-xs font-semibold text-muted-foreground">{t(`collection.recommendations.reasons.${item.reason}`)}</p>
               </div>
             ))}
           </div>

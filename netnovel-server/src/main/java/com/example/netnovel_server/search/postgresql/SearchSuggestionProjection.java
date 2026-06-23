@@ -1,4 +1,4 @@
-package com.example.netnovel_server.repository;
+package com.example.netnovel_server.search.postgresql;
 
 public interface SearchSuggestionProjection {
 

@@ -1,4 +1,4 @@
-package com.example.netnovel_server.repository;
+package com.example.netnovel_server.search.postgresql;
 
 import com.example.netnovel_server.entity.Novel;
 import org.springframework.data.domain.Page;

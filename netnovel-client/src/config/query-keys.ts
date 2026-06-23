@@ -12,4 +12,6 @@ export const queryKeys = {
   adminUsers: ['adminUsers'] as const,
   users: ['users'] as const,
   comments: ['comments'] as const,
+  dataReports: ['dataReports'] as const,
+  recommendations: ['recommendations'] as const,
 } as const;

@@ -2,7 +2,7 @@ package com.example.netnovel_server.controller;
 
 import com.example.netnovel_server.dto.NovelSearchResultDTO;
 import com.example.netnovel_server.dto.SearchSuggestionDTO;
-import com.example.netnovel_server.service.PostgresNovelSearchService;
+import com.example.netnovel_server.search.postgresql.PostgresNovelSearchService;
 import com.example.netnovel_server.entity.UserEventType;
 import com.example.netnovel_server.service.UserEventService;
 import io.swagger.v3.oas.annotations.Operation;

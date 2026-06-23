@@ -17,10 +17,11 @@ import {
 } from '../api/collection-api';
 import type { BookmarkKind } from '../types';
 
-export function useLastReading(size = 6) {
+export function useLastReading(size = 6, enabled = true) {
   return useQuery({
     queryKey: [...queryKeys.collection, 'lastReading', size],
     queryFn: () => getLastReading({ size }),
+    enabled: enabled && hasAuthTokens(),
   });
 }
 

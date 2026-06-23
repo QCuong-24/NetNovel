@@ -34,6 +34,7 @@ export const endpoints = {
   },
   recommendations: {
     similarNovels: (novelId: string) => `/recommendations/novels/${novelId}/similar`,
+    forYou: '/recommendations/for-you',
   },
   lastReads: {
     list: '/last-reads',
@@ -108,5 +109,10 @@ export const endpoints = {
     detail: (taskId: string) => `/crawl-tasks/${taskId}`,
     chapterRecords: '/crawl-tasks/crawl-chapter-records',
     chapterRecord: (recordId: string) => `/crawl-tasks/crawl-chapter-records/${recordId}`,
+  },
+  dataReports: {
+    userEvents: '/data-reports/user-events',
+    rebuildInteractions: '/data-reports/user-novel-interactions/rebuild',
+    userNovelInteractions: '/data-reports/user-novel-interactions',
   },
 } as const;
