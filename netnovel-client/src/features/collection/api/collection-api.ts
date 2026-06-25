@@ -10,7 +10,10 @@ type CollectionPageParams = {
 function withPageParams(endpoint: string, params: CollectionPageParams) {
   const searchParams = new URLSearchParams();
   searchParams.set('page', String(params.page ?? 0));
-  searchParams.set('size', String(params.size ?? 6));
+
+  if (params.size !== undefined) {
+    searchParams.set('size', String(params.size));
+  }
 
   return `${endpoint}?${searchParams.toString()}`;
 }

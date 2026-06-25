@@ -1,0 +1,6 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+pydantic-settings==2.10.1
+sentence-transformers==3.4.1
+torch==2.5.1+cpu

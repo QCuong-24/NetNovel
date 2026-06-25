@@ -115,13 +115,13 @@ export function ChatbotWidget() {
                 <div className="grid gap-3">
                   <Bot className="mx-auto size-10 text-primary" />
                   <div className="grid gap-1">
-                    <p className="text-sm font-bold">Bạn cần đăng nhập để dùng chatbot.</p>
+                    <p className="text-sm font-bold">{t('chatbot.loginRequiredTitle')}</p>
                     <p className="text-xs leading-5 text-muted-foreground">
-                      Chatbot sẽ lưu các câu hỏi chưa hiểu để cải thiện FAQ/intent, nên mình chỉ bật cho tài khoản đã đăng nhập.
+                      {t('chatbot.loginRequiredDescription')}
                     </p>
                   </div>
                   <Button type="button" onClick={() => navigate(routes.login)}>
-                    Đăng nhập
+                    {t('auth.login')}
                   </Button>
                 </div>
               </div>

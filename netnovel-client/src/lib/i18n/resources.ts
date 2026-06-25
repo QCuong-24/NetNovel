@@ -51,6 +51,9 @@ export const resources = {
       },
       chatbot: {
         placeholder: 'Ask me about NetNovel',
+        loginRequiredTitle: 'Sign in to use the chatbot.',
+        loginRequiredDescription:
+          'The chatbot saves unanswered questions to improve FAQ and intent coverage, so it is available to signed-in accounts.',
       },
       notifications: {
         title: 'Notifications',
@@ -622,6 +625,9 @@ export const resources = {
       },
       chatbot: {
         placeholder: 'Hỏi tôi về NetNovel',
+        loginRequiredTitle: 'Bạn cần đăng nhập để dùng chatbot.',
+        loginRequiredDescription:
+          'Chatbot sẽ lưu các câu hỏi chưa hiểu để cải thiện FAQ/intent, nên mình chỉ bật cho tài khoản đã đăng nhập.',
       },
       notifications: {
         title: 'Thông báo',

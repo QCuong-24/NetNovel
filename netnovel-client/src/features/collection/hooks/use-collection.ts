@@ -17,7 +17,7 @@ import {
 } from '../api/collection-api';
 import type { BookmarkKind } from '../types';
 
-export function useLastReading(size = 6, enabled = true) {
+export function useLastReading(size?: number, enabled = true) {
   return useQuery({
     queryKey: [...queryKeys.collection, 'lastReading', size],
     queryFn: () => getLastReading({ size }),
@@ -25,14 +25,14 @@ export function useLastReading(size = 6, enabled = true) {
   });
 }
 
-export function useBookmarks(kind: BookmarkKind, size = 8) {
+export function useBookmarks(kind: BookmarkKind, size?: number) {
   return useQuery({
     queryKey: [...queryKeys.collection, 'bookmarks', kind, size],
     queryFn: () => getBookmarks(kind, { size }),
   });
 }
 
-export function useFollowedNovels(size = 6) {
+export function useFollowedNovels(size?: number) {
   return useQuery({
     queryKey: [...queryKeys.collection, 'followedNovels', size],
     queryFn: () => getFollowedNovels({ size }),
