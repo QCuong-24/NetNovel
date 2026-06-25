@@ -1,7 +1,7 @@
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NovelCard } from '../components/novel-card';
@@ -13,6 +13,10 @@ type NovelListPageProps = {
 };
 
 function clampPage(page: number, totalPages: number) {
+  if (!Number.isFinite(page)) {
+    return 0;
+  }
+
   if (totalPages <= 0) {
     return 0;
   }
@@ -20,27 +24,42 @@ function clampPage(page: number, totalPages: number) {
   return Math.min(Math.max(page, 0), totalPages - 1);
 }
 
+function pageFromSearchParams(searchParams: URLSearchParams) {
+  const pageParam = Number(searchParams.get('page') ?? '1');
+
+  return Number.isFinite(pageParam) ? Math.max(pageParam - 1, 0) : 0;
+}
+
 export function NovelListPage({ kind }: NovelListPageProps) {
   const { t } = useTranslation();
   const { genreName } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const decodedGenreName = useMemo(() => (genreName ? decodeURIComponent(genreName) : undefined), [genreName]);
-  const [page, setPage] = useState(0);
+  const page = pageFromSearchParams(searchParams);
   const [pageInput, setPageInput] = useState('1');
   const novelsQuery = useNovelList({
     kind,
     genreName: decodedGenreName,
     page,
-    size: 20,
+    size: 18,
   });
   const novelPage = novelsQuery.data;
   const novels = novelPage?.content ?? [];
   const currentPage = (novelPage?.number ?? page) + 1;
   const totalPages = Math.max(novelPage?.totalPages ?? 1, 1);
 
+  useEffect(() => {
+    setPageInput(String(currentPage));
+  }, [currentPage]);
+
   function goToPage(nextPage: number) {
     const clampedPage = clampPage(nextPage, novelPage?.totalPages ?? 0);
-    setPage(clampedPage);
-    setPageInput(String(clampedPage + 1));
+    setSearchParams((previousParams) => {
+      const nextParams = new URLSearchParams(previousParams);
+      nextParams.set('page', String(clampedPage + 1));
+
+      return nextParams;
+    });
   }
 
   const title = decodedGenreName

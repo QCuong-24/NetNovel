@@ -205,7 +205,16 @@ export function NovelDetailPage() {
   const hasCrawledTag = novelTagsQuery.data?.some((tag) => tag.name.toLowerCase() === 'crawled') ?? false;
   const canRefetchCrawledNovel =
     canEdit && Boolean(crawledSourceUrl) && hasCrawledTag;
-  const firstChapter = [...chapters].sort((left, right) => left.chapterNumber - right.chapterNumber)[0];
+  const sortedReadableChapters = [...chapters].sort((left, right) => left.chapterNumber - right.chapterNumber);
+  const firstChapter = sortedReadableChapters[0];
+  const isPreviewOnly = novel.accessStatus === 'PREVIEW_ONLY';
+  const isPreviewLimitedForViewer = isPreviewOnly && !canEdit;
+  const latestReadableChapter = sortedReadableChapters.at(-1);
+  const readLatestTarget = isPreviewLimitedForViewer
+    ? latestReadableChapter
+    : novel.latestChapterId
+      ? { chapterId: novel.latestChapterId }
+      : undefined;
 
   function toggleMetricInteraction(metric: 'likes' | 'bookmarks' | 'follows') {
     if (!user) {
@@ -310,11 +319,11 @@ export function NovelDetailPage() {
               {t('novelPages.startReading')}
             </Button>
           )}
-          {novel.latestChapterId ? (
+          {readLatestTarget ? (
             <Button asChild variant="outline">
-              <Link to={`/novels/${novel.novelId}/chapters/${novel.latestChapterId}`}>
+              <Link to={`/novels/${novel.novelId}/chapters/${readLatestTarget.chapterId}`}>
                 <BookOpen />
-                {t('novelPages.readLatest')}
+                {isPreviewLimitedForViewer ? t('novelPages.readPreview') : t('novelPages.readLatest')}
               </Link>
             </Button>
           ) : null}

@@ -13,6 +13,7 @@ type NovelCardProps = {
 
 export function NovelCard({ novel }: NovelCardProps) {
   const { t } = useTranslation();
+  const isPreviewOnly = novel.accessStatus === 'PREVIEW_ONLY';
 
   return (
     <Card className="h-full min-w-0 overflow-hidden">
@@ -56,7 +57,15 @@ export function NovelCard({ novel }: NovelCardProps) {
           <p className="hidden text-sm leading-6 text-muted-foreground sm:line-clamp-2">{novel.description}</p>
         </div>
         <div className="mt-auto">
-          {novel.latestChapterId && novel.latestChapterNumber ? (
+          {isPreviewOnly ? (
+            <Link
+              className="inline-flex w-full items-center gap-1.5 border-t pt-2 text-xs font-bold text-primary hover:underline sm:gap-2 sm:pt-3 sm:text-sm"
+              to={`/novels/${novel.novelId}`}
+            >
+              <BookOpen className="size-4" />
+              <span className="line-clamp-1">{t('novelPages.readPreview')}</span>
+            </Link>
+          ) : novel.latestChapterId && novel.latestChapterNumber ? (
             <Link
               className="inline-flex w-full items-center gap-1.5 border-t pt-2 text-xs font-bold text-primary hover:underline sm:gap-2 sm:pt-3 sm:text-sm"
               to={`/novels/${novel.novelId}/chapters/${novel.latestChapterId}`}

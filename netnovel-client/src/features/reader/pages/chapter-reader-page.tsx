@@ -15,6 +15,7 @@ import {
 } from '@/features/collection/hooks/use-collection';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { useIncreaseNovelViewMutation } from '@/features/novels/hooks/use-novels';
+import { getApiErrorMessage } from '@/lib/api/api-error';
 import { cn } from '@/lib/utils';
 import { ReaderToolbar } from '../components/reader-toolbar';
 import { useReaderSettings } from '../hooks/use-reader-settings';
@@ -25,7 +26,7 @@ export function ChapterReaderPage() {
   const { chapterId, novelId } = useParams();
   const { settings, classes, updateSetting } = useReaderSettings();
   const { data: user } = useCurrentUser();
-  const { data: chapter, isError, isLoading } = useChapter(chapterId);
+  const { data: chapter, error, isError, isLoading } = useChapter(chapterId);
   const chapterNovelId = chapter?.novelId ? String(chapter.novelId) : novelId;
   const viewedChapterRef = useRef<string | null>(null);
   const increaseViewMutation = useIncreaseNovelViewMutation(chapterNovelId);
@@ -141,9 +142,9 @@ export function ChapterReaderPage() {
 
         {isError || !chapter ? (
           <div className="grid min-h-64 place-items-center gap-4 text-center">
-            <p className="font-semibold">Chapter not found.</p>
+            <p className="font-semibold">{getApiErrorMessage(error, t('chapterPages.notFound'))}</p>
             <Button asChild className="mx-auto w-fit" variant="outline">
-              <Link to={backToNovel}>Back to novel</Link>
+              <Link to={backToNovel}>{t('chapterPages.backToNovel')}</Link>
             </Button>
           </div>
         ) : null}

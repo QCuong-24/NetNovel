@@ -35,7 +35,7 @@ export async function searchPublicNovels(params: PublicNovelSearchParams) {
     genre: params.genre,
     sortMode: params.sort ?? 'relevance',
     page: params.page ?? 0,
-    size: params.size ?? 20,
+    size: params.size ?? 18,
   });
   const response = await httpClient.get<NovelSearchResultPage>(`${endpoints.search.novels}?${searchParams.toString()}`);
 
@@ -51,7 +51,7 @@ export async function searchAdvancedNovels(params: AdvancedNovelSearchParams) {
     source: params.source,
     crawled: params.crawled,
     page: params.page ?? 0,
-    size: params.size ?? 20,
+    size: params.size ?? 18,
   });
   const response = await httpClient.get<NovelSearchResultPage>(
     `${endpoints.advancedSearch.novels}?${searchParams.toString()}`,
