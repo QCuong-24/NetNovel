@@ -10,8 +10,10 @@ import java.util.Set;
 public class ChatbotLanguageDetector {
 
     private static final Set<String> ENGLISH_HINTS = Set.of(
-        "how", "what", "where", "when", "why", "help", "show", "find", "search",
-        "novel", "novels", "completed", "popular", "latest", "follow", "bookmark"
+        "i", "me", "my", "want", "need", "can", "how", "what", "where", "when", "why",
+        "help", "show", "find", "search", "save", "open", "go", "read", "continue",
+        "novel", "novels", "story", "stories", "completed", "popular", "latest",
+        "follow", "bookmark", "collection", "profile", "dashboard", "login"
     );
 
     public ChatbotLanguage detect(String message, String requestedLanguage) {
@@ -28,8 +30,9 @@ public class ChatbotLanguageDetector {
             .count();
 
         boolean hasVietnameseMarks = normalized.matches(".*[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ].*");
+        long asciiWordCount = normalized.replaceAll("[^a-z\\s]", " ").trim().split("\\s+").length;
 
-        if (englishScore >= 2 && !hasVietnameseMarks) {
+        if (!hasVietnameseMarks && (englishScore >= 2 || (englishScore >= 1 && asciiWordCount >= 3))) {
             return ChatbotLanguage.EN;
         }
 

@@ -29,14 +29,44 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
             return ChatbotMatchResult.fallback(language);
         }
 
+        ChatbotMatchResult clarification = matchClarification(normalized, language);
+        if (clarification != null) {
+            return clarification;
+        }
+
         ChatbotMatchResult faqMatch = matchFaq(normalized, language);
-        ChatbotMatchResult intentMatch = matchSearchIntent(normalized, language);
+        ChatbotMatchResult intentMatch = matchIntent(normalized, language);
+
+        if ("title".equals(intentMatch.filters().get("scope"))) {
+            return intentMatch;
+        }
+
+        if (
+            faqMatch.confidence() >= 0.45
+                && intentMatch.confidence() >= 0.45
+                && intentMatch.filters().isEmpty()
+                && Math.abs(faqMatch.confidence() - intentMatch.confidence()) < 0.15
+        ) {
+            return ChatbotMatchResult.clarify(language, "general", Math.max(faqMatch.confidence(), intentMatch.confidence()));
+        }
 
         if (faqMatch.confidence() >= intentMatch.confidence()) {
             return faqMatch;
         }
 
         return intentMatch;
+    }
+
+    private ChatbotMatchResult matchClarification(String normalized, ChatbotLanguage language) {
+        if (containsAny(normalized, "luu truyen", "luu lai", "save novel", "save story")) {
+            return ChatbotMatchResult.clarify(language, "save_novel", 0.4);
+        }
+
+        if (containsAny(normalized, "truyen hay", "truyen nao hay", "good novel", "good novels", "recommend something")) {
+            return ChatbotMatchResult.clarify(language, "search", 0.35);
+        }
+
+        return null;
     }
 
     private ChatbotMatchResult matchFaq(String normalized, ChatbotLanguage language) {
@@ -47,7 +77,7 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
         for (ChatbotFaq faq : knowledgeBase.faqs()) {
             for (String example : faq.examples().getOrDefault(lang, List.of())) {
                 String normalizedExample = normalizer.normalize(example);
-                double score = phraseScore(normalized, normalizedExample);
+                double score = phraseScore(normalized, normalizedExample, language);
                 if (score > bestScore) {
                     bestScore = score;
                     bestFaq = faq;
@@ -59,10 +89,10 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
             return ChatbotMatchResult.fallback(language);
         }
 
-        return new ChatbotMatchResult("faq", language, Math.min(bestScore, 0.98), Map.of(), bestFaq);
+        return new ChatbotMatchResult("faq", language, Math.min(bestScore, 0.98), 0.0, false, null, Map.of(), bestFaq, null);
     }
 
-    private ChatbotMatchResult matchSearchIntent(String normalized, ChatbotLanguage language) {
+    private ChatbotMatchResult matchIntent(String normalized, ChatbotLanguage language) {
         Map<String, String> filters = new HashMap<>();
         double score = 0.0;
         String intent = "search_novel";
@@ -70,6 +100,19 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
 
         ChatbotIntent configuredIntent = matchConfiguredIntent(normalized, language);
         if (configuredIntent != null) {
+            if ("navigation".equals(configuredIntent.type())) {
+                return new ChatbotMatchResult(
+                    configuredIntent.id(),
+                    language,
+                    0.9,
+                    0.0,
+                    false,
+                    null,
+                    Map.of(),
+                    null,
+                    configuredIntent
+                );
+            }
             filters.putAll(configuredIntent.filters());
             intent = configuredIntent.id();
             score += 0.55;
@@ -106,8 +149,16 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
             score += 0.4;
         }
 
+        String titleQuery = extractAfterAny(normalized, synonyms.titleWords().getOrDefault("default", List.of()));
+        if (!titleQuery.isBlank()) {
+            filters.put("q", titleQuery);
+            filters.put("scope", "title");
+            intent = "search_by_title";
+            score += 0.45;
+        }
+
         String query = extractQuery(normalized, filters);
-        if (!query.isBlank()) {
+        if (!query.isBlank() && !filters.containsKey("q")) {
             filters.put("q", query);
             score += 0.25;
         }
@@ -120,7 +171,7 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
             return ChatbotMatchResult.fallback(language);
         }
 
-        return new ChatbotMatchResult(intent, language, Math.min(score, 0.95), filters, null);
+        return new ChatbotMatchResult(intent, language, Math.min(score, 0.95), 0.0, false, null, filters, null, configuredIntent);
     }
 
     private ChatbotIntent matchConfiguredIntent(String normalized, ChatbotLanguage language) {
@@ -130,7 +181,7 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
 
         for (ChatbotIntent intent : knowledgeBase.intents()) {
             for (String example : intent.examples().getOrDefault(lang, List.of())) {
-                double score = phraseScore(normalized, normalizer.normalize(example));
+                double score = phraseScore(normalized, normalizer.normalize(example), language);
                 if (score > bestScore) {
                     bestScore = score;
                     bestIntent = intent;
@@ -142,6 +193,10 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
     }
 
     private double phraseScore(String message, String example) {
+        return phraseScore(message, example, ChatbotLanguage.VI);
+    }
+
+    private double phraseScore(String message, String example, ChatbotLanguage language) {
         if (message.equals(example)) {
             return 1.0;
         }
@@ -151,13 +206,23 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
 
         String[] words = example.split(" ");
         int matched = 0;
+        int importantWords = 0;
+        List<String> stopwords = knowledgeBase.synonyms().stopwords().getOrDefault(language.code(), List.of());
         for (String word : words) {
-            if (word.length() > 2 && message.contains(word)) {
-                matched++;
+            if (word.length() > 2 && !stopwords.contains(word)) {
+                importantWords++;
+                if (message.contains(word)) {
+                    matched++;
+                }
             }
         }
 
-        return words.length == 0 ? 0.0 : (double) matched / words.length;
+        if (importantWords == 0) {
+            return 0.0;
+        }
+
+        double score = (double) matched / importantWords;
+        return importantWords < 3 ? Math.min(score, 0.55) : score;
     }
 
     private boolean containsAny(String value, String... candidates) {
@@ -200,7 +265,7 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
             int index = normalized.indexOf(normalizedMarker);
             if (index >= 0) {
                 String extracted = normalized.substring(index + normalizedMarker.length())
-                    .replaceAll("\\b(truyen|novel|novels|cua|of)\\b", " ")
+                    .replaceAll("\\b(truyen|novel|novels|story|stories|cua|of|with|has|have)\\b", " ")
                     .replaceAll("\\s+", " ")
                     .trim();
                 if (extracted.length() >= 2) {

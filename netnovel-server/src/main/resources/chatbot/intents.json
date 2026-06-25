@@ -15,7 +15,8 @@
     "filters": {
       "sort": "popular"
     },
-    "tags": ["search", "popular"]
+    "tags": ["search", "popular"],
+    "actions": []
   },
   {
     "id": "latest_novels",
@@ -33,7 +34,8 @@
     "filters": {
       "sort": "latest"
     },
-    "tags": ["search", "latest"]
+    "tags": ["search", "latest"],
+    "actions": []
   },
   {
     "id": "completed_novels",
@@ -51,7 +53,8 @@
     "filters": {
       "status": "COMPLETED"
     },
-    "tags": ["search", "status"]
+    "tags": ["search", "status"],
+    "actions": []
   },
   {
     "id": "ongoing_novels",
@@ -69,7 +72,8 @@
     "filters": {
       "status": "ONGOING"
     },
-    "tags": ["search", "status"]
+    "tags": ["search", "status"],
+    "actions": []
   },
   {
     "id": "romance_completed_novels",
@@ -85,10 +89,11 @@
       "en": "Here are some completed romance novels."
     },
     "filters": {
-      "genre": "Ngôn Tình",
+      "genre": "Romance",
       "status": "COMPLETED"
     },
-    "tags": ["search", "genre", "status"]
+    "tags": ["search", "genre", "status"],
+    "actions": []
   },
   {
     "id": "xianxia_completed_novels",
@@ -104,9 +109,172 @@
       "en": "Here are some completed xianxia novels."
     },
     "filters": {
-      "genre": "Tiên Hiệp",
+      "genre": "Xianxia",
       "status": "COMPLETED"
     },
-    "tags": ["search", "genre", "status"]
+    "tags": ["search", "genre", "status"],
+    "actions": []
+  },
+  {
+    "id": "navigate_collection",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 95,
+    "examples": {
+      "vi": ["mở bộ sưu tập", "vào collection", "xem lịch sử đọc", "mở lịch sử đọc", "đọc tiếp ở đâu", "continue reading"],
+      "en": ["open my collection", "go to collection", "show reading history", "open reading history", "continue reading", "where can i resume reading"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở bộ sưu tập tại đây.",
+      "en": "You can open your collection here."
+    },
+    "filters": {},
+    "tags": ["navigation", "collection", "reading"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở bộ sưu tập",
+          "en": "Open collection"
+        },
+        "type": "navigate",
+        "value": "/collection",
+        "requiredRoles": []
+      }
+    ]
+  },
+  {
+    "id": "navigate_profile",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 90,
+    "examples": {
+      "vi": ["mở profile", "mở hồ sơ", "vào trang cá nhân", "xem tài khoản của tôi"],
+      "en": ["open profile", "go to profile", "open my account", "show my profile"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở trang hồ sơ tại đây.",
+      "en": "You can open your profile here."
+    },
+    "filters": {},
+    "tags": ["navigation", "profile"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở hồ sơ",
+          "en": "Open profile"
+        },
+        "type": "navigate",
+        "value": "/profile",
+        "requiredRoles": []
+      }
+    ]
+  },
+  {
+    "id": "navigate_notifications",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 85,
+    "examples": {
+      "vi": ["mở thông báo", "xem thông báo", "notification ở đâu"],
+      "en": ["open notifications", "show notifications", "where are notifications"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở trang thông báo tại đây.",
+      "en": "You can open notifications here."
+    },
+    "filters": {},
+    "tags": ["navigation", "notifications"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở thông báo",
+          "en": "Open notifications"
+        },
+        "type": "navigate",
+        "value": "/notifications",
+        "requiredRoles": []
+      }
+    ]
+  },
+  {
+    "id": "navigate_dashboard",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 80,
+    "examples": {
+      "vi": ["mở dashboard", "vào dashboard", "mở trang quản lý", "vào trang quản trị"],
+      "en": ["open dashboard", "go to dashboard", "open management page", "open admin dashboard"]
+    },
+    "replies": {
+      "vi": "Nếu tài khoản của bạn có quyền quản lý, bạn có thể mở dashboard tại đây.",
+      "en": "If your account has management access, you can open the dashboard here."
+    },
+    "filters": {},
+    "tags": ["navigation", "dashboard"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở dashboard",
+          "en": "Open dashboard"
+        },
+        "type": "navigate",
+        "value": "/dashboard",
+        "requiredRoles": ["MANAGER", "ADMIN"]
+      }
+    ]
+  },
+  {
+    "id": "navigate_login",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 75,
+    "examples": {
+      "vi": ["đăng nhập ở đâu", "mở trang đăng nhập", "login ở đâu"],
+      "en": ["open login", "go to login", "where can i sign in", "sign in page"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở trang đăng nhập tại đây.",
+      "en": "You can open the login page here."
+    },
+    "filters": {},
+    "tags": ["navigation", "auth"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở đăng nhập",
+          "en": "Open login"
+        },
+        "type": "navigate",
+        "value": "/login",
+        "requiredRoles": []
+      }
+    ]
+  },
+  {
+    "id": "navigate_search",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 70,
+    "examples": {
+      "vi": ["mở tìm kiếm", "vào trang search", "mở trang tìm truyện"],
+      "en": ["open search", "go to search", "open novel search"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở trang tìm kiếm tại đây.",
+      "en": "You can open the search page here."
+    },
+    "filters": {},
+    "tags": ["navigation", "search"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở tìm kiếm",
+          "en": "Open search"
+        },
+        "type": "navigate",
+        "value": "/search",
+        "requiredRoles": []
+      }
+    ]
   }
 ]

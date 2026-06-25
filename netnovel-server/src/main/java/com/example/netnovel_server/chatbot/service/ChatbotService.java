@@ -4,12 +4,16 @@ import com.example.netnovel_server.chatbot.dto.ChatbotActionDTO;
 import com.example.netnovel_server.chatbot.dto.ChatbotRequestDTO;
 import com.example.netnovel_server.chatbot.dto.ChatbotResponseDTO;
 import com.example.netnovel_server.chatbot.model.ChatbotFaq;
+import com.example.netnovel_server.chatbot.model.ChatbotIntent;
+import com.example.netnovel_server.chatbot.model.ChatbotIntentAction;
 import com.example.netnovel_server.chatbot.model.ChatbotLanguage;
 import com.example.netnovel_server.chatbot.model.ChatbotMatchResult;
 import com.example.netnovel_server.dto.NovelDTO;
+import com.example.netnovel_server.utility.SecurityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,8 +45,17 @@ public class ChatbotService {
         ChatbotLanguage language = languageDetector.detect(message, request != null ? request.getLanguage() : null);
         ChatbotMatchResult match = intentMatcher.match(message, language);
 
+        if (match.ambiguous()) {
+            fallbackLogger.log(message, language, match.intent(), match.confidence(), match.filters(), null);
+            return clarificationResponse(match);
+        }
+
         if ("faq".equals(match.intent()) && match.faq() != null) {
             return faqResponse(match);
+        }
+
+        if (match.intentDefinition() != null && "navigation".equals(match.intentDefinition().type())) {
+            return navigationResponse(match);
         }
 
         if (match.confidence() >= 0.45 && match.intent().contains("novel")) {
@@ -105,12 +118,88 @@ public class ChatbotService {
             .build();
     }
 
+    private ChatbotResponseDTO navigationResponse(ChatbotMatchResult match) {
+        ChatbotIntent intent = match.intentDefinition();
+        String language = match.language().code();
+        List<ChatbotActionDTO> actions = intent.actions() == null
+            ? List.of()
+            : intent.actions().stream()
+                .filter(this::canUseAction)
+                .map(action -> ChatbotActionDTO.builder()
+                    .label(action.labels().getOrDefault(language, action.labels().getOrDefault("en", action.value())))
+                    .type(action.type())
+                    .value(action.value())
+                    .build())
+                .toList();
+
+        String reply = actions.isEmpty() && "navigate_dashboard".equals(intent.id())
+            ? text(language, "Tài khoản của bạn chưa có quyền mở dashboard.", "Your account does not have access to the dashboard.")
+            : intent.replies().getOrDefault(language, intent.replies().getOrDefault("en", ""));
+
+        return ChatbotResponseDTO.builder()
+            .reply(reply)
+            .language(language)
+            .intent(intent.id())
+            .confidence(match.confidence())
+            .novels(List.of())
+            .suggestedQuestions(knowledgeBase.suggestions(language))
+            .actions(actions)
+            .build();
+    }
+
+    private ChatbotResponseDTO clarificationResponse(ChatbotMatchResult match) {
+        String language = match.language().code();
+        String type = match.clarificationType();
+        List<ChatbotActionDTO> actions = new ArrayList<>();
+        List<String> suggestions;
+        String reply;
+
+        if ("save_novel".equals(type)) {
+            reply = text(language,
+                "Bạn muốn theo dõi truyện để nhận cập nhật, hay bookmark để đọc lại sau?",
+                "Do you want to follow novels for updates, or bookmark them to read later?");
+            suggestions = "en".equals(language)
+                ? List.of("How to follow a novel?", "What is bookmark?", "Open my collection")
+                : List.of("Cách theo dõi truyện", "Bookmark là gì", "Mở bộ sưu tập");
+            actions.add(ChatbotActionDTO.builder()
+                .label(text(language, "Mở bộ sưu tập", "Open collection"))
+                .type("navigate")
+                .value("/collection")
+                .build());
+        } else if ("search".equals(type)) {
+            reply = text(language,
+                "Bạn muốn mình tìm theo tiêu chí nào?",
+                "How would you like me to search?");
+            suggestions = knowledgeBase.suggestions(language);
+            actions.add(ChatbotActionDTO.builder()
+                .label(text(language, "Mở tìm kiếm", "Open search"))
+                .type("navigate")
+                .value("/search")
+                .build());
+        } else {
+            reply = text(language,
+                "Mình thấy câu này hơi mơ hồ. Bạn muốn tìm truyện hay hỏi cách dùng website?",
+                "That sounds a bit ambiguous. Do you want to search for novels or ask about site features?");
+            suggestions = knowledgeBase.suggestions(language);
+        }
+
+        return ChatbotResponseDTO.builder()
+            .reply(reply)
+            .language(language)
+            .intent(match.intent())
+            .confidence(match.confidence())
+            .novels(List.of())
+            .suggestedQuestions(suggestions)
+            .actions(actions)
+            .build();
+    }
+
     private ChatbotResponseDTO fallbackResponse(ChatbotLanguage language) {
         String lang = language.code();
         return ChatbotResponseDTO.builder()
             .reply(text(lang,
-                "Mình chưa hiểu rõ ý bạn. Bạn có thể hỏi về cách dùng web, truyện hot, truyện hoàn thành hoặc truyện mới cập nhật.",
-                "I don't fully understand yet. You can ask about site help, popular novels, completed novels, or latest updates."))
+                "Mình chưa hiểu rõ ý bạn. Bạn muốn tìm truyện, mở một trang, hay hỏi cách dùng website?",
+                "I don't fully understand yet. Do you want to search for novels, open a page, or ask about site features?"))
             .language(lang)
             .intent("fallback")
             .confidence(0.0)
@@ -122,6 +211,12 @@ public class ChatbotService {
 
     private String text(String language, String vi, String en) {
         return "en".equals(language) ? en : vi;
+    }
+
+    private boolean canUseAction(ChatbotIntentAction action) {
+        return action.requiredRoles() == null
+            || action.requiredRoles().isEmpty()
+            || SecurityUtils.hasAnyRole(action.requiredRoles().toArray(String[]::new));
     }
 
     private String actionLabel(String url, String language) {

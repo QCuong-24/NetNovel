@@ -45,13 +45,14 @@ public class ChatbotNovelSearchService {
         String tag = filters.get("tag");
         String author = normalizer.normalize(filters.get("author"));
         String query = normalizer.normalize(filters.get("q"));
+        String scope = filters.get("scope");
 
         return novels.stream()
             .filter(novel -> matchesStatus(novel, status))
             .filter(novel -> matchesGenre(novel, genre))
             .filter(novel -> matchesTag(novel, tag))
             .filter(novel -> matchesAuthor(novel, author))
-            .filter(novel -> matchesQuery(novel, query))
+            .filter(novel -> matchesQuery(novel, query, scope))
             .sorted(sortComparator(sort))
             .limit(DEFAULT_LIMIT)
             .map(NovelMapper::toDTO)
@@ -102,9 +103,13 @@ public class ChatbotNovelSearchService {
         return normalizer.normalize(novel.getAuthor()).contains(author);
     }
 
-    private boolean matchesQuery(Novel novel, String query) {
+    private boolean matchesQuery(Novel novel, String query, String scope) {
         if (query == null || query.isBlank()) {
             return true;
+        }
+
+        if ("title".equals(scope)) {
+            return normalizer.normalize(novel.getTitle()).contains(query);
         }
 
         String haystack = normalizer.normalize(String.join(" ",

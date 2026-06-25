@@ -49,6 +49,9 @@ export const resources = {
         pageInfo: 'Page {{page}} of {{total}}',
         loginPrompt: 'to join the discussion.',
       },
+      chatbot: {
+        placeholder: 'Ask me about NetNovel',
+      },
       notifications: {
         title: 'Notifications',
         description: 'Review system updates, comment replies, and reading activity alerts.',
@@ -616,6 +619,9 @@ export const resources = {
         empty: 'Chưa có bình luận nào. Hãy là người mở đầu cuộc trò chuyện.',
         pageInfo: 'Trang {{page}} / {{total}}',
         loginPrompt: 'để tham gia bình luận.',
+      },
+      chatbot: {
+        placeholder: 'Hỏi tôi về NetNovel',
       },
       notifications: {
         title: 'Thông báo',

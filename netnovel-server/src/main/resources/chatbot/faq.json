@@ -190,5 +190,165 @@
     },
     "actionUrls": ["/novels"],
     "tags": ["access", "preview"]
+  },
+  {
+    "id": "website_overview",
+    "type": "faq",
+    "enabled": true,
+    "priority": 120,
+    "examples": {
+      "vi": ["website này dùng để làm gì", "netnovel là gì", "giới thiệu website", "web này có chức năng gì", "trang này làm gì"],
+      "en": ["what is this website for", "what is netnovel", "explain this website", "what can this site do", "what features does this website have"]
+    },
+    "answers": {
+      "vi": "NetNovel là website đọc và quản lý truyện online. Bạn có thể tìm truyện, đọc chương, theo dõi truyện yêu thích, bookmark để đọc sau, xem lịch sử đọc, khám phá truyện hot/mới cập nhật và dùng chatbot để được gợi ý hoặc hỗ trợ nhanh.",
+      "en": "NetNovel is a website for reading and managing online novels. You can search novels, read chapters, follow favorites, bookmark items for later, continue from reading history, explore popular/latest novels, and use the chatbot for quick help or recommendations."
+    },
+    "actionUrls": ["/novels"],
+    "tags": ["overview", "features", "website"]
+  },
+  {
+    "id": "library_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 112,
+    "examples": {
+      "vi": ["library là gì", "thư viện truyện là gì", "mục library dùng để làm gì", "danh sách truyện ở đâu"],
+      "en": ["what is library", "what is the novel library", "what does library do", "where is the novel list"]
+    },
+    "answers": {
+      "vi": "Library là khu vực duyệt danh sách truyện. Tại đây bạn có thể xem tất cả truyện, truyện mới nhất, truyện hot và truyện đã hoàn thành.",
+      "en": "Library is the area for browsing novels. You can view all novels, newest novels, hot novels, and completed novels there."
+    },
+    "actionUrls": ["/novels"],
+    "tags": ["library", "novels", "browse"]
+  },
+  {
+    "id": "genres_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 110,
+    "examples": {
+      "vi": ["genres là gì", "thể loại là gì", "mục thể loại dùng để làm gì", "lọc theo thể loại là gì"],
+      "en": ["what are genres", "what is genre", "what does genres menu do", "explain genre filter"]
+    },
+    "answers": {
+      "vi": "Genres là nhóm thể loại truyện như Tiên Hiệp, Ngôn Tình, Đô Thị hoặc Huyền Huyễn. Bạn có thể dùng thể loại để lọc và khám phá truyện hợp gu hơn.",
+      "en": "Genres are novel categories such as Xianxia, Romance, Urban, or Fantasy. You can use genres to filter and discover novels that better match your taste."
+    },
+    "actionUrls": ["/novels"],
+    "tags": ["genres", "filter", "browse"]
+  },
+  {
+    "id": "search_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 108,
+    "examples": {
+      "vi": ["search dùng để làm gì", "giải thích chức năng tìm kiếm", "tìm kiếm truyện hoạt động thế nào", "advanced search là gì"],
+      "en": ["what does search do", "explain search feature", "how does novel search work", "what is advanced search"]
+    },
+    "answers": {
+      "vi": "Search giúp bạn tìm truyện theo từ khóa, trạng thái, thể loại hoặc mức độ liên quan. Nếu tài khoản có quyền quản lý, bạn có thể dùng advanced search để lọc sâu hơn.",
+      "en": "Search helps you find novels by keyword, status, genre, or relevance. If your account has management permissions, advanced search can provide deeper filtering."
+    },
+    "actionUrls": ["/search"],
+    "tags": ["search", "advanced-search", "filter"]
+  },
+  {
+    "id": "ranking_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 104,
+    "examples": {
+      "vi": ["ranking là gì", "bảng xếp hạng là gì", "trang ranking dùng làm gì", "xếp hạng truyện tính sao"],
+      "en": ["what is ranking", "what are rankings", "what does ranking page do", "how novel ranking works"]
+    },
+    "answers": {
+      "vi": "Ranking là trang xếp hạng truyện theo các chỉ số như lượt xem, lượt thích, theo dõi hoặc độ nổi bật tùy cấu hình hệ thống. Nó giúp bạn tìm các truyện đang được quan tâm.",
+      "en": "Rankings list novels by metrics such as views, likes, follows, or popularity depending on system configuration. It helps you discover novels that are getting attention."
+    },
+    "actionUrls": ["/rankings"],
+    "tags": ["ranking", "popular", "discovery"]
+  },
+  {
+    "id": "collection_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 102,
+    "examples": {
+      "vi": ["collection là gì", "bộ sưu tập dùng để làm gì", "trong collection có gì", "giải thích bộ sưu tập"],
+      "en": ["what is collection", "what does collection do", "what is inside collection", "explain collection feature"]
+    },
+    "answers": {
+      "vi": "Collection là khu vực cá nhân của bạn. Nó tập hợp truyện đang theo dõi, bookmark và lịch sử đọc để bạn quay lại truyện hoặc chương dang dở nhanh hơn.",
+      "en": "Collection is your personal area. It gathers followed novels, bookmarks, and reading history so you can quickly return to novels or chapters you left unfinished."
+    },
+    "actionUrls": ["/collection"],
+    "tags": ["collection", "bookmark", "follow", "history"]
+  },
+  {
+    "id": "dashboard_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 100,
+    "examples": {
+      "vi": ["dashboard là gì", "trang dashboard dùng làm gì", "trang quản lý là gì", "ai dùng được dashboard"],
+      "en": ["what is dashboard", "what does dashboard do", "what is management page", "who can use dashboard"]
+    },
+    "answers": {
+      "vi": "Dashboard là khu vực quản lý dành cho tài khoản có quyền phù hợp như Manager hoặc Admin. Tùy quyền, bạn có thể quản lý nội dung, người dùng, crawl task hoặc các chức năng quản trị khác.",
+      "en": "Dashboard is a management area for accounts with roles such as Manager or Admin. Depending on permissions, it can be used to manage content, users, crawl tasks, or other admin features."
+    },
+    "actionUrls": ["/dashboard"],
+    "tags": ["dashboard", "admin", "manager"]
+  },
+  {
+    "id": "notifications_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 96,
+    "examples": {
+      "vi": ["notifications là gì", "thông báo dùng để làm gì", "trang thông báo là gì", "khi nào có thông báo"],
+      "en": ["what are notifications", "what does notifications do", "what is notification page", "when do i get notifications"]
+    },
+    "answers": {
+      "vi": "Notifications giúp bạn nhận các cập nhật quan trọng liên quan đến tài khoản hoặc truyện, ví dụ thay đổi nội dung, hoạt động hệ thống hoặc các thông báo được gửi tới bạn.",
+      "en": "Notifications help you receive important updates related to your account or novels, such as content changes, system activity, or messages sent to you."
+    },
+    "actionUrls": ["/notifications"],
+    "tags": ["notifications", "updates"]
+  },
+  {
+    "id": "profile_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 94,
+    "examples": {
+      "vi": ["profile dùng để làm gì", "hồ sơ cá nhân là gì", "trang profile có gì", "tài khoản của tôi có gì"],
+      "en": ["what does profile do", "what is user profile", "what is on profile page", "what is my account page"]
+    },
+    "answers": {
+      "vi": "Profile là trang thông tin tài khoản của bạn. Tại đây bạn có thể xem thông tin cá nhân và các dữ liệu liên quan đến tài khoản tùy tính năng đang được bật.",
+      "en": "Profile is your account information page. You can view personal information and account-related data depending on which features are enabled."
+    },
+    "actionUrls": ["/profile"],
+    "tags": ["profile", "account"]
+  },
+  {
+    "id": "reader_feature_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 92,
+    "examples": {
+      "vi": ["trang đọc truyện dùng thế nào", "reader là gì", "chapter page là gì", "đọc chương ở đâu", "chức năng đọc truyện"],
+      "en": ["how does reader work", "what is reader", "what is chapter page", "where can i read chapters", "reading feature"]
+    },
+    "answers": {
+      "vi": "Reader là trang đọc chương truyện. Bạn mở một truyện, chọn chương muốn đọc, sau đó có thể chuyển chương và tiếp tục theo dõi tiến độ đọc của mình.",
+      "en": "Reader is the chapter reading page. Open a novel, choose a chapter, and then you can navigate between chapters while keeping track of your reading progress."
+    },
+    "actionUrls": ["/novels"],
+    "tags": ["reader", "chapter", "reading"]
   }
 ]

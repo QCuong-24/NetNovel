@@ -9,6 +9,8 @@ public record ChatbotSynonyms(
     Map<String, List<String>> sorts,
     Map<String, List<String>> tags,
     Map<String, List<String>> searchWords,
-    Map<String, List<String>> authorWords
+    Map<String, List<String>> authorWords,
+    Map<String, List<String>> titleWords,
+    Map<String, List<String>> stopwords
 ) {
 }

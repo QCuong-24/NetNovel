@@ -1,15 +1,23 @@
 {
   "genres": {
-    "Tiên Hiệp": ["tiên hiệp", "tien hiep", "xianxia", "immortal"],
-    "Kiếm Hiệp": ["kiếm hiệp", "kiem hiep", "wuxia", "martial"],
-    "Ngôn Tình": ["ngôn tình", "ngon tinh", "romance", "love story", "romantic"],
-    "Đô Thị": ["đô thị", "do thi", "urban", "city"],
-    "Huyền Huyễn": ["huyền huyễn", "huyen huyen", "fantasy", "mystical fantasy"],
-    "Khoa Huyễn": ["khoa huyễn", "khoa huyen", "sci fi", "science fiction", "scifi"],
-    "Truyện Teen": ["truyện teen", "truyen teen", "teen"],
-    "Đam Mỹ": ["đam mỹ", "dam my", "boys love", "boy love", "bl"],
-    "Quan Trường": ["quan trường", "quan truong", "officialdom"],
-    "Lịch Sử": ["lịch sử", "lich su", "history", "historical"]
+    "Xianxia": ["tiên hiệp", "tien hiep", "xianxia", "immortal"],
+    "Wuxia": ["kiếm hiệp", "kiem hiep", "wuxia", "martial"],
+    "Romance": ["ngôn tình", "ngon tinh", "romance", "love story", "romantic", "đam mỹ", "dam my", "boys love", "boy love", "bl"],
+    "Slice of Life": ["đô thị", "do thi", "urban", "city", "slice of life"],
+    "Fantasy": ["huyền huyễn", "huyen huyen", "fantasy", "mystical fantasy"],
+    "Sci-Fi": ["khoa huyễn", "khoa huyen", "sci fi", "science fiction", "scifi", "sci-fi"],
+    "Drama": ["truyện teen", "truyen teen", "teen", "drama"],
+    "Historical": ["lịch sử", "lich su", "history", "historical"],
+    "Mystery": ["bí ẩn", "bi an", "mystery"],
+    "Thriller": ["thriller", "giật gân", "giat gan"],
+    "Horror": ["horror", "kinh dị", "kinh di"],
+    "Adventure": ["adventure", "phiêu lưu", "phieu luu"],
+    "Comedy": ["comedy", "hài hước", "hai huoc"],
+    "Action": ["action", "hành động", "hanh dong"],
+    "Supernatural": ["supernatural", "siêu nhiên", "sieu nhien"],
+    "Psychological": ["psychological", "tâm lý", "tam ly"],
+    "Tragedy": ["tragedy", "bi kịch", "bi kich"],
+    "Mythology": ["mythology", "thần thoại", "than thoai"]
   },
   "statuses": {
     "COMPLETED": ["hoàn thành", "hoan thanh", "full", "đã end", "da end", "completed", "finished", "complete"],
@@ -20,21 +28,28 @@
     "latest": ["mới cập nhật", "moi cap nhat", "vừa cập nhật", "vua cap nhat", "latest", "latest update", "latest updates", "new update", "recent"]
   },
   "tags": {
-    "Trọng sinh": ["trọng sinh", "trong sinh", "reincarnation", "rebirth", "second chance"],
-    "Hệ thống": ["hệ thống", "he thong", "system", "system novel"],
-    "Xuyên không": ["xuyên không", "xuyen khong", "transmigration", "isekai", "another world"],
-    "Main bá đạo": ["main bá đạo", "main ba dao", "nhân vật chính mạnh", "nhan vat chinh manh", "overpowered", "op mc", "strong mc"],
-    "Sủng": ["sủng", "sung", "sweet", "fluffy"],
-    "Ngược": ["ngược", "nguoc", "angst"],
-    "Tu luyện": ["tu luyện", "tu luyen", "cultivation"],
-    "Cung đấu": ["cung đấu", "cung dau", "palace intrigue"],
-    "Mạt thế": ["mạt thế", "mat the", "apocalypse", "post apocalypse"],
-    "Hài hước": ["hài hước", "hai huoc", "funny", "comedy"]
+    "Reincarnation": ["trọng sinh", "trong sinh", "reincarnation", "rebirth", "second chance"],
+    "System": ["hệ thống", "he thong", "system", "system novel"],
+    "Transmigration": ["xuyên không", "xuyen khong", "transmigration", "isekai", "another world"],
+    "Overpowered MC": ["main bá đạo", "main ba dao", "nhân vật chính mạnh", "nhan vat chinh manh", "overpowered", "op mc", "strong mc"],
+    "Sweet": ["sủng", "sung", "sweet", "fluffy"],
+    "Angst": ["ngược", "nguoc", "angst"],
+    "Cultivation": ["tu luyện", "tu luyen", "cultivation"],
+    "Palace Intrigue": ["cung đấu", "cung dau", "palace intrigue"],
+    "Apocalypse": ["mạt thế", "mat the", "apocalypse", "post apocalypse"],
+    "Comedy": ["hài hước", "hai huoc", "funny", "comedy"]
   },
   "searchWords": {
     "default": ["tìm", "tim", "tìm kiếm", "tim kiem", "search", "find", "show me", "recommend", "gợi ý", "goi y"]
   },
   "authorWords": {
     "default": ["tác giả", "tac gia", "author", "by"]
+  },
+  "titleWords": {
+    "default": ["tên truyện", "ten truyen", "tựa truyện", "tua truyen", "nhan đề", "nhan de", "có tên", "co ten", "chứa tên", "chua ten", "có chứa", "co chua", "title", "name", "named", "called", "containing", "contains"]
+  },
+  "stopwords": {
+    "vi": ["truyen", "toi", "minh", "cho", "cho toi", "muon", "co", "khong", "hay", "nao", "gi", "o dau", "lam sao"],
+    "en": ["novel", "novels", "story", "stories", "please", "show", "find", "search", "me", "i", "want", "can", "how", "what", "where", "the", "a", "an"]
   }
 }

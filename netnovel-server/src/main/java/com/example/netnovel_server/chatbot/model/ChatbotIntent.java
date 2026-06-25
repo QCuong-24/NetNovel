@@ -11,6 +11,7 @@ public record ChatbotIntent(
     Map<String, List<String>> examples,
     Map<String, String> replies,
     Map<String, String> filters,
-    List<String> tags
+    List<String> tags,
+    List<ChatbotIntentAction> actions
 ) {
 }

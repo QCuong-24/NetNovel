@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Bot, Loader2, MessageCircle, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import type { ChatMessage, ChatbotResponse } from '../types';
 const initialSuggestions = ['Truyện hot', 'Truyện hoàn thành', 'Latest updates', 'How to follow a novel?'];
 
 export function ChatbotWidget() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
   const [open, setOpen] = useState(false);
@@ -168,7 +170,7 @@ export function ChatbotWidget() {
                   <Input
                     ref={inputRef}
                     value={input}
-                    placeholder="Hỏi mình về truyện, FAQ, completed novels..."
+                    placeholder={t('chatbot.placeholder')}
                     onChange={(event) => setInput(event.target.value)}
                   />
                   <Button disabled={isSending || isLoadingUser || !input.trim()} size="icon" type="submit">
