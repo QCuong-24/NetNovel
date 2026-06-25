@@ -36,6 +36,8 @@ public class NovelDTO {
 
     private String status;
 
+    private String accessStatus;
+
     private Integer chapterCount;
 
     private Long latestChapterId;

@@ -93,6 +93,11 @@ public class Novel {
     @Column(nullable = false)
     private Status status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(32) default 'NORMAL'")
+    @Builder.Default
+    private NovelAccessStatus accessStatus = NovelAccessStatus.NORMAL;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createAt;
 
@@ -104,6 +109,16 @@ public class Novel {
         LocalDateTime now = LocalDateTime.now();
         createAt = now;
         updateAt = now;
+        if (accessStatus == null) {
+            accessStatus = NovelAccessStatus.NORMAL;
+        }
+    }
+
+    @PreUpdate
+    private void setDefaultsBeforeUpdate() {
+        if (accessStatus == null) {
+            accessStatus = NovelAccessStatus.NORMAL;
+        }
     }
 
 }

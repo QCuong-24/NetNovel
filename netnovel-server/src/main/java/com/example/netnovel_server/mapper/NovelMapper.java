@@ -4,6 +4,7 @@ import com.example.netnovel_server.dto.NovelCreateDTO;
 import com.example.netnovel_server.dto.NovelDTO;
 import com.example.netnovel_server.entity.Genre;
 import com.example.netnovel_server.entity.Novel;
+import com.example.netnovel_server.entity.NovelAccessStatus;
 import com.example.netnovel_server.entity.NovelChapterInfo;
 import com.example.netnovel_server.entity.Status;
 import com.example.netnovel_server.entity.Tag;
@@ -37,6 +38,7 @@ public final class NovelMapper {
             .bookmarks(novel.getBookmarks())
             .genres(toGenreNames(novel.getGenres()))
             .status(novel.getStatus() != null ? novel.getStatus().name() : null)
+            .accessStatus(resolveAccessStatus(novel).name())
             .chapterCount(chapterInfo != null ? chapterInfo.getChapterCount() : 0)
             .latestChapterId(chapterInfo != null && chapterInfo.getLatestChapter() != null
                 ? chapterInfo.getLatestChapter().getId()
@@ -63,6 +65,7 @@ public final class NovelMapper {
             .genres(genres != null ? genres : Collections.emptySet())
             .tags(tags != null ? tags : Collections.emptySet())
             .status(parseStatus(dto.getStatus()))
+            .accessStatus(parseAccessStatus(dto.getAccessStatus()))
             .build();
     }
 
@@ -82,5 +85,17 @@ public final class NovelMapper {
         }
 
         return Status.valueOf(status.trim().toUpperCase());
+    }
+
+    private static NovelAccessStatus parseAccessStatus(String accessStatus) {
+        if (accessStatus == null || accessStatus.isBlank()) {
+            return NovelAccessStatus.NORMAL;
+        }
+
+        return NovelAccessStatus.valueOf(accessStatus.trim().toUpperCase());
+    }
+
+    private static NovelAccessStatus resolveAccessStatus(Novel novel) {
+        return novel.getAccessStatus() != null ? novel.getAccessStatus() : NovelAccessStatus.NORMAL;
     }
 }

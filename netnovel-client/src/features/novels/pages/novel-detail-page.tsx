@@ -366,6 +366,11 @@ export function NovelDetailPage() {
             </div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-normal md:text-6xl">
               {novel.title}
+              {novel.accessStatus === 'PREVIEW_ONLY' ? (
+                <sup className="ml-2 inline-flex translate-y-[-0.45em] rounded-full border border-yellow-300/70 bg-gradient-to-b from-yellow-300 to-amber-500 px-2 py-0.5 align-baseline text-xs font-extrabold uppercase tracking-normal text-white shadow-sm shadow-amber-900/20 ring-1 ring-amber-100/60 md:text-sm">
+                  {t('novelForm.accessStatusOptions.PREVIEW_ONLY')}
+                </sup>
+              ) : null}
             </h1>
             <p className="text-lg font-semibold text-muted-foreground">{novel.author}</p>
             <p className="text-sm font-semibold text-muted-foreground">

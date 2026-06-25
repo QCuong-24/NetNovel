@@ -16,11 +16,15 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
 
     List<Chapter> findByNovelIdOrderByChapterNumberAsc(Long novelId);
 
+    List<Chapter> findTop3ByNovelIdOrderByChapterNumberAsc(Long novelId);
+
     Optional<Chapter> findByNovelIdAndChapterNumber(Long novelId, Integer chapterNumber);
 
     Optional<Chapter> findTopByNovelIdOrderByChapterNumberDesc(Long novelId);
 
     long countByNovelId(Long novelId);
+
+    long countByNovelIdAndChapterNumberLessThan(Long novelId, Integer chapterNumber);
 
     boolean existsByNovelIdAndChapterNumber(Long novelId, Integer chapterNumber);
 }

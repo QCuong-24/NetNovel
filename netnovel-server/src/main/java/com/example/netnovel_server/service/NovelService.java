@@ -4,6 +4,7 @@ import com.example.netnovel_server.dto.NovelCreateDTO;
 import com.example.netnovel_server.dto.NovelDTO;
 import com.example.netnovel_server.entity.Genre;
 import com.example.netnovel_server.entity.Novel;
+import com.example.netnovel_server.entity.NovelAccessStatus;
 import com.example.netnovel_server.entity.NovelFollow;
 import com.example.netnovel_server.entity.Status;
 import com.example.netnovel_server.entity.Tag;
@@ -87,6 +88,7 @@ public class NovelService {
         Set<Genre> genres = resolveGenres(request.getGenres());
         Set<Tag> tags = resolveTags(request.getTags());
         validateStatus(request.getStatus());
+        validateAccessStatus(request.getAccessStatus());
 
         Novel novel = NovelMapper.toEntity(request, genres, tags);
         Novel savedNovel = novelRepository.save(novel);
@@ -108,6 +110,9 @@ public class NovelService {
         novel.setCoverImageUrl(request.getCoverImageUrl());
         novel.setCoverImagePublicId(request.getCoverImagePublicId());
         novel.setStatus(validateStatus(request.getStatus()));
+        if (request.getAccessStatus() != null && !request.getAccessStatus().isBlank()) {
+            novel.setAccessStatus(validateAccessStatus(request.getAccessStatus()));
+        }
         novel.setGenres(resolveGenres(request.getGenres()));
         novel.setTags(resolveTags(request.getTags()));
 
@@ -181,6 +186,18 @@ public class NovelService {
             return Status.valueOf(status.trim().toUpperCase());
         } catch (IllegalArgumentException exception) {
             throw new BadRequestException("Invalid novel status: " + status);
+        }
+    }
+
+    private NovelAccessStatus validateAccessStatus(String accessStatus) {
+        if (accessStatus == null || accessStatus.isBlank()) {
+            return NovelAccessStatus.NORMAL;
+        }
+
+        try {
+            return NovelAccessStatus.valueOf(accessStatus.trim().toUpperCase());
+        } catch (IllegalArgumentException exception) {
+            throw new BadRequestException("Invalid novel access status: " + accessStatus);
         }
     }
 

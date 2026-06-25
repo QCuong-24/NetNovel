@@ -26,4 +26,6 @@ public class NovelCreateDTO {
     private Set<String> tags;
 
     private String status;
+
+    private String accessStatus;
 }

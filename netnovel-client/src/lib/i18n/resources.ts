@@ -141,6 +141,11 @@ export const resources = {
           ONGOING: 'Ongoing',
           COMPLETED: 'Completed',
         },
+        accessStatus: 'Access',
+        accessStatusOptions: {
+          NORMAL: 'Normal',
+          PREVIEW_ONLY: 'Preview',
+        },
         saving: 'Saving...',
         createNovel: 'Create novel',
         saveChanges: 'Save changes',
@@ -702,6 +707,11 @@ export const resources = {
         statusOptions: {
           ONGOING: 'Đang tiến hành',
           COMPLETED: 'Hoàn thành',
+        },
+        accessStatus: 'Quyền đọc',
+        accessStatusOptions: {
+          NORMAL: 'Bình thường',
+          PREVIEW_ONLY: 'Đọc thử',
         },
         saving: 'Đang lưu...',
         createNovel: 'Tạo truyện',

@@ -1,4 +1,5 @@
 export type NovelStatus = 'ONGOING' | 'COMPLETED';
+export type NovelAccessStatus = 'NORMAL' | 'PREVIEW_ONLY';
 
 export type Novel = {
   novelId: number;
@@ -13,6 +14,7 @@ export type Novel = {
   bookmarks: number;
   genres: string[];
   status: NovelStatus;
+  accessStatus: NovelAccessStatus;
   chapterCount: number;
   latestChapterId?: number | null;
   latestChapterNumber?: number | null;
@@ -30,6 +32,7 @@ export type NovelPayload = {
   genres: string[];
   tags: string[];
   status: NovelStatus;
+  accessStatus?: NovelAccessStatus;
 };
 
 export type Tag = {

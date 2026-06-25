@@ -12,7 +12,7 @@ import { useUploadNovelCoverMutation } from '@/features/uploads/hooks/use-image-
 import { cn } from '@/lib/utils';
 import { NovelCover } from './novel-cover';
 import { useGenres, useNovelTags, useTags } from '../hooks/use-novels';
-import type { Novel, NovelPayload, NovelStatus } from '../types';
+import type { Novel, NovelAccessStatus, NovelPayload, NovelStatus } from '../types';
 
 const novelFormSchema = z.object({
   title: z.string().min(2),
@@ -20,6 +20,7 @@ const novelFormSchema = z.object({
   description: z.string().min(10),
   coverImageUrl: z.string().url().or(z.literal('')),
   status: z.enum(['ONGOING', 'COMPLETED']),
+  accessStatus: z.enum(['NORMAL', 'PREVIEW_ONLY']),
   genres: z.array(z.string()),
   tags: z.array(z.string()),
 });
@@ -35,6 +36,7 @@ type NovelFormProps = {
 };
 
 const statusOptions: NovelStatus[] = ['ONGOING', 'COMPLETED'];
+const accessStatusOptions: NovelAccessStatus[] = ['NORMAL', 'PREVIEW_ONLY'];
 
 function toFormValues(novel?: Novel, tagNames: string[] = []): NovelFormValues {
   return {
@@ -43,6 +45,7 @@ function toFormValues(novel?: Novel, tagNames: string[] = []): NovelFormValues {
     description: novel?.description ?? '',
     coverImageUrl: novel?.coverImageUrl ?? '',
     status: novel?.status ?? 'ONGOING',
+    accessStatus: novel?.accessStatus ?? 'NORMAL',
     genres: novel?.genres ?? [],
     tags: tagNames,
   };
@@ -256,6 +259,19 @@ export function NovelForm({ novel, mode, isSubmitting = false, onCancel, onSubmi
                 {statusOptions.map((status) => (
                   <option key={status} value={status}>
                     {t(`novelForm.statusOptions.${status}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-2 text-sm font-semibold">
+              {t('novelForm.accessStatus')}
+              <select
+                className="h-10 rounded-md border bg-background px-3 text-sm text-foreground shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                {...register('accessStatus')}
+              >
+                {accessStatusOptions.map((accessStatus) => (
+                  <option key={accessStatus} value={accessStatus}>
+                    {t(`novelForm.accessStatusOptions.${accessStatus}`)}
                   </option>
                 ))}
               </select>
