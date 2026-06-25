@@ -25,7 +25,7 @@ export function SimilarNovelsSection({ novelId }: SimilarNovelsSectionProps) {
         {isLoading ? (
           <p className="text-sm text-muted-foreground">{t('novelPages.loadingSimilar')}</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
             {novels.map((novel) => (
               <NovelCard key={novel.novelId} novel={novel} />
             ))}

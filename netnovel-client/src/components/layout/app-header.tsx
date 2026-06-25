@@ -1,4 +1,4 @@
-import { ChevronDown, LibraryBig, Search } from 'lucide-react';
+import { ChevronDown, Home, LibraryBig, Search } from 'lucide-react';
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -48,6 +48,7 @@ export function AppHeader() {
   const normalizedSearchText = searchText.trim();
   const shouldShowSearchDropdown = isSearchFocused && Boolean(debouncedSearchText.trim());
   const searchOptionCount = searchSuggestions.length || (normalizedSearchText ? 1 : 0);
+  const canUseDashboard = Boolean(user?.roles?.some((role) => role === 'MANAGER' || role === 'ADMIN'));
 
   useEffect(() => {
     setOpenDropdown(null);
@@ -167,9 +168,11 @@ export function AppHeader() {
                 isActive && 'bg-accent text-accent-foreground',
               )
             }
+            aria-label={t('nav.home')}
+            title={t('nav.home')}
             to={routes.home}
           >
-            {t('nav.home')}
+            <Home className="size-4" />
           </NavLink>
           <div className="relative">
             <button
@@ -248,6 +251,32 @@ export function AppHeader() {
               {t(item.key)}
             </NavLink>
           ))}
+          {user ? (
+            <NavLink
+              className={({ isActive }) =>
+                cn(
+                  'rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                  isActive && 'bg-accent text-accent-foreground',
+                )
+              }
+              to={routes.collection}
+            >
+              {t('nav.collection')}
+            </NavLink>
+          ) : null}
+          {canUseDashboard ? (
+            <NavLink
+              className={({ isActive }) =>
+                cn(
+                  'rounded-md px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                  isActive && 'bg-accent text-accent-foreground',
+                )
+              }
+              to={routes.dashboard}
+            >
+              {t('nav.dashboard')}
+            </NavLink>
+          ) : null}
         </nav>
 
         <form

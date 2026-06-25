@@ -32,6 +32,9 @@ export const endpoints = {
     novels: '/advanced/search/novels',
     reindexNovels: '/advanced/search/reindex/novels',
   },
+  chatbot: {
+    message: '/chatbot/message',
+  },
   recommendations: {
     similarNovels: (novelId: string) => `/recommendations/novels/${novelId}/similar`,
     forYou: '/recommendations/for-you',

@@ -1,4 +1,4 @@
-import { ChevronDown, LibraryBig, Menu, Search, UserRound } from 'lucide-react';
+import { ChevronDown, Home, LibraryBig, Menu, Search, UserRound } from 'lucide-react';
 import { FormEvent, KeyboardEvent, useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +47,7 @@ export function MobileNav({ user }: MobileNavProps) {
   const normalizedSearchText = searchText.trim();
   const shouldShowSearchDropdown = open && Boolean(debouncedSearchText.trim());
   const searchOptionCount = searchSuggestions.length || (normalizedSearchText ? 1 : 0);
+  const canUseDashboard = Boolean(user?.roles?.some((role) => role === 'MANAGER' || role === 'ADMIN'));
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -206,13 +207,15 @@ export function MobileNav({ user }: MobileNavProps) {
               <NavLink
                 className={({ isActive }) =>
                   cn(
-                    'rounded-md px-3 py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                    'flex items-center gap-2 rounded-md px-3 py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
                     isActive && 'bg-accent text-accent-foreground',
                   )
                 }
+                aria-label={t('nav.home')}
+                title={t('nav.home')}
                 to={routes.home}
               >
-                {t('nav.home')}
+                <Home className="size-4" />
               </NavLink>
             </SheetClose>
             <details className="group rounded-md border">
@@ -276,6 +279,36 @@ export function MobileNav({ user }: MobileNavProps) {
                 </NavLink>
               </SheetClose>
             ))}
+            {user ? (
+              <SheetClose asChild>
+                <NavLink
+                  className={({ isActive }) =>
+                    cn(
+                      'rounded-md px-3 py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                      isActive && 'bg-accent text-accent-foreground',
+                    )
+                  }
+                  to={routes.collection}
+                >
+                  {t('nav.collection')}
+                </NavLink>
+              </SheetClose>
+            ) : null}
+            {canUseDashboard ? (
+              <SheetClose asChild>
+                <NavLink
+                  className={({ isActive }) =>
+                    cn(
+                      'rounded-md px-3 py-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground',
+                      isActive && 'bg-accent text-accent-foreground',
+                    )
+                  }
+                  to={routes.dashboard}
+                >
+                  {t('nav.dashboard')}
+                </NavLink>
+              </SheetClose>
+            ) : null}
           </nav>
 
           {!user ? (

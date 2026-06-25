@@ -1,0 +1,40 @@
+{
+  "genres": {
+    "Tiên Hiệp": ["tiên hiệp", "tien hiep", "xianxia", "immortal"],
+    "Kiếm Hiệp": ["kiếm hiệp", "kiem hiep", "wuxia", "martial"],
+    "Ngôn Tình": ["ngôn tình", "ngon tinh", "romance", "love story", "romantic"],
+    "Đô Thị": ["đô thị", "do thi", "urban", "city"],
+    "Huyền Huyễn": ["huyền huyễn", "huyen huyen", "fantasy", "mystical fantasy"],
+    "Khoa Huyễn": ["khoa huyễn", "khoa huyen", "sci fi", "science fiction", "scifi"],
+    "Truyện Teen": ["truyện teen", "truyen teen", "teen"],
+    "Đam Mỹ": ["đam mỹ", "dam my", "boys love", "boy love", "bl"],
+    "Quan Trường": ["quan trường", "quan truong", "officialdom"],
+    "Lịch Sử": ["lịch sử", "lich su", "history", "historical"]
+  },
+  "statuses": {
+    "COMPLETED": ["hoàn thành", "hoan thanh", "full", "đã end", "da end", "completed", "finished", "complete"],
+    "ONGOING": ["đang ra", "dang ra", "chưa hoàn thành", "chua hoan thanh", "ongoing", "updating"]
+  },
+  "sorts": {
+    "popular": ["hot", "popular", "top", "nổi bật", "noi bat", "phổ biến", "pho bien", "nhiều view", "nhieu view", "nhiều lượt xem", "nhieu luot xem"],
+    "latest": ["mới cập nhật", "moi cap nhat", "vừa cập nhật", "vua cap nhat", "latest", "latest update", "latest updates", "new update", "recent"]
+  },
+  "tags": {
+    "Trọng sinh": ["trọng sinh", "trong sinh", "reincarnation", "rebirth", "second chance"],
+    "Hệ thống": ["hệ thống", "he thong", "system", "system novel"],
+    "Xuyên không": ["xuyên không", "xuyen khong", "transmigration", "isekai", "another world"],
+    "Main bá đạo": ["main bá đạo", "main ba dao", "nhân vật chính mạnh", "nhan vat chinh manh", "overpowered", "op mc", "strong mc"],
+    "Sủng": ["sủng", "sung", "sweet", "fluffy"],
+    "Ngược": ["ngược", "nguoc", "angst"],
+    "Tu luyện": ["tu luyện", "tu luyen", "cultivation"],
+    "Cung đấu": ["cung đấu", "cung dau", "palace intrigue"],
+    "Mạt thế": ["mạt thế", "mat the", "apocalypse", "post apocalypse"],
+    "Hài hước": ["hài hước", "hai huoc", "funny", "comedy"]
+  },
+  "searchWords": {
+    "default": ["tìm", "tim", "tìm kiếm", "tim kiem", "search", "find", "show me", "recommend", "gợi ý", "goi y"]
+  },
+  "authorWords": {
+    "default": ["tác giả", "tac gia", "author", "by"]
+  }
+}

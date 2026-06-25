@@ -38,10 +38,10 @@ export function HomePage() {
   const [isPaused, setIsPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const lastReadingQuery = useLastReading(3, Boolean(user));
-  const recommendationsQuery = useForYouRecommendations(5, Boolean(user));
-  const hotNovelsQuery = useNovelList({ kind: 'hot', page: 0, size: 5 });
-  const newestNovelsQuery = useNovelList({ kind: 'newest', page: 0, size: 5 });
-  const completedNovelsQuery = useNovelList({ kind: 'completed', page: 0, size: 5 });
+  const recommendationsQuery = useForYouRecommendations(6, Boolean(user));
+  const hotNovelsQuery = useNovelList({ kind: 'hot', page: 0, size: 6 });
+  const newestNovelsQuery = useNovelList({ kind: 'newest', page: 0, size: 6 });
+  const completedNovelsQuery = useNovelList({ kind: 'completed', page: 0, size: 6 });
   const genresQuery = useGenres();
   const lastReads = lastReadingQuery.data?.content ?? [];
   const recommendations = recommendationsQuery.data ?? [];
@@ -162,20 +162,20 @@ export function HomePage() {
 
       {user && recommendations.length ? (
         <HomeSection title={t('home.recommendedForYou')} to="/collection#recommendations">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">
             {recommendations.map((item) => <NovelCard key={item.novel.novelId} novel={item.novel} />)}
           </div>
         </HomeSection>
       ) : null}
 
       <HomeSection title={t('home.hotNovels')} to="/novels/hot">
-        {hotNovelsQuery.data?.content.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{hotNovelsQuery.data.content.map((novel) => <NovelCard key={novel.novelId} novel={novel} />)}</div> : null}
+        {hotNovelsQuery.data?.content.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">{hotNovelsQuery.data.content.map((novel) => <NovelCard key={novel.novelId} novel={novel} />)}</div> : null}
       </HomeSection>
       <HomeSection title={t('home.latestUpdates')} to="/novels/newest">
-        {newestNovelsQuery.data?.content.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{newestNovelsQuery.data.content.map((novel) => <NovelCard key={novel.novelId} novel={novel} />)}</div> : null}
+        {newestNovelsQuery.data?.content.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">{newestNovelsQuery.data.content.map((novel) => <NovelCard key={novel.novelId} novel={novel} />)}</div> : null}
       </HomeSection>
       <HomeSection title={t('home.completedNovels')} to="/novels/completed">
-        {completedNovelsQuery.data?.content.length ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{completedNovelsQuery.data.content.map((novel) => <NovelCard key={novel.novelId} novel={novel} />)}</div> : null}
+        {completedNovelsQuery.data?.content.length ? <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">{completedNovelsQuery.data.content.map((novel) => <NovelCard key={novel.novelId} novel={novel} />)}</div> : null}
       </HomeSection>
 
       {genresQuery.data?.length ? (

@@ -40,6 +40,9 @@ export function SearchPage() {
   const showAdvanced = canUseAdvancedSearch(user);
   const showReindex = isAdmin(user);
   const publicQuery = searchParams.get('q') ?? '';
+  const publicStatus = searchParams.get('status') ?? '';
+  const publicGenre = searchParams.get('genre') ?? '';
+  const publicSort = (searchParams.get('sort') as SearchSort | null) ?? 'relevance';
   const [activeTab, setActiveTab] = useHashTab(searchTabs, 'public');
 
   useEffect(() => {
@@ -87,23 +90,35 @@ export function SearchPage() {
         ) : null}
       </div>
 
-      {activeTab === 'public' ? <PublicSearchPanel initialQuery={publicQuery} /> : null}
+      {activeTab === 'public' ? (
+        <PublicSearchPanel initialGenre={publicGenre} initialQuery={publicQuery} initialSort={publicSort} initialStatus={publicStatus} />
+      ) : null}
       {activeTab === 'advanced' && showAdvanced ? <AdvancedSearchPanel /> : null}
       {activeTab === 'reindex' && showReindex ? <ReindexPanel /> : null}
     </main>
   );
 }
 
-function PublicSearchPanel({ initialQuery = '' }: { initialQuery?: string }) {
+function PublicSearchPanel({
+  initialGenre = '',
+  initialQuery = '',
+  initialSort = 'relevance',
+  initialStatus = '',
+}: {
+  initialGenre?: string;
+  initialQuery?: string;
+  initialSort?: SearchSort;
+  initialStatus?: string;
+}) {
   const { t } = useTranslation();
   const { data: genres = [] } = useGenres();
   const normalizedInitialQuery = initialQuery.trim();
-  const [form, setForm] = useState({ q: normalizedInitialQuery, status: '', genre: '', sort: 'relevance' as SearchSort });
+  const [form, setForm] = useState({ q: normalizedInitialQuery, status: initialStatus, genre: initialGenre, sort: initialSort });
   const [params, setParams] = useState<PublicNovelSearchParams>({
     q: normalizedInitialQuery,
-    status: '',
-    genre: '',
-    sort: 'relevance',
+    status: initialStatus,
+    genre: initialGenre,
+    sort: initialSort,
     page: 0,
     size: 20,
   });
@@ -111,17 +126,17 @@ function PublicSearchPanel({ initialQuery = '' }: { initialQuery?: string }) {
   const searchQuery = usePublicNovelSearch(params, hasSubmitted);
 
   useEffect(() => {
-    setForm({ q: normalizedInitialQuery, status: '', genre: '', sort: 'relevance' });
+    setForm({ q: normalizedInitialQuery, status: initialStatus, genre: initialGenre, sort: initialSort });
     setParams((current) => ({
       q: normalizedInitialQuery,
-      status: '',
-      genre: '',
-      sort: 'relevance',
+      status: initialStatus,
+      genre: initialGenre,
+      sort: initialSort,
       page: 0,
       size: current.size,
     }));
-    setHasSubmitted(Boolean(normalizedInitialQuery));
-  }, [normalizedInitialQuery]);
+    setHasSubmitted(Boolean(normalizedInitialQuery || initialStatus || initialGenre || initialSort !== 'relevance'));
+  }, [initialGenre, initialSort, initialStatus, normalizedInitialQuery]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -346,7 +361,7 @@ function SearchResults({
       {!novels.length ? (
         <div className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">{emptyText}</div>
       ) : (
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
           {novels.map((novel) => (
             <NovelCard key={novel.novelId} novel={novel} />
           ))}

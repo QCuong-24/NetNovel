@@ -1,0 +1,194 @@
+[
+  {
+    "id": "how_to_follow_novel",
+    "type": "faq",
+    "enabled": true,
+    "priority": 100,
+    "examples": {
+      "vi": ["làm sao theo dõi truyện", "cách follow truyện", "lưu truyện đang theo dõi", "theo dõi novel", "muốn nhận cập nhật truyện thì làm sao"],
+      "en": ["how to follow a novel", "how can i follow novels", "save a novel to follow", "where is follow button", "how do i get novel updates"]
+    },
+    "answers": {
+      "vi": "Bạn mở trang chi tiết truyện rồi bấm nút Theo dõi. Các truyện đã theo dõi sẽ nằm trong bộ sưu tập cá nhân.",
+      "en": "Open a novel detail page and click Follow. Followed novels will appear in your personal collection."
+    },
+    "actionUrls": ["/collection"],
+    "tags": ["collection", "follow", "updates"]
+  },
+  {
+    "id": "how_to_bookmark",
+    "type": "faq",
+    "enabled": true,
+    "priority": 95,
+    "examples": {
+      "vi": ["bookmark là gì", "đánh dấu chương", "lưu chương đang đọc", "cách bookmark", "lưu lại để đọc sau"],
+      "en": ["what is bookmark", "bookmark a chapter", "save current chapter", "how to bookmark", "save it to read later"]
+    },
+    "answers": {
+      "vi": "Bookmark giúp bạn lưu truyện hoặc chương đang đọc để quay lại nhanh hơn từ trang bộ sưu tập.",
+      "en": "Bookmarks help you save novels or chapters so you can return to them quickly from your collection."
+    },
+    "actionUrls": ["/collection"],
+    "tags": ["collection", "bookmark", "reading"]
+  },
+  {
+    "id": "follow_vs_bookmark",
+    "type": "faq",
+    "enabled": true,
+    "priority": 90,
+    "examples": {
+      "vi": ["follow khác bookmark như nào", "theo dõi và bookmark khác nhau không", "nên follow hay bookmark"],
+      "en": ["difference between follow and bookmark", "follow vs bookmark", "should i follow or bookmark"]
+    },
+    "answers": {
+      "vi": "Theo dõi phù hợp khi bạn muốn lưu truyện và theo dõi cập nhật. Bookmark phù hợp để đánh dấu truyện hoặc chương cụ thể để quay lại đọc nhanh.",
+      "en": "Follow is best for saving a novel and tracking updates. Bookmark is best for marking a specific novel or chapter to return to quickly."
+    },
+    "actionUrls": ["/collection"],
+    "tags": ["collection", "follow", "bookmark"]
+  },
+  {
+    "id": "continue_reading",
+    "type": "faq",
+    "enabled": true,
+    "priority": 90,
+    "examples": {
+      "vi": ["đọc tiếp ở đâu", "lịch sử đọc ở đâu", "truyện đang đọc dở", "tiếp tục đọc chương cũ"],
+      "en": ["where can i continue reading", "reading history", "continue my last chapter", "resume reading"]
+    },
+    "answers": {
+      "vi": "Bạn có thể mở bộ sưu tập để xem lịch sử đọc và quay lại chương đã đọc gần nhất.",
+      "en": "Open your collection to see reading history and return to your most recently read chapter."
+    },
+    "actionUrls": ["/collection"],
+    "tags": ["collection", "history", "reading"]
+  },
+  {
+    "id": "search_help",
+    "type": "faq",
+    "enabled": true,
+    "priority": 85,
+    "examples": {
+      "vi": ["tìm truyện như thế nào", "cách tìm kiếm", "hướng dẫn search", "lọc truyện", "tìm truyện theo thể loại"],
+      "en": ["how to search novels", "search help", "how can i filter novels", "find novels", "search by genre"]
+    },
+    "answers": {
+      "vi": "Bạn có thể hỏi kiểu: “truyện tiên hiệp hoàn thành”, “truyện hot”, hoặc “truyện mới cập nhật”.",
+      "en": "You can ask things like: “completed xianxia novels”, “popular novels”, or “latest updates”."
+    },
+    "actionUrls": ["/search"],
+    "tags": ["search", "filter"]
+  },
+  {
+    "id": "completed_novel_meaning",
+    "type": "faq",
+    "enabled": true,
+    "priority": 80,
+    "examples": {
+      "vi": ["truyện hoàn thành là gì", "truyện full nghĩa là gì", "completed novel là gì"],
+      "en": ["what is a completed novel", "what does completed mean", "finished novel meaning"]
+    },
+    "answers": {
+      "vi": "Truyện hoàn thành là truyện đã kết thúc hoặc đã có đủ chương theo trạng thái hiện tại của hệ thống.",
+      "en": "A completed novel is a novel that has ended or has all chapters available according to its current system status."
+    },
+    "actionUrls": ["/novels/completed"],
+    "tags": ["status", "completed"]
+  },
+  {
+    "id": "latest_updates_meaning",
+    "type": "faq",
+    "enabled": true,
+    "priority": 78,
+    "examples": {
+      "vi": ["truyện mới cập nhật là gì", "latest update là gì", "danh sách mới cập nhật tính sao"],
+      "en": ["what are latest updates", "how latest updated novels work", "recent updates meaning"]
+    },
+    "answers": {
+      "vi": "Truyện mới cập nhật được sắp xếp theo thời điểm truyện hoặc chương mới nhất được cập nhật.",
+      "en": "Latest updates are sorted by the most recent novel or chapter update time."
+    },
+    "actionUrls": ["/novels/newest"],
+    "tags": ["latest", "updates"]
+  },
+  {
+    "id": "chapter_loading_issue",
+    "type": "faq",
+    "enabled": true,
+    "priority": 75,
+    "examples": {
+      "vi": ["không load được chương", "lỗi đọc truyện", "chương bị lỗi", "không mở được chapter", "trang đọc bị trắng"],
+      "en": ["chapter does not load", "reading error", "cannot open chapter", "chapter loading issue", "reader page is blank"]
+    },
+    "answers": {
+      "vi": "Bạn hãy thử tải lại trang trước. Nếu vẫn lỗi, hãy quay về trang truyện và mở lại chương đó.",
+      "en": "Try refreshing the page first. If it still fails, return to the novel page and open that chapter again."
+    },
+    "actionUrls": ["/novels"],
+    "tags": ["chapter", "reader", "issue"]
+  },
+  {
+    "id": "login_required",
+    "type": "faq",
+    "enabled": true,
+    "priority": 70,
+    "examples": {
+      "vi": ["vì sao cần đăng nhập", "tại sao phải login", "không đăng nhập dùng được không"],
+      "en": ["why login is required", "why do i need to sign in", "can i use it without login"]
+    },
+    "answers": {
+      "vi": "Một số tính năng như theo dõi, bookmark, lịch sử đọc và chatbot cần đăng nhập để gắn dữ liệu với tài khoản của bạn.",
+      "en": "Features like following, bookmarks, reading history, and chatbot require login so the data can be linked to your account."
+    },
+    "actionUrls": ["/login"],
+    "tags": ["auth", "login"]
+  },
+  {
+    "id": "profile_help",
+    "type": "faq",
+    "enabled": true,
+    "priority": 65,
+    "examples": {
+      "vi": ["xem hồ sơ ở đâu", "trang cá nhân ở đâu", "profile của tôi"],
+      "en": ["where is my profile", "open my profile", "profile page"]
+    },
+    "answers": {
+      "vi": "Bạn có thể mở trang hồ sơ từ menu tài khoản ở góc trên của website.",
+      "en": "You can open your profile from the account menu at the top of the website."
+    },
+    "actionUrls": ["/profile"],
+    "tags": ["profile", "account"]
+  },
+  {
+    "id": "comment_help",
+    "type": "faq",
+    "enabled": true,
+    "priority": 60,
+    "examples": {
+      "vi": ["bình luận ở đâu", "cách comment", "tôi muốn bình luận truyện"],
+      "en": ["how to comment", "where can i comment", "comment on a novel"]
+    },
+    "answers": {
+      "vi": "Bạn có thể bình luận ở trang chi tiết truyện hoặc khu vực bình luận nếu tính năng đó đang được bật.",
+      "en": "You can comment on a novel detail page or in the comments area when that feature is available."
+    },
+    "actionUrls": ["/novels"],
+    "tags": ["comments"]
+  },
+  {
+    "id": "preview_only_access",
+    "type": "faq",
+    "enabled": true,
+    "priority": 55,
+    "examples": {
+      "vi": ["preview only là gì", "truyện chỉ xem trước là gì", "không đọc được toàn bộ truyện"],
+      "en": ["what is preview only", "preview only novel", "why can i only preview this novel"]
+    },
+    "answers": {
+      "vi": "Preview-only nghĩa là truyện có thể chỉ cho xem trước một phần nội dung tùy quyền truy cập hoặc cấu hình của hệ thống.",
+      "en": "Preview-only means the novel may only show part of its content depending on access rules or system configuration."
+    },
+    "actionUrls": ["/novels"],
+    "tags": ["access", "preview"]
+  }
+]

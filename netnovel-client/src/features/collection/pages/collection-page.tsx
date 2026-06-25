@@ -121,7 +121,7 @@ export function CollectionPage() {
           title={t('collection.followedNovels.title')}
           emptyText={t('collection.followedNovels.empty')}
         >
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
             {followedNovels.map((item) => (
               <div className="grid gap-2" key={item.followId}>
                 <NovelCard novel={item.novel} />
@@ -142,7 +142,7 @@ export function CollectionPage() {
           title={t('collection.recommendations.title')}
           emptyText={t('collection.recommendations.empty')}
         >
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
             {recommendations.map((item) => (
               <div className="grid gap-2" key={item.novel.novelId}>
                 <NovelCard novel={item.novel} />

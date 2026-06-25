@@ -5,6 +5,7 @@ import { AppFooter } from '@/components/layout/app-footer';
 import { ScrollToTop } from '@/components/layout/scroll-to-top';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { useNotificationStream } from '@/features/notifications/hooks/use-notifications';
+import { ChatbotWidget } from '@/features/chatbot/components/chatbot-widget';
 
 export function RootLayout() {
   const { data: user } = useCurrentUser();
@@ -17,6 +18,7 @@ export function RootLayout() {
       <Outlet />
       <AppFooter />
       <BackToTopButton />
+      <ChatbotWidget />
     </div>
   );
 }

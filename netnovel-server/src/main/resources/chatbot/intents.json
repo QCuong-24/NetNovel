@@ -1,0 +1,112 @@
+[
+  {
+    "id": "popular_novels",
+    "type": "intent",
+    "enabled": true,
+    "priority": 100,
+    "examples": {
+      "vi": ["truyện hot", "truyện nổi bật", "truyện nhiều view", "truyện phổ biến", "gợi ý truyện đang hot"],
+      "en": ["popular novels", "hot novels", "top novels", "most viewed novels", "recommend popular stories"]
+    },
+    "replies": {
+      "vi": "Đây là một số truyện nổi bật cho bạn.",
+      "en": "Here are some popular novels for you."
+    },
+    "filters": {
+      "sort": "popular"
+    },
+    "tags": ["search", "popular"]
+  },
+  {
+    "id": "latest_novels",
+    "type": "intent",
+    "enabled": true,
+    "priority": 95,
+    "examples": {
+      "vi": ["truyện mới cập nhật", "truyện vừa cập nhật", "truyện mới nhất", "có truyện nào mới update không"],
+      "en": ["latest updates", "recently updated novels", "new updates", "what novels were updated recently"]
+    },
+    "replies": {
+      "vi": "Đây là một số truyện mới cập nhật.",
+      "en": "Here are some recently updated novels."
+    },
+    "filters": {
+      "sort": "latest"
+    },
+    "tags": ["search", "latest"]
+  },
+  {
+    "id": "completed_novels",
+    "type": "intent",
+    "enabled": true,
+    "priority": 90,
+    "examples": {
+      "vi": ["truyện hoàn thành", "truyện full", "truyện đã end", "tìm truyện đã hoàn tất"],
+      "en": ["completed novels", "finished novels", "complete novels", "find finished stories"]
+    },
+    "replies": {
+      "vi": "Mình tìm thấy một số truyện đã hoàn thành cho bạn.",
+      "en": "I found some completed novels for you."
+    },
+    "filters": {
+      "status": "COMPLETED"
+    },
+    "tags": ["search", "status"]
+  },
+  {
+    "id": "ongoing_novels",
+    "type": "intent",
+    "enabled": true,
+    "priority": 80,
+    "examples": {
+      "vi": ["truyện đang ra", "truyện chưa hoàn thành", "truyện còn update"],
+      "en": ["ongoing novels", "updating novels", "not completed novels"]
+    },
+    "replies": {
+      "vi": "Mình tìm thấy một số truyện đang ra cho bạn.",
+      "en": "I found some ongoing novels for you."
+    },
+    "filters": {
+      "status": "ONGOING"
+    },
+    "tags": ["search", "status"]
+  },
+  {
+    "id": "romance_completed_novels",
+    "type": "intent",
+    "enabled": true,
+    "priority": 70,
+    "examples": {
+      "vi": ["truyện ngôn tình hoàn thành", "ngôn tình full", "tìm romance đã end"],
+      "en": ["completed romance novels", "finished romance stories", "romance novels that are complete"]
+    },
+    "replies": {
+      "vi": "Đây là một số truyện ngôn tình đã hoàn thành.",
+      "en": "Here are some completed romance novels."
+    },
+    "filters": {
+      "genre": "Ngôn Tình",
+      "status": "COMPLETED"
+    },
+    "tags": ["search", "genre", "status"]
+  },
+  {
+    "id": "xianxia_completed_novels",
+    "type": "intent",
+    "enabled": true,
+    "priority": 70,
+    "examples": {
+      "vi": ["truyện tiên hiệp hoàn thành", "tiên hiệp full", "tìm xianxia đã end"],
+      "en": ["completed xianxia novels", "finished xianxia stories", "xianxia novels that are complete"]
+    },
+    "replies": {
+      "vi": "Đây là một số truyện tiên hiệp đã hoàn thành.",
+      "en": "Here are some completed xianxia novels."
+    },
+    "filters": {
+      "genre": "Tiên Hiệp",
+      "status": "COMPLETED"
+    },
+    "tags": ["search", "genre", "status"]
+  }
+]

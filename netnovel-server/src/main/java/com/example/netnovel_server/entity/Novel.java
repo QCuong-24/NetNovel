@@ -98,7 +98,7 @@ public class Novel {
     private Status status;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "varchar(32) default 'NORMAL'")
+    @Column(nullable = false, length = 32)
     @Builder.Default
     private NovelAccessStatus accessStatus = NovelAccessStatus.NORMAL;
 
