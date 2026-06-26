@@ -1,4 +1,4 @@
-package com.example.netnovel_server.service;
+package com.example.netnovel_server.recommendation.service;
 
 import com.example.netnovel_server.dto.NovelSearchResultDTO;
 import com.example.netnovel_server.entity.Novel;

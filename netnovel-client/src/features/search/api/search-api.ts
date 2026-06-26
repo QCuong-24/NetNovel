@@ -7,6 +7,7 @@ import type {
   NovelSearchPage,
   NovelSearchResultPage,
   PublicNovelSearchParams,
+  SemanticNovelSearchParams,
   SearchSuggestion,
 } from '../types';
 
@@ -58,6 +59,19 @@ export async function searchAdvancedNovels(params: AdvancedNovelSearchParams) {
   });
   const response = await httpClient.get<NovelSearchResultPage>(
     `${endpoints.advancedSearch.novels}?${searchParams.toString()}`,
+  );
+
+  return toNovelPage(response.data);
+}
+
+export async function searchSemanticNovels(params: SemanticNovelSearchParams) {
+  const searchParams = buildSearchParams({
+    q: params.q,
+    page: params.page ?? 0,
+    size: params.size ?? 18,
+  });
+  const response = await httpClient.get<NovelSearchResultPage>(
+    `${endpoints.advancedSearch.semanticNovels}?${searchParams.toString()}`,
   );
 
   return toNovelPage(response.data);

@@ -1,10 +1,13 @@
 package com.example.netnovel_server.search.elastic.service;
 
 import com.example.netnovel_server.dto.ElasticReindexResponseDTO;
+import com.example.netnovel_server.embedding.config.NovelEmbeddingProperties;
+import com.example.netnovel_server.embedding.service.NovelEmbeddingClient;
+import com.example.netnovel_server.embedding.service.NovelEmbeddingTextBuilder;
 import com.example.netnovel_server.entity.Novel;
 import com.example.netnovel_server.exception.SearchUnavailableException;
 import com.example.netnovel_server.repository.NovelRepository;
-import com.example.netnovel_server.search.elastic.document.NovelSearchDocument;
+import com.example.netnovel_server.search.elastic.document.ElasticNovelDocument;
 import com.example.netnovel_server.search.elastic.mapper.NovelSearchDocumentMapper;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RestClient;
@@ -17,7 +20,9 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -30,18 +35,27 @@ public class ElasticNovelSearchIndexer {
     private final NovelRepository novelRepository;
     private final NovelSearchDocumentMapper documentMapper;
     private final ElasticNovelIndexManager indexManager;
+    private final NovelEmbeddingProperties embeddingProperties;
+    private final NovelEmbeddingClient embeddingClient;
+    private final NovelEmbeddingTextBuilder embeddingTextBuilder;
     private final ObjectMapper objectMapper;
 
     public ElasticNovelSearchIndexer(
         RestClient restClient,
         NovelRepository novelRepository,
         NovelSearchDocumentMapper documentMapper,
-        ElasticNovelIndexManager indexManager
+        ElasticNovelIndexManager indexManager,
+        NovelEmbeddingProperties embeddingProperties,
+        NovelEmbeddingClient embeddingClient,
+        NovelEmbeddingTextBuilder embeddingTextBuilder
     ) {
         this.restClient = restClient;
         this.novelRepository = novelRepository;
         this.documentMapper = documentMapper;
         this.indexManager = indexManager;
+        this.embeddingProperties = embeddingProperties;
+        this.embeddingClient = embeddingClient;
+        this.embeddingTextBuilder = embeddingTextBuilder;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -61,13 +75,19 @@ public class ElasticNovelSearchIndexer {
     private ElasticReindexResponseDTO indexAllNovels() {
         int indexed = 0;
         int failed = 0;
-        for (Novel novel : novelRepository.findAll()) {
-            try {
-                indexNovel(novel);
-                indexed++;
-            } catch (Exception exception) {
-                failed++;
-                log.warn("Could not index novel. novelId={}", novel.getId(), exception);
+        List<Novel> novels = novelRepository.findAll();
+        int batchSize = embeddingProperties.reindexBatchSize();
+        for (int start = 0; start < novels.size(); start += batchSize) {
+            List<Novel> batch = novels.subList(start, Math.min(start + batchSize, novels.size()));
+            List<ElasticNovelDocument> documents = buildDocuments(batch);
+            for (ElasticNovelDocument document : documents) {
+                try {
+                    indexDocument(document);
+                    indexed++;
+                } catch (Exception exception) {
+                    failed++;
+                    log.warn("Could not index novel. novelId={}", document.getNovelId(), exception);
+                }
             }
         }
 
@@ -95,17 +115,65 @@ public class ElasticNovelSearchIndexer {
     }
 
     private void indexNovel(Novel novel) {
-        NovelSearchDocument document = documentMapper.toDocument(novel);
-        Request request = new Request("PUT", "/" + indexManager.getNovelIndexName() + "/_doc/" + novel.getId());
+        ElasticNovelDocument document = documentMapper.toDocument(novel);
+        enrichWithEmbedding(List.of(novel), List.of(document));
+        indexDocument(document);
+    }
+
+    private List<ElasticNovelDocument> buildDocuments(List<Novel> novels) {
+        List<ElasticNovelDocument> documents = new ArrayList<>(novels.size());
+        for (Novel novel : novels) {
+            documents.add(documentMapper.toDocument(novel));
+        }
+        enrichWithEmbedding(novels, documents);
+        return documents;
+    }
+
+    private void enrichWithEmbedding(List<Novel> novels, List<ElasticNovelDocument> documents) {
+        if (!embeddingProperties.enabled() || documents.isEmpty()) {
+            return;
+        }
+
+        List<String> embeddingTexts = novels.stream()
+            .map(embeddingTextBuilder::build)
+            .toList();
+        for (int index = 0; index < documents.size(); index++) {
+            documents.get(index).setEmbeddingText(embeddingTexts.get(index));
+        }
+
+        try {
+            List<List<Double>> vectors = embeddingClient.embedPassages(embeddingTexts);
+            LocalDateTime now = LocalDateTime.now();
+            for (int index = 0; index < documents.size() && index < vectors.size(); index++) {
+                List<Double> vector = vectors.get(index);
+                if (vector == null || vector.isEmpty()) {
+                    continue;
+                }
+                ElasticNovelDocument document = documents.get(index);
+                document.setEmbeddingVector(vector);
+                document.setEmbeddingModel(embeddingProperties.model());
+                document.setEmbeddingDimension(embeddingProperties.dimension());
+                document.setEmbeddingUpdatedAt(now);
+            }
+        } catch (Exception exception) {
+            if (embeddingProperties.failOnIndexError()) {
+                throw new IllegalStateException("Could not enrich Elasticsearch novel documents with embeddings", exception);
+            }
+            log.warn("Could not enrich Elasticsearch novel documents with embeddings. indexedKeywordOnly={}", documents.size(), exception);
+        }
+    }
+
+    private void indexDocument(ElasticNovelDocument document) {
+        Request request = new Request("PUT", "/" + indexManager.getNovelIndexName() + "/_doc/" + document.getNovelId());
         request.setJsonEntity(toJson(document));
         try {
             restClient.performRequest(request);
         } catch (IOException exception) {
-            throw new SearchUnavailableException("Could not index Elasticsearch novel document: " + novel.getId(), exception);
+            throw new SearchUnavailableException("Could not index Elasticsearch novel document: " + document.getNovelId(), exception);
         }
     }
 
-    private String toJson(NovelSearchDocument document) {
+    private String toJson(ElasticNovelDocument document) {
         try {
             return objectMapper.writeValueAsString(toMap(document));
         } catch (Exception exception) {
@@ -113,7 +181,7 @@ public class ElasticNovelSearchIndexer {
         }
     }
 
-    private Map<String, Object> toMap(NovelSearchDocument document) {
+    private Map<String, Object> toMap(ElasticNovelDocument document) {
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("novelId", document.getNovelId());
         values.put("title", document.getTitle());
@@ -125,6 +193,7 @@ public class ElasticNovelSearchIndexer {
         values.put("views", document.getViews());
         values.put("follows", document.getFollows());
         values.put("likes", document.getLikes());
+        values.put("bookmarks", document.getBookmarks());
         values.put("chapterCount", document.getChapterCount());
         values.put("latestChapterNumber", document.getLatestChapterNumber());
         values.put("lastChapterUpdatedAt", formatDate(document.getLastChapterUpdatedAt()));
@@ -136,6 +205,11 @@ public class ElasticNovelSearchIndexer {
         values.put("popularityScore", document.getPopularityScore());
         values.put("freshnessScore", document.getFreshnessScore());
         values.put("recommendationText", document.getRecommendationText());
+        values.put("embeddingText", document.getEmbeddingText());
+        values.put("embeddingVector", document.getEmbeddingVector());
+        values.put("embeddingModel", document.getEmbeddingModel());
+        values.put("embeddingDimension", document.getEmbeddingDimension());
+        values.put("embeddingUpdatedAt", formatDate(document.getEmbeddingUpdatedAt()));
         return values;
     }
 

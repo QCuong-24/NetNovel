@@ -7,6 +7,7 @@ import com.example.netnovel_server.entity.UserEventType;
 import com.example.netnovel_server.search.elastic.service.ElasticDiagnosticsService;
 import com.example.netnovel_server.search.elastic.service.ElasticAdminNovelSearchService;
 import com.example.netnovel_server.search.elastic.service.ElasticNovelSearchIndexer;
+import com.example.netnovel_server.search.elastic.service.ElasticSemanticNovelSearchService;
 import com.example.netnovel_server.service.UserEventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,17 +29,20 @@ public class AdvancedSearchController {
 
     private final ObjectProvider<ElasticNovelSearchIndexer> indexerProvider;
     private final ObjectProvider<ElasticAdminNovelSearchService> searchServiceProvider;
+    private final ObjectProvider<ElasticSemanticNovelSearchService> semanticSearchServiceProvider;
     private final ObjectProvider<ElasticDiagnosticsService> diagnosticsServiceProvider;
     private final UserEventService userEventService;
 
     public AdvancedSearchController(
         ObjectProvider<ElasticNovelSearchIndexer> indexerProvider,
         ObjectProvider<ElasticAdminNovelSearchService> searchServiceProvider,
+        ObjectProvider<ElasticSemanticNovelSearchService> semanticSearchServiceProvider,
         ObjectProvider<ElasticDiagnosticsService> diagnosticsServiceProvider,
         UserEventService userEventService
     ) {
         this.indexerProvider = indexerProvider;
         this.searchServiceProvider = searchServiceProvider;
+        this.semanticSearchServiceProvider = semanticSearchServiceProvider;
         this.diagnosticsServiceProvider = diagnosticsServiceProvider;
         this.userEventService = userEventService;
     }
@@ -81,6 +85,18 @@ public class AdvancedSearchController {
         return ResponseEntity.ok(elasticSearchService().searchNovels(q, status, genre, tag, source, crawled, pageable));
     }
 
+    @GetMapping("/semantic/novels")
+    @Operation(summary = "Search novels semantically using Elasticsearch vector search")
+    public ResponseEntity<Page<NovelSearchResultDTO>> semanticSearchNovels(
+        @RequestParam String q,
+        Pageable pageable
+    ) {
+        if (q != null && !q.isBlank()) {
+            userEventService.recordForCurrentUser(UserEventType.SEARCH);
+        }
+        return ResponseEntity.ok(elasticSemanticSearchService().semanticSearch(q, pageable));
+    }
+
     private ElasticNovelSearchIndexer elasticIndexer() {
         ElasticNovelSearchIndexer indexer = indexerProvider.getIfAvailable();
         if (indexer == null) {
@@ -91,6 +107,14 @@ public class AdvancedSearchController {
 
     private ElasticAdminNovelSearchService elasticSearchService() {
         ElasticAdminNovelSearchService service = searchServiceProvider.getIfAvailable();
+        if (service == null) {
+            throw searchDisabledException();
+        }
+        return service;
+    }
+
+    private ElasticSemanticNovelSearchService elasticSemanticSearchService() {
+        ElasticSemanticNovelSearchService service = semanticSearchServiceProvider.getIfAvailable();
         if (service == null) {
             throw searchDisabledException();
         }

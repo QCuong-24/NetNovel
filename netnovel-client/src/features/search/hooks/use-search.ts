@@ -9,8 +9,9 @@ import {
   reindexNovels,
   searchAdvancedNovels,
   searchPublicNovels,
+  searchSemanticNovels,
 } from '../api/search-api';
-import type { AdvancedNovelSearchParams, PublicNovelSearchParams } from '../types';
+import type { AdvancedNovelSearchParams, PublicNovelSearchParams, SemanticNovelSearchParams } from '../types';
 
 export function usePublicNovelSearch(params: PublicNovelSearchParams, enabled: boolean) {
   return useQuery({
@@ -47,6 +48,14 @@ export function useReindexNovelsMutation() {
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'Could not reindex novels'));
     },
+  });
+}
+
+export function useSemanticNovelSearch(params: SemanticNovelSearchParams, enabled: boolean) {
+  return useQuery({
+    queryKey: [...queryKeys.search, 'semantic', params],
+    queryFn: () => searchSemanticNovels(params),
+    enabled,
   });
 }
 

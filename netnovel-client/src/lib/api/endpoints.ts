@@ -30,6 +30,7 @@ export const endpoints = {
   },
   advancedSearch: {
     novels: '/advanced/search/novels',
+    semanticNovels: '/advanced/search/semantic/novels',
     reindexNovels: '/advanced/search/reindex/novels',
     rebuildNovels: '/advanced/search/reindex/novels/rebuild',
     diagnostics: '/advanced/search/diagnostics',
@@ -39,6 +40,8 @@ export const endpoints = {
   },
   recommendations: {
     similarNovels: (novelId: string) => `/recommendations/novels/${novelId}/similar`,
+    semanticSimilarNovels: (novelId: string) => `/recommendations/novels/${novelId}/similar/semantic`,
+    hybridSimilarNovels: (novelId: string) => `/recommendations/novels/${novelId}/similar/hybrid`,
     forYou: '/recommendations/for-you',
   },
   lastReads: {

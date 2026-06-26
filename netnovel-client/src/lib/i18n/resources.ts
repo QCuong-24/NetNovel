@@ -403,6 +403,7 @@ export const resources = {
           reasons: {
             BASED_ON_CONTENT: 'Matches what you have enjoyed',
             BECAUSE_YOU_READ_SIMILAR: 'Because you read similar stories',
+            BASED_ON_SEMANTIC_PREFERENCE: 'Similar vibe to stories you liked',
             TRENDING: 'Trending now',
           },
         },
@@ -978,6 +979,7 @@ export const resources = {
           reasons: {
             BASED_ON_CONTENT: 'Phù hợp với những gì bạn yêu thích',
             BECAUSE_YOU_READ_SIMILAR: 'Vì bạn đã đọc các truyện tương tự',
+            BASED_ON_SEMANTIC_PREFERENCE: 'Cùng vibe với truyện bạn thích',
             TRENDING: 'Đang thịnh hành',
           },
         },

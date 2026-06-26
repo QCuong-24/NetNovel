@@ -12,6 +12,7 @@ import { ChapterListSection } from '@/features/chapters/components/chapter-list-
 import { useNovelChapters } from '@/features/chapters/hooks/use-chapters';
 import { CommentSection } from '@/features/comments/components/comment-section';
 import { useCreateCrawlTaskMutation } from '@/features/crawl-tasks/hooks/use-crawl-tasks';
+import { getPreviousRoute } from '@/lib/navigation/route-history';
 import { NovelCover } from '../components/novel-cover';
 import { NovelForm } from '../components/novel-form';
 import { SimilarNovelsSection } from '../components/similar-novels-section';
@@ -156,8 +157,9 @@ export function NovelDetailPage() {
 
   function handleBack() {
     const historyIndex = window.history.state?.idx;
+    const previousRoute = getPreviousRoute();
 
-    if (typeof historyIndex === 'number' && historyIndex > 0) {
+    if (typeof historyIndex === 'number' && historyIndex > 0 && previousRoute?.startsWith(routes.novels)) {
       navigate(-1);
     } else {
       navigate(routes.novels);

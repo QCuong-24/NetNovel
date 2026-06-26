@@ -1,6 +1,16 @@
 import { endpoints } from '@/lib/api/endpoints';
 import { httpClient } from '@/lib/api/http-client';
-import type { Genre, Novel, NovelInteraction, NovelListParams, NovelPayload, NovelSearchResult, PageResponse, Tag } from '../types';
+import type {
+  Genre,
+  Novel,
+  NovelInteraction,
+  NovelListParams,
+  NovelPayload,
+  NovelSearchResult,
+  PageResponse,
+  SimilarNovelRecommendation,
+  Tag,
+} from '../types';
 
 function withPageParams(url: string, params: URLSearchParams) {
   return `${url}?${params.toString()}`;
@@ -30,6 +40,27 @@ export async function getSimilarNovels(novelId: string, size = 5) {
     ...response.data,
     content: response.data.content.map((result) => result.novel),
   } satisfies PageResponse<Novel>;
+}
+
+export async function getSemanticSimilarNovels(novelId: string, size = 5) {
+  const pageParams = buildPageParams(0, size);
+  const response = await httpClient.get<PageResponse<NovelSearchResult>>(
+    withPageParams(endpoints.recommendations.semanticSimilarNovels(novelId), pageParams),
+  );
+
+  return {
+    ...response.data,
+    content: response.data.content.map((result) => result.novel),
+  } satisfies PageResponse<Novel>;
+}
+
+export async function getHybridSimilarNovels(novelId: string, size = 5) {
+  const pageParams = buildPageParams(0, size);
+  const response = await httpClient.get<PageResponse<SimilarNovelRecommendation>>(
+    withPageParams(endpoints.recommendations.hybridSimilarNovels(novelId), pageParams),
+  );
+
+  return response.data;
 }
 
 export async function getNovelList(params: NovelListParams) {

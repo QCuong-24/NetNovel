@@ -1,5 +1,6 @@
 package com.example.netnovel_server.search.elastic.service;
 
+import com.example.netnovel_server.embedding.config.NovelEmbeddingProperties;
 import com.example.netnovel_server.exception.SearchUnavailableException;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.ResponseException;
@@ -16,13 +17,16 @@ public class ElasticNovelIndexManager {
 
     private final RestClient restClient;
     private final String novelIndexName;
+    private final NovelEmbeddingProperties embeddingProperties;
 
     public ElasticNovelIndexManager(
         RestClient restClient,
-        @Value("${app.search.elastic.novel-index}") String novelIndexName
+        @Value("${app.search.elastic.novel-index}") String novelIndexName,
+        NovelEmbeddingProperties embeddingProperties
     ) {
         this.restClient = restClient;
         this.novelIndexName = novelIndexName;
+        this.embeddingProperties = embeddingProperties;
     }
 
     public String getNovelIndexName() {
@@ -125,6 +129,7 @@ public class ElasticNovelIndexManager {
                   "views": { "type": "long" },
                   "follows": { "type": "long" },
                   "likes": { "type": "long" },
+                  "bookmarks": { "type": "long" },
                   "chapterCount": { "type": "integer" },
                   "latestChapterNumber": { "type": "integer" },
                   "lastChapterUpdatedAt": { "type": "date" },
@@ -135,10 +140,20 @@ public class ElasticNovelIndexManager {
                   "sourceNovelUrl": { "type": "keyword" },
                   "popularityScore": { "type": "double" },
                   "freshnessScore": { "type": "double" },
-                  "recommendationText": { "type": "text", "analyzer": "folding_text" }
+                  "recommendationText": { "type": "text", "analyzer": "folding_text" },
+                  "embeddingText": { "type": "text", "index": false },
+                  "embeddingVector": {
+                    "type": "dense_vector",
+                    "dims": %d,
+                    "index": true,
+                    "similarity": "cosine"
+                  },
+                  "embeddingModel": { "type": "keyword" },
+                  "embeddingDimension": { "type": "integer" },
+                  "embeddingUpdatedAt": { "type": "date" }
                 }
               }
             }
-            """;
+            """.formatted(embeddingProperties.dimension());
     }
 }

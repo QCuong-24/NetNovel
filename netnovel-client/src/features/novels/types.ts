@@ -69,6 +69,15 @@ export type NovelSearchResult = {
   score?: number | null;
 };
 
+export type SimilarNovelRecommendation = {
+  novel: Novel;
+  score?: number | null;
+  semanticScore?: number | null;
+  contentScore?: number | null;
+  popularityScore?: number | null;
+  reasons: string[];
+};
+
 export type NovelInteraction = {
   novelId: number;
   followed: boolean;

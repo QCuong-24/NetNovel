@@ -29,6 +29,10 @@ public class HybridRecommendationService {
     private static final double CONTENT_WEIGHT = 0.50;
     private static final double ITEM_SIMILARITY_WEIGHT = 0.35;
     private static final double POPULARITY_FRESHNESS_WEIGHT = 0.15;
+    private static final double SEMANTIC_CONTENT_WEIGHT = 0.30;
+    private static final double SEMANTIC_ITEM_SIMILARITY_WEIGHT = 0.30;
+    private static final double SEMANTIC_PREFERENCE_WEIGHT = 0.25;
+    private static final double SEMANTIC_POPULARITY_FRESHNESS_WEIGHT = 0.15;
     private static final int MAX_PER_AUTHOR = 2;
     private static final int MAX_PER_PRIMARY_GENRE = 3;
 
@@ -36,17 +40,20 @@ public class HybridRecommendationService {
     private final UserNovelInteractionRepository interactionRepository;
     private final ContentRecommendationService contentRecommendationService;
     private final ItemSimilarityService itemSimilarityService;
+    private final SemanticPreferenceRecommendationService semanticPreferenceRecommendationService;
 
     public HybridRecommendationService(
         NovelRepository novelRepository,
         UserNovelInteractionRepository interactionRepository,
         ContentRecommendationService contentRecommendationService,
-        ItemSimilarityService itemSimilarityService
+        ItemSimilarityService itemSimilarityService,
+        SemanticPreferenceRecommendationService semanticPreferenceRecommendationService
     ) {
         this.novelRepository = novelRepository;
         this.interactionRepository = interactionRepository;
         this.contentRecommendationService = contentRecommendationService;
         this.itemSimilarityService = itemSimilarityService;
+        this.semanticPreferenceRecommendationService = semanticPreferenceRecommendationService;
     }
 
     @Transactional(readOnly = true)
@@ -64,10 +71,11 @@ public class HybridRecommendationService {
 
         Map<Long, Double> contentScores = normalize(contentRecommendationService.scoreCandidates(interactions, candidates));
         Map<Long, Double> itemScores = normalize(itemSimilarityService.scoreCandidates(interactions, candidates));
+        Map<Long, Double> semanticScores = normalize(semanticPreferenceRecommendationService.scoreCandidates(interactions));
         Map<Long, Double> popularityScores = normalize(popularityFreshnessScores(candidates));
 
         List<ScoredNovel> ranked = candidates.stream()
-            .map(novel -> scoreNovel(novel, contentScores, itemScores, popularityScores))
+            .map(novel -> scoreNovel(novel, contentScores, itemScores, semanticScores, popularityScores))
             .sorted(Comparator.comparingDouble(ScoredNovel::score).reversed())
             .toList();
 
@@ -84,21 +92,44 @@ public class HybridRecommendationService {
         Novel novel,
         Map<Long, Double> contentScores,
         Map<Long, Double> itemScores,
+        Map<Long, Double> semanticScores,
         Map<Long, Double> popularityScores
     ) {
         double contentScore = contentScores.getOrDefault(novel.getId(), 0.0);
         double itemScore = itemScores.getOrDefault(novel.getId(), 0.0);
+        double semanticScore = semanticScores.getOrDefault(novel.getId(), 0.0);
         double popularityScore = popularityScores.getOrDefault(novel.getId(), 0.0);
-        double score = CONTENT_WEIGHT * contentScore
-            + ITEM_SIMILARITY_WEIGHT * itemScore
-            + POPULARITY_FRESHNESS_WEIGHT * popularityScore;
+        boolean hasSemanticSignal = !semanticScores.isEmpty();
+        double score = hasSemanticSignal
+            ? SEMANTIC_CONTENT_WEIGHT * contentScore
+                + SEMANTIC_ITEM_SIMILARITY_WEIGHT * itemScore
+                + SEMANTIC_PREFERENCE_WEIGHT * semanticScore
+                + SEMANTIC_POPULARITY_FRESHNESS_WEIGHT * popularityScore
+            : CONTENT_WEIGHT * contentScore
+                + ITEM_SIMILARITY_WEIGHT * itemScore
+                + POPULARITY_FRESHNESS_WEIGHT * popularityScore;
 
-        String reason = contentScore >= itemScore && contentScore >= popularityScore && contentScore > 0.0
-            ? "BASED_ON_CONTENT"
-            : itemScore >= popularityScore && itemScore > 0.0
-                ? "BECAUSE_YOU_READ_SIMILAR"
-                : "TRENDING";
+        String reason = reason(contentScore, itemScore, semanticScore, popularityScore, hasSemanticSignal);
         return new ScoredNovel(novel, score, reason);
+    }
+
+    private String reason(
+        double contentScore,
+        double itemScore,
+        double semanticScore,
+        double popularityScore,
+        boolean hasSemanticSignal
+    ) {
+        if (hasSemanticSignal && semanticScore >= contentScore && semanticScore >= itemScore && semanticScore > 0.0) {
+            return "BASED_ON_SEMANTIC_PREFERENCE";
+        }
+        if (contentScore >= itemScore && contentScore >= popularityScore && contentScore > 0.0) {
+            return "BASED_ON_CONTENT";
+        }
+        if (itemScore >= popularityScore && itemScore > 0.0) {
+            return "BECAUSE_YOU_READ_SIMILAR";
+        }
+        return "TRENDING";
     }
 
     private Map<Long, Double> popularityFreshnessScores(List<Novel> candidates) {

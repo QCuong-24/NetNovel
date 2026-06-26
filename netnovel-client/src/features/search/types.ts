@@ -43,6 +43,12 @@ export type ElasticReindexResponse = {
   message?: string;
 };
 
+export type SemanticNovelSearchParams = {
+  q?: string;
+  page?: number;
+  size?: number;
+};
+
 export type ElasticDiagnosticsBucket = {
   key: string;
   count: number;
@@ -53,10 +59,12 @@ export type ElasticDiagnosticsResponse = {
   indexName: string;
   exists: boolean;
   documentCount: number;
+  embeddingDocumentCount: number;
   mappingVersion: string;
   fieldMappings: Record<string, string>;
   statusBuckets: ElasticDiagnosticsBucket[];
   topGenres: ElasticDiagnosticsBucket[];
   topTags: ElasticDiagnosticsBucket[];
   crawledBuckets: ElasticDiagnosticsBucket[];
+  embeddingModelBuckets: ElasticDiagnosticsBucket[];
 };

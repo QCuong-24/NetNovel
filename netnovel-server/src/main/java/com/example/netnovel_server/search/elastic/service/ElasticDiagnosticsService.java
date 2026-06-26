@@ -36,12 +36,14 @@ public class ElasticDiagnosticsService {
                 .indexName(indexManager.getNovelIndexName())
                 .exists(false)
                 .documentCount(0)
+                .embeddingDocumentCount(0)
                 .mappingVersion("missing")
                 .fieldMappings(Map.of())
                 .statusBuckets(List.of())
                 .topGenres(List.of())
                 .topTags(List.of())
                 .crawledBuckets(List.of())
+                .embeddingModelBuckets(List.of())
                 .build();
         }
 
@@ -51,12 +53,14 @@ public class ElasticDiagnosticsService {
             .indexName(indexManager.getNovelIndexName())
             .exists(true)
             .documentCount(count())
+            .embeddingDocumentCount(countEmbeddings())
             .mappingVersion(mappingVersion(fieldMappings))
             .fieldMappings(fieldMappings)
             .statusBuckets(aggregation("status"))
             .topGenres(aggregation("genres"))
             .topTags(aggregation("tags"))
             .crawledBuckets(aggregation("crawled"))
+            .embeddingModelBuckets(aggregation("embeddingModel"))
             .build();
     }
 
@@ -77,6 +81,9 @@ public class ElasticDiagnosticsService {
             result.put(field, describeMapping(asMap(properties.get(field))));
         }
         result.put("crawled", describeMapping(asMap(properties.get("crawled"))));
+        result.put("embeddingVector", describeVectorMapping(asMap(properties.get("embeddingVector"))));
+        result.put("embeddingModel", describeMapping(asMap(properties.get("embeddingModel"))));
+        result.put("embeddingDimension", describeMapping(asMap(properties.get("embeddingDimension"))));
         return result;
     }
 
@@ -120,6 +127,14 @@ public class ElasticDiagnosticsService {
         return type;
     }
 
+    private String describeVectorMapping(Map<String, Object> mapping) {
+        if (mapping.isEmpty()) {
+            return "missing";
+        }
+        return String.valueOf(mapping.getOrDefault("type", "missing"))
+            + "[dims=" + mapping.getOrDefault("dims", "?") + "]";
+    }
+
     private String mappingVersion(Map<String, String> mappings) {
         boolean legacy = mappings.values().stream().anyMatch(value -> value.contains("text+keyword"));
         boolean standard = EXACT_FIELDS.stream().allMatch(field -> "keyword".equals(mappings.get(field)));
@@ -130,6 +145,21 @@ public class ElasticDiagnosticsService {
             return "legacy_text_keyword";
         }
         return "custom_or_dynamic";
+    }
+
+    private long countEmbeddings() {
+        String body = """
+            {
+              "query": {
+                "exists": {
+                  "field": "embeddingVector"
+                }
+              }
+            }
+            """;
+        Map<String, Object> response = performJson("GET", "/" + indexManager.getNovelIndexName() + "/_count", body);
+        Object count = response.get("count");
+        return count instanceof Number number ? number.longValue() : 0L;
     }
 
     private Map<String, Object> performJson(String method, String endpoint, String body) {

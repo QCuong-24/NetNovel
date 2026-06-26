@@ -5,11 +5,13 @@ import { getApiErrorMessage } from '@/lib/api/api-error';
 import {
   createNovel,
   deleteNovel,
+  getHybridSimilarNovels,
   getMyNovelInteraction,
   getGenres,
   getNovel,
   getNovelList,
   getNovelTags,
+  getSemanticSimilarNovels,
   getSimilarNovels,
   getTags,
   increaseNovelView,
@@ -137,6 +139,22 @@ export function useToggleNovelLikeMutation(novelId: string) {
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'Could not update like'));
     },
+  });
+}
+
+export function useSemanticSimilarNovels(novelId?: string) {
+  return useQuery({
+    queryKey: [...queryKeys.novels, novelId, 'similar', 'semantic'],
+    queryFn: () => getSemanticSimilarNovels(novelId!),
+    enabled: Boolean(novelId),
+  });
+}
+
+export function useHybridSimilarNovels(novelId?: string) {
+  return useQuery({
+    queryKey: [...queryKeys.novels, novelId, 'similar', 'hybrid'],
+    queryFn: () => getHybridSimilarNovels(novelId!),
+    enabled: Boolean(novelId),
   });
 }
 

@@ -20,6 +20,8 @@ public class ElasticDiagnosticsResponseDTO {
 
     private long documentCount;
 
+    private long embeddingDocumentCount;
+
     private String mappingVersion;
 
     private Map<String, String> fieldMappings;
@@ -31,4 +33,6 @@ public class ElasticDiagnosticsResponseDTO {
     private List<ElasticDiagnosticsBucketDTO> topTags;
 
     private List<ElasticDiagnosticsBucketDTO> crawledBuckets;
+
+    private List<ElasticDiagnosticsBucketDTO> embeddingModelBuckets;
 }

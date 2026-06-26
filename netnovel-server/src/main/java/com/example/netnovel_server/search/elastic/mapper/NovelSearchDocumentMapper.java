@@ -6,7 +6,7 @@ import com.example.netnovel_server.entity.NovelSource;
 import com.example.netnovel_server.entity.Genre;
 import com.example.netnovel_server.entity.Tag;
 import com.example.netnovel_server.repository.NovelSourceRepository;
-import com.example.netnovel_server.search.elastic.document.NovelSearchDocument;
+import com.example.netnovel_server.search.elastic.document.ElasticNovelDocument;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -24,7 +24,7 @@ public class NovelSearchDocumentMapper {
         this.novelSourceRepository = novelSourceRepository;
     }
 
-    public NovelSearchDocument toDocument(Novel novel) {
+    public ElasticNovelDocument toDocument(Novel novel) {
         NovelChapterInfo chapterInfo = novel.getChapterInfo();
         NovelSource source = novelSourceRepository.findFirstByNovelIdOrderByLastCrawledAtDesc(novel.getId())
             .orElse(null);
@@ -35,7 +35,7 @@ public class NovelSearchDocumentMapper {
             ? Set.of()
             : novel.getTags().stream().map(Tag::getName).collect(Collectors.toSet());
 
-        return NovelSearchDocument.builder()
+        return ElasticNovelDocument.builder()
             .novelId(novel.getId())
             .title(novel.getTitle())
             .author(novel.getAuthor())
@@ -46,6 +46,7 @@ public class NovelSearchDocumentMapper {
             .views(novel.getViews())
             .follows(novel.getFollows())
             .likes(novel.getLikes())
+            .bookmarks(novel.getBookmarks())
             .chapterCount(chapterInfo == null ? 0 : chapterInfo.getChapterCount())
             .latestChapterNumber(chapterInfo == null ? null : chapterInfo.getLatestChapterNumber())
             .lastChapterUpdatedAt(chapterInfo == null ? null : chapterInfo.getLatestChapterUpdatedAt())
