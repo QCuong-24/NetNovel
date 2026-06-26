@@ -14,10 +14,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,19 +44,20 @@ public class PostgresNovelSearchService {
     public Page<NovelSearchResultDTO> searchNovels(
         String query,
         String status,
-        String genre,
+        List<String> genres,
         String sort,
         Pageable pageable
     ) {
         String normalizedQuery = normalize(query);
         String normalizedStatus = normalizeStatus(status);
-        String normalizedGenre = normalizeCatalogName(genre);
+        List<String> normalizedGenres = normalizeCatalogNames(genres);
         String normalizedSort = normalizeSort(sort);
 
         Page<NovelSearchProjection> resultPage = novelSearchRepository.searchNovels(
             normalizedQuery,
             normalizedStatus,
-            normalizedGenre,
+            normalizedGenres.isEmpty() ? List.of("__no_genre_filter__") : normalizedGenres,
+            normalizedGenres.size(),
             normalizedSort,
             pageable
         );
@@ -123,6 +126,21 @@ public class PostgresNovelSearchService {
             return "";
         }
         return TextUtils.toTitleCaseWords(normalized);
+    }
+
+    private List<String> normalizeCatalogNames(List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return List.of();
+        }
+
+        return values.stream()
+            .filter(Objects::nonNull)
+            .flatMap(value -> Arrays.stream(value.split(",")))
+            .map(this::normalizeCatalogName)
+            .filter(value -> !value.isBlank())
+            .map(value -> value.toLowerCase(Locale.ROOT))
+            .distinct()
+            .toList();
     }
 
     private String normalizeSort(String sort) {

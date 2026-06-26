@@ -42,13 +42,13 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
                 ) as score
             from novels n
             where (:status = '' or n.status = :status)
-              and (:genre = '' or exists (
-                    select 1
+              and (:genreCount = 0 or (
+                    select count(distinct lower(trim(g_filter.name)))
                     from novel_genres ng_filter
                     join genres g_filter on g_filter.id = ng_filter.genre_id
                     where ng_filter.novel_id = n.id
-                      and lower(trim(g_filter.name)) = lower(trim(:genre))
-                ))
+                      and lower(trim(g_filter.name)) in (:genres)
+                ) = :genreCount)
               and (:q = ''
                    or lower(n.title) like lower(concat('%', :q, '%'))
                    or lower(n.author) like lower(concat('%', :q, '%'))
@@ -72,13 +72,13 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
             select count(*)
             from novels n
             where (:status = '' or n.status = :status)
-              and (:genre = '' or exists (
-                    select 1
+              and (:genreCount = 0 or (
+                    select count(distinct lower(trim(g_filter.name)))
                     from novel_genres ng_filter
                     join genres g_filter on g_filter.id = ng_filter.genre_id
                     where ng_filter.novel_id = n.id
-                      and lower(trim(g_filter.name)) = lower(trim(:genre))
-                ))
+                      and lower(trim(g_filter.name)) in (:genres)
+                ) = :genreCount)
               and (:q = ''
                    or lower(n.title) like lower(concat('%', :q, '%'))
                    or lower(n.author) like lower(concat('%', :q, '%'))
@@ -98,7 +98,8 @@ public interface NovelSearchRepository extends JpaRepository<Novel, Long> {
     Page<NovelSearchProjection> searchNovels(
         @Param("q") String query,
         @Param("status") String status,
-        @Param("genre") String genre,
+        @Param("genres") List<String> genres,
+        @Param("genreCount") int genreCount,
         @Param("sort") String sort,
         Pageable pageable
     );

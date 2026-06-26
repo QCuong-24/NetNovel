@@ -154,6 +154,16 @@ export function NovelDetailPage() {
     await createCrawlTaskMutation.mutateAsync({ url: sourceUrl });
   }
 
+  function handleBack() {
+    const historyIndex = window.history.state?.idx;
+
+    if (typeof historyIndex === 'number' && historyIndex > 0) {
+      navigate(-1);
+    } else {
+      navigate(routes.novels);
+    }
+  }
+
   if (isLoading) {
     return (
       <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
@@ -170,8 +180,8 @@ export function NovelDetailPage() {
         <Card>
           <CardContent className="grid gap-4 p-6">
             <p className="font-semibold">{t('novelPages.notFound')}</p>
-            <Button asChild className="w-fit" variant="outline">
-              <Link to={routes.novels}>{t('novelPages.backToLibrary')}</Link>
+            <Button className="w-fit" type="button" variant="outline" onClick={handleBack}>
+              {t('novelPages.back')}
             </Button>
           </CardContent>
         </Card>
@@ -183,11 +193,9 @@ export function NovelDetailPage() {
     return (
       <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
         <div className="flex items-center justify-between gap-3">
-          <Button asChild variant="ghost">
-            <Link to={routes.novels}>
-              <ArrowLeft />
-              {t('novelPages.library')}
-            </Link>
+          <Button type="button" variant="ghost" onClick={handleBack}>
+            <ArrowLeft />
+            {t('novelPages.back')}
           </Button>
         </div>
         <NovelForm
@@ -246,11 +254,9 @@ export function NovelDetailPage() {
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
       <div className="flex items-center justify-between gap-3">
-        <Button asChild variant="ghost">
-            <Link to={routes.novels}>
-              <ArrowLeft />
-              {t('novelPages.library')}
-            </Link>
+        <Button type="button" variant="ghost" onClick={handleBack}>
+          <ArrowLeft />
+          {t('novelPages.back')}
         </Button>
         {canEdit ? (
           <div className="flex flex-wrap gap-2">

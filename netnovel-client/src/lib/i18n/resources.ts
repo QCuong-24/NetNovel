@@ -159,6 +159,7 @@ export const resources = {
       },
       novelPages: {
         library: 'Library',
+        back: 'Back',
         createEyebrow: 'Create novel',
         createTitle: 'Build a new story page.',
         createDescription:
@@ -733,6 +734,7 @@ export const resources = {
       },
       novelPages: {
         library: 'Thư viện',
+        back: 'Quay về',
         createEyebrow: 'Tạo truyện',
         createTitle: 'Tạo trang truyện mới.',
         createDescription:

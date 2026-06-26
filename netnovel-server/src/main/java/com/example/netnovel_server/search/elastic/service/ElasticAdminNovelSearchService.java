@@ -47,14 +47,14 @@ public class ElasticAdminNovelSearchService {
     public Page<NovelSearchResultDTO> searchNovels(
         String query,
         String status,
-        String genre,
-        String tag,
+        List<String> genres,
+        List<String> tags,
         String source,
         Boolean crawled,
         Pageable pageable
     ) {
         indexManager.ensureNovelIndex();
-        Map<String, Object> response = performSearch(query, status, genre, tag, source, crawled, pageable);
+        Map<String, Object> response = performSearch(query, status, genres, tags, source, crawled, pageable);
         Map<String, Object> hitsWrapper = asMap(response.get("hits"));
         List<Map<String, Object>> hits = asList(hitsWrapper.get("hits"));
         long total = totalHits(hitsWrapper.get("total"));
@@ -78,14 +78,14 @@ public class ElasticAdminNovelSearchService {
     private Map<String, Object> performSearch(
         String query,
         String status,
-        String genre,
-        String tag,
+        List<String> genres,
+        List<String> tags,
         String source,
         Boolean crawled,
         Pageable pageable
     ) {
         Request request = new Request("POST", "/" + indexManager.getNovelIndexName() + "/_search");
-        request.setJsonEntity(searchRequestJson(query, status, genre, tag, source, crawled, pageable));
+        request.setJsonEntity(searchRequestJson(query, status, genres, tags, source, crawled, pageable));
         try {
             String responseBody = EntityUtils.toString(restClient.performRequest(request).getEntity());
             return objectMapper.readValue(responseBody, Map.class);
@@ -97,30 +97,32 @@ public class ElasticAdminNovelSearchService {
     private String searchRequestJson(
         String query,
         String status,
-        String genre,
-        String tag,
+        List<String> genres,
+        List<String> tags,
         String source,
         Boolean crawled,
         Pageable pageable
     ) {
         String normalizedQuery = normalize(query);
         String normalizedStatus = normalizeStatus(status);
-        String normalizedGenre = normalize(genre);
-        String normalizedTag = normalize(tag);
+        List<String> normalizedGenres = normalizeList(genres);
+        List<String> normalizedTags = normalizeList(tags);
         String normalizedSource = normalize(source);
 
         List<String> filters = new ArrayList<>();
         if (!normalizedStatus.isBlank()) {
-            filters.add(termFilter("status", normalizedStatus));
+            filters.add(termFilter("status.keyword", normalizedStatus));
         }
-        if (!normalizedGenre.isBlank()) {
-            filters.add(termFilter("genres", normalizedGenre));
+        if (!normalizedGenres.isEmpty()) {
+            filters.addAll(normalizedGenres.stream()
+                .map(genre -> termFilter("genres.keyword", genre))
+                .toList());
         }
-        if (!normalizedTag.isBlank()) {
-            filters.add(termFilter("tags", normalizedTag));
+        if (!normalizedTags.isEmpty()) {
+            filters.add(termsFilter("tags.keyword", normalizedTags));
         }
         if (!normalizedSource.isBlank()) {
-            filters.add(termFilter("sourceName", normalizedSource));
+            filters.add(termFilter("sourceName.keyword", normalizedSource));
         }
         if (crawled != null) {
             filters.add("""
@@ -194,6 +196,12 @@ public class ElasticAdminNovelSearchService {
             """.formatted(field, jsonString(value));
     }
 
+    private String termsFilter(String field, List<String> values) {
+        return """
+            { "terms": { "%s": %s } }
+            """.formatted(field, jsonArray(values));
+    }
+
     private String jsonString(String value) {
         try {
             return objectMapper.writeValueAsString(value);
@@ -202,8 +210,30 @@ public class ElasticAdminNovelSearchService {
         }
     }
 
+    private String jsonArray(List<String> values) {
+        try {
+            return objectMapper.writeValueAsString(values);
+        } catch (Exception exception) {
+            throw new IllegalStateException("Could not serialize Elasticsearch query values", exception);
+        }
+    }
+
     private String normalize(String value) {
         return value == null ? "" : value.trim().replaceAll("\\s+", " ");
+    }
+
+    private List<String> normalizeList(List<String> values) {
+        if (values == null || values.isEmpty()) {
+            return List.of();
+        }
+
+        return values.stream()
+            .filter(Objects::nonNull)
+            .flatMap(value -> Arrays.stream(value.split(",")))
+            .map(this::normalize)
+            .filter(value -> !value.isBlank())
+            .distinct()
+            .toList();
     }
 
     private String normalizeStatus(String value) {

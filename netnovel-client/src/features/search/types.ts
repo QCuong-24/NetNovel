@@ -5,7 +5,7 @@ export type SearchSort = 'relevance' | 'latest' | 'popular';
 export type PublicNovelSearchParams = {
   q?: string;
   status?: string;
-  genre?: string;
+  genres?: string[];
   sort?: SearchSort;
   page?: number;
   size?: number;
@@ -14,8 +14,8 @@ export type PublicNovelSearchParams = {
 export type AdvancedNovelSearchParams = {
   q?: string;
   status?: string;
-  genre?: string;
-  tag?: string;
+  genres?: string[];
+  tags?: string[];
   source?: string;
   crawled?: string;
   page?: number;

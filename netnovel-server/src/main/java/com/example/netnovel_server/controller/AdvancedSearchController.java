@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/advanced/search")
 @Tag(name = "Advanced Search", description = "Elasticsearch-backed advanced search APIs")
@@ -46,8 +48,8 @@ public class AdvancedSearchController {
     public ResponseEntity<Page<NovelSearchResultDTO>> searchNovels(
         @RequestParam(required = false) String q,
         @RequestParam(required = false) String status,
-        @RequestParam(required = false) String genre,
-        @RequestParam(required = false) String tag,
+        @RequestParam(required = false) List<String> genre,
+        @RequestParam(required = false) List<String> tag,
         @RequestParam(required = false) String source,
         @RequestParam(required = false) Boolean crawled,
         Pageable pageable

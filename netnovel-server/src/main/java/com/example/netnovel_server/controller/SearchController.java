@@ -32,7 +32,7 @@ public class SearchController {
     public ResponseEntity<Page<NovelSearchResultDTO>> searchNovels(
         @RequestParam(required = false) String q,
         @RequestParam(required = false) String status,
-        @RequestParam(required = false) String genre,
+        @RequestParam(required = false) List<String> genre,
         @RequestParam(defaultValue = "relevance") String sortMode,
         Pageable pageable
     ) {

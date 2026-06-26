@@ -1,5 +1,5 @@
-import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, RefreshCw, Search } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
+import { ChevronDown, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, RefreshCw, Search, X } from 'lucide-react';
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +51,19 @@ function setOptionalSearchParam(searchParams: URLSearchParams, key: string, valu
   }
 }
 
+function getSearchParamList(searchParams: URLSearchParams, key: string) {
+  return searchParams
+    .getAll(key)
+    .flatMap((value) => value.split(','))
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function setOptionalSearchParamList(searchParams: URLSearchParams, key: string, values?: string[]) {
+  searchParams.delete(key);
+  values?.filter(Boolean).forEach((value) => searchParams.append(key, value));
+}
+
 function searchString(searchParams: URLSearchParams) {
   return `?${searchParams.toString()}`;
 }
@@ -66,7 +79,7 @@ export function SearchPage() {
   const showReindex = isAdmin(user);
   const publicQuery = searchParams.get('q') ?? '';
   const publicStatus = searchParams.get('status') ?? '';
-  const publicGenre = searchParams.get('genre') ?? '';
+  const publicGenres = useMemo(() => getSearchParamList(searchParams, 'genre'), [searchParams]);
   const publicSort = (searchParams.get('sort') as SearchSort | null) ?? 'relevance';
   const page = pageFromSearchParams(searchParams);
   const hasAdvancedOnlyParams = Boolean(searchParams.get('tag') || searchParams.get('source') || searchParams.get('crawled'));
@@ -119,7 +132,7 @@ export function SearchPage() {
 
       {activeTab === 'public' ? (
         <PublicSearchPanel
-          initialGenre={publicGenre}
+          initialGenres={publicGenres}
           initialPage={page}
           initialQuery={publicQuery}
           initialSort={publicSort}
@@ -133,13 +146,13 @@ export function SearchPage() {
 }
 
 function PublicSearchPanel({
-  initialGenre = '',
+  initialGenres = [],
   initialPage = 0,
   initialQuery = '',
   initialSort = 'relevance',
   initialStatus = '',
 }: {
-  initialGenre?: string;
+  initialGenres?: string[];
   initialPage?: number;
   initialQuery?: string;
   initialSort?: SearchSort;
@@ -150,11 +163,11 @@ function PublicSearchPanel({
   const navigate = useNavigate();
   const { data: genres = [] } = useGenres();
   const normalizedInitialQuery = initialQuery.trim();
-  const [form, setForm] = useState({ q: normalizedInitialQuery, status: initialStatus, genre: initialGenre, sort: initialSort });
+  const [form, setForm] = useState({ q: normalizedInitialQuery, status: initialStatus, genres: initialGenres, sort: initialSort });
   const [params, setParams] = useState<PublicNovelSearchParams>({
     q: normalizedInitialQuery,
     status: initialStatus,
-    genre: initialGenre,
+    genres: initialGenres,
     sort: initialSort,
     page: initialPage,
     size: SEARCH_PAGE_SIZE,
@@ -163,25 +176,29 @@ function PublicSearchPanel({
   const searchQuery = usePublicNovelSearch(params, hasSubmitted);
 
   useEffect(() => {
-    setForm({ q: normalizedInitialQuery, status: initialStatus, genre: initialGenre, sort: initialSort });
+    setForm({ q: normalizedInitialQuery, status: initialStatus, genres: initialGenres, sort: initialSort });
     setParams({
       q: normalizedInitialQuery,
       status: initialStatus,
-      genre: initialGenre,
+      genres: initialGenres,
       sort: initialSort,
       page: initialPage,
       size: SEARCH_PAGE_SIZE,
     });
-    setHasSubmitted(Boolean(normalizedInitialQuery || initialStatus || initialGenre || initialSort !== 'relevance'));
-  }, [initialGenre, initialPage, initialSort, initialStatus, normalizedInitialQuery]);
+    setHasSubmitted(Boolean(normalizedInitialQuery || initialStatus || initialGenres.length || initialSort !== 'relevance'));
+  }, [initialGenres, initialPage, initialSort, initialStatus, normalizedInitialQuery]);
 
   function updateUrl(nextParams: PublicNovelSearchParams) {
     const searchParams = new URLSearchParams(location.search);
 
     setOptionalSearchParam(searchParams, 'q', nextParams.q?.trim());
     setOptionalSearchParam(searchParams, 'status', nextParams.status);
-    setOptionalSearchParam(searchParams, 'genre', nextParams.genre);
-    nextParams.sort && nextParams.sort !== 'relevance' ? searchParams.set('sort', nextParams.sort) : searchParams.delete('sort');
+    setOptionalSearchParamList(searchParams, 'genre', nextParams.genres);
+    if (nextParams.sort && nextParams.sort !== 'relevance') {
+      searchParams.set('sort', nextParams.sort);
+    } else {
+      searchParams.delete('sort');
+    }
     searchParams.delete('tag');
     searchParams.delete('source');
     searchParams.delete('crawled');
@@ -219,18 +236,16 @@ function PublicSearchPanel({
             <option value="ONGOING">{t('novelForm.statusOptions.ONGOING')}</option>
             <option value="COMPLETED">{t('novelForm.statusOptions.COMPLETED')}</option>
           </select>
-          <select
-            className="h-10 rounded-md border bg-background px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            value={form.genre}
-            onChange={(event) => setForm((current) => ({ ...current, genre: event.target.value }))}
-          >
-            <option value="">{t('searchPage.fields.anyGenre')}</option>
-            {genres.map((genre) => (
-              <option key={genre.genreId} value={genre.name}>
-                {genre.name}
-              </option>
-            ))}
-          </select>
+          <FilterDropdown
+            label={t('searchPage.fields.anyGenre')}
+            options={genres.map((genre) => genre.name)}
+            selectedValues={form.genres}
+            onSelect={(genre) =>
+              setForm((current) =>
+                current.genres.includes(genre) ? current : { ...current, genres: [...current.genres, genre] },
+              )
+            }
+          />
           <select
             className="h-10 rounded-md border bg-background px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
             value={form.sort}
@@ -245,6 +260,13 @@ function PublicSearchPanel({
             {t('searchPage.search')}
           </Button>
         </form>
+
+        <SelectedFilters
+          genres={form.genres}
+          onRemoveGenre={(genre) =>
+            setForm((current) => ({ ...current, genres: current.genres.filter((value) => value !== genre) }))
+          }
+        />
 
         <SearchResults
           emptyText={hasSubmitted ? t('searchPage.empty') : t('searchPage.public.prompt')}
@@ -270,56 +292,68 @@ function AdvancedSearchPanel() {
   const { data: tags = [] } = useTags();
   const queryFromUrl = searchParams.get('q') ?? '';
   const statusFromUrl = searchParams.get('status') ?? '';
-  const genreFromUrl = searchParams.get('genre') ?? '';
-  const tagFromUrl = searchParams.get('tag') ?? '';
+  const genresFromUrl = useMemo(
+    () => getSearchParamList(new URLSearchParams(location.search), 'genre'),
+    [location.search],
+  );
+  const tagsFromUrl = useMemo(
+    () => getSearchParamList(new URLSearchParams(location.search), 'tag'),
+    [location.search],
+  );
   const sourceFromUrl = searchParams.get('source') ?? '';
   const crawledFromUrl = searchParams.get('crawled') ?? '';
   const pageFromUrl = pageFromSearchParams(searchParams);
   const [form, setForm] = useState({
     q: queryFromUrl,
     status: statusFromUrl,
-    genre: genreFromUrl,
-    tag: tagFromUrl,
+    genres: genresFromUrl,
+    tags: tagsFromUrl,
     source: sourceFromUrl,
     crawled: crawledFromUrl,
   });
   const [params, setParams] = useState<AdvancedNovelSearchParams>({
     q: queryFromUrl,
     status: statusFromUrl,
-    genre: genreFromUrl,
-    tag: tagFromUrl,
+    genres: genresFromUrl,
+    tags: tagsFromUrl,
     source: sourceFromUrl,
     crawled: crawledFromUrl,
     page: pageFromUrl,
     size: SEARCH_PAGE_SIZE,
   });
   const [hasSubmitted, setHasSubmitted] = useState(
-    Boolean(queryFromUrl || statusFromUrl || genreFromUrl || tagFromUrl || sourceFromUrl || crawledFromUrl),
+    Boolean(queryFromUrl || statusFromUrl || genresFromUrl.length || tagsFromUrl.length || sourceFromUrl || crawledFromUrl),
   );
-  const searchQuery = useAdvancedNovelSearch(params, hasSubmitted);
+  const hasActiveAdvancedParams = Boolean(
+    params.q?.trim() || params.status || params.genres?.length || params.tags?.length || params.source?.trim() || params.crawled,
+  );
+  const searchQuery = useAdvancedNovelSearch(params, hasSubmitted || hasActiveAdvancedParams);
 
   useEffect(() => {
     const nextForm = {
       q: queryFromUrl,
       status: statusFromUrl,
-      genre: genreFromUrl,
-      tag: tagFromUrl,
+      genres: genresFromUrl,
+      tags: tagsFromUrl,
       source: sourceFromUrl,
       crawled: crawledFromUrl,
     };
 
     setForm(nextForm);
     setParams({ ...nextForm, page: pageFromUrl, size: SEARCH_PAGE_SIZE });
-    setHasSubmitted(Boolean(queryFromUrl || statusFromUrl || genreFromUrl || tagFromUrl || sourceFromUrl || crawledFromUrl));
-  }, [crawledFromUrl, genreFromUrl, pageFromUrl, queryFromUrl, sourceFromUrl, statusFromUrl, tagFromUrl]);
+    setHasSubmitted(
+      (current) =>
+        current || Boolean(queryFromUrl || statusFromUrl || genresFromUrl.length || tagsFromUrl.length || sourceFromUrl || crawledFromUrl),
+    );
+  }, [crawledFromUrl, genresFromUrl, pageFromUrl, queryFromUrl, sourceFromUrl, statusFromUrl, tagsFromUrl]);
 
   function updateUrl(nextParams: AdvancedNovelSearchParams) {
     const nextSearchParams = new URLSearchParams(location.search);
 
     setOptionalSearchParam(nextSearchParams, 'q', nextParams.q?.trim());
     setOptionalSearchParam(nextSearchParams, 'status', nextParams.status);
-    setOptionalSearchParam(nextSearchParams, 'genre', nextParams.genre);
-    setOptionalSearchParam(nextSearchParams, 'tag', nextParams.tag);
+    setOptionalSearchParamList(nextSearchParams, 'genre', nextParams.genres);
+    setOptionalSearchParamList(nextSearchParams, 'tag', nextParams.tags);
     setOptionalSearchParam(nextSearchParams, 'source', nextParams.source?.trim());
     setOptionalSearchParam(nextSearchParams, 'crawled', nextParams.crawled);
     nextSearchParams.delete('sort');
@@ -345,7 +379,7 @@ function AdvancedSearchPanel() {
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <form className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_140px_150px_150px_140px_130px_auto]" onSubmit={submit}>
+        <form className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_140px_170px_170px_140px_130px_auto]" onSubmit={submit}>
           <Input
             placeholder={t('searchPage.fields.query')}
             value={form.q}
@@ -360,30 +394,24 @@ function AdvancedSearchPanel() {
             <option value="ONGOING">{t('novelForm.statusOptions.ONGOING')}</option>
             <option value="COMPLETED">{t('novelForm.statusOptions.COMPLETED')}</option>
           </select>
-          <select
-            className="h-10 rounded-md border bg-background px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            value={form.genre}
-            onChange={(event) => setForm((current) => ({ ...current, genre: event.target.value }))}
-          >
-            <option value="">{t('searchPage.fields.anyGenre')}</option>
-            {genres.map((genre) => (
-              <option key={genre.genreId} value={genre.name}>
-                {genre.name}
-              </option>
-            ))}
-          </select>
-          <select
-            className="h-10 rounded-md border bg-background px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            value={form.tag}
-            onChange={(event) => setForm((current) => ({ ...current, tag: event.target.value }))}
-          >
-            <option value="">{t('searchPage.fields.anyTag')}</option>
-            {tags.map((tag) => (
-              <option key={tag.tagId} value={tag.name}>
-                {tag.name}
-              </option>
-            ))}
-          </select>
+          <FilterDropdown
+            label={t('searchPage.fields.anyGenre')}
+            options={genres.map((genre) => genre.name)}
+            selectedValues={form.genres}
+            onSelect={(genre) =>
+              setForm((current) =>
+                current.genres.includes(genre) ? current : { ...current, genres: [...current.genres, genre] },
+              )
+            }
+          />
+          <FilterDropdown
+            label={t('searchPage.fields.anyTag')}
+            options={tags.map((tag) => tag.name)}
+            selectedValues={form.tags}
+            onSelect={(tag) =>
+              setForm((current) => (current.tags.includes(tag) ? current : { ...current, tags: [...current.tags, tag] }))
+            }
+          />
           <Input
             placeholder={t('searchPage.fields.source')}
             value={form.source}
@@ -404,6 +432,15 @@ function AdvancedSearchPanel() {
           </Button>
         </form>
 
+        <SelectedFilters
+          genres={form.genres}
+          tags={form.tags}
+          onRemoveGenre={(genre) =>
+            setForm((current) => ({ ...current, genres: current.genres.filter((value) => value !== genre) }))
+          }
+          onRemoveTag={(tag) => setForm((current) => ({ ...current, tags: current.tags.filter((value) => value !== tag) }))}
+        />
+
         <SearchResults
           emptyText={hasSubmitted ? t('searchPage.empty') : t('searchPage.advanced.prompt')}
           isLoading={searchQuery.isLoading}
@@ -416,6 +453,117 @@ function AdvancedSearchPanel() {
         />
       </CardContent>
     </Card>
+  );
+}
+
+function SelectedFilters({
+  genres,
+  onRemoveGenre,
+  onRemoveTag,
+  tags,
+}: {
+  genres: string[];
+  onRemoveGenre: (genre: string) => void;
+  onRemoveTag?: (tag: string) => void;
+  tags?: string[];
+}) {
+  const selectedTags = tags ?? [];
+
+  if (!genres.length && !selectedTags.length) {
+    return null;
+  }
+
+  return (
+    <div className="grid gap-3 rounded-lg border bg-background p-3">
+      {genres.length ? (
+        <FilterChipGroup label="Genres">
+          {genres.map((genre) => (
+            <FilterChip key={`genre-${genre}`} label={genre} onRemove={() => onRemoveGenre(genre)} />
+          ))}
+        </FilterChipGroup>
+      ) : null}
+      {selectedTags.length && onRemoveTag ? (
+        <FilterChipGroup label="Tags">
+          {selectedTags.map((tag) => (
+            <FilterChip key={`tag-${tag}`} label={tag} muted onRemove={() => onRemoveTag(tag)} />
+          ))}
+        </FilterChipGroup>
+      ) : null}
+    </div>
+  );
+}
+
+function FilterChipGroup({ children, label }: { children: ReactNode; label: string }) {
+  return (
+    <section className="grid gap-2">
+      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="flex flex-wrap gap-2">{children}</div>
+    </section>
+  );
+}
+
+function FilterChip({ label, muted = false, onRemove }: { label: string; muted?: boolean; onRemove: () => void }) {
+  return (
+    <button
+      className={
+        muted
+          ? 'inline-flex items-center gap-1 rounded-full border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground'
+          : 'inline-flex items-center gap-1 rounded-full border bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground'
+      }
+      type="button"
+      onClick={onRemove}
+      aria-label={`Remove ${label}`}
+    >
+      {label}
+      <X className="size-3" />
+    </button>
+  );
+}
+
+function FilterDropdown({
+  label,
+  onSelect,
+  options,
+  selectedValues,
+}: {
+  label: string;
+  onSelect: (value: string) => void;
+  options: string[];
+  selectedValues: string[];
+}) {
+  const [open, setOpen] = useState(false);
+  const availableOptions = options.filter((option) => !selectedValues.includes(option));
+
+  return (
+    <div className="relative">
+      <Button
+        className="h-10 w-full justify-between px-3 text-left font-semibold"
+        type="button"
+        variant="outline"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className="truncate">{label}</span>
+        <ChevronDown className={open ? 'size-4 rotate-180 transition-transform' : 'size-4 transition-transform'} />
+      </Button>
+      {open ? (
+        <div className="absolute left-0 top-full z-30 mt-2 max-h-64 w-full overflow-auto rounded-md border bg-background p-1 text-foreground opacity-100 shadow-xl">
+          {availableOptions.length ? (
+            availableOptions.map((option) => (
+              <button
+                key={option}
+                className="w-full rounded-sm px-3 py-2 text-left text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                type="button"
+                onClick={() => onSelect(option)}
+              >
+                {option}
+              </button>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-sm text-muted-foreground">No options</div>
+          )}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
