@@ -34,4 +34,20 @@ public interface CrawlTaskRepository extends JpaRepository<CrawlTask, Long> {
         @Param("runningStatus") CrawlTaskStatus runningStatus,
         @Param("startedAt") LocalDateTime startedAt
     );
+
+    @Modifying
+    @Transactional
+    @Query("""
+        update CrawlTask task
+        set task.status = :cancelledStatus,
+            task.finishedAt = :finishedAt,
+            task.errorMessage = :errorMessage
+        where task.status = :runningStatus
+        """)
+    int cancelRunningTasks(
+        @Param("runningStatus") CrawlTaskStatus runningStatus,
+        @Param("cancelledStatus") CrawlTaskStatus cancelledStatus,
+        @Param("finishedAt") LocalDateTime finishedAt,
+        @Param("errorMessage") String errorMessage
+    );
 }
