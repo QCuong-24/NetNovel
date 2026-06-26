@@ -1,4 +1,4 @@
-package com.example.netnovel_server.chatbot.service;
+package com.example.netnovel_server.chatbot.service.novel;
 
 import com.example.netnovel_server.dto.NovelDTO;
 import com.example.netnovel_server.entity.Genre;
@@ -7,6 +7,7 @@ import com.example.netnovel_server.entity.Status;
 import com.example.netnovel_server.entity.Tag;
 import com.example.netnovel_server.mapper.NovelMapper;
 import com.example.netnovel_server.repository.NovelRepository;
+import com.example.netnovel_server.chatbot.service.language.ChatbotTextNormalizer;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -139,3 +140,4 @@ public class ChatbotNovelSearchService {
         return value == null ? 0L : value;
     }
 }
+

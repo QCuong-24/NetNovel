@@ -1,7 +1,8 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type Dispatch, type FormEvent, type ReactNode, type SetStateAction, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Activity, Bell, Bookmark, DatabaseZap, Eye, Heart, MessageCircle, RefreshCw, ShieldCheck, Trash2, Users } from 'lucide-react';
+import { Activity, Bell, Bookmark, Bot, DatabaseZap, Eye, Heart, MessageCircle, Plus, RefreshCw, ShieldCheck, Trash2, Users, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,10 +27,24 @@ import {
   useUserEventReport,
   useUserNovelInteractions,
 } from '@/features/data-reports/hooks/use-data-reports';
+import {
+  useChatbotAdminSummary,
+  useChatbotEmbeddingStatus,
+  useChatbotFaqs,
+  useChatbotIntents,
+  useDeleteChatbotFaqMutation,
+  useDeleteChatbotIntentMutation,
+  useImportDefaultChatbotKnowledgeMutation,
+  useReindexChatbotEmbeddingsMutation,
+  useReloadChatbotKnowledgeMutation,
+  useSaveChatbotFaqMutation,
+  useSaveChatbotIntentMutation,
+} from '@/features/admin-chatbot/hooks/use-admin-chatbot';
+import type { ChatbotFaq, ChatbotIntent } from '@/features/admin-chatbot/types';
 
-type DashboardTab = 'statistic' | 'reports' | 'interactions' | 'users';
+type DashboardTab = 'statistic' | 'reports' | 'interactions' | 'users' | 'chatbot';
 
-const dashboardTabs: DashboardTab[] = ['statistic', 'reports', 'interactions', 'users'];
+const dashboardTabs: DashboardTab[] = ['statistic', 'reports', 'interactions', 'users', 'chatbot'];
 const roles = ['USER', 'MANAGER', 'ADMIN'];
 
 function isAdmin(user?: User) {
@@ -55,7 +70,7 @@ export function DashboardPage() {
   const [activeTab, setActiveTab] = useHashTab(dashboardTabs, 'statistic');
 
   useEffect(() => {
-    if (!canManageUsers && (activeTab === 'interactions' || activeTab === 'users')) {
+    if (!canManageUsers && (activeTab === 'interactions' || activeTab === 'users' || activeTab === 'chatbot')) {
       setActiveTab('statistic');
     }
   }, [activeTab, canManageUsers, setActiveTab]);
@@ -114,6 +129,15 @@ export function DashboardPage() {
             <Button
               className="flex-1 sm:flex-none"
               type="button"
+              variant={activeTab === 'chatbot' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('chatbot')}
+            >
+              <Bot />
+              Chatbot
+            </Button>
+            <Button
+              className="flex-1 sm:flex-none"
+              type="button"
               variant={activeTab === 'users' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('users')}
             >
@@ -127,6 +151,7 @@ export function DashboardPage() {
       {activeTab === 'statistic' ? <StatisticLineGraph /> : null}
       {activeTab === 'reports' ? <DataReportsPanel /> : null}
       {activeTab === 'interactions' && canManageUsers ? <InteractionAggregationPanel /> : null}
+      {activeTab === 'chatbot' && canManageUsers ? <ChatbotManagerPanel /> : null}
       {activeTab === 'users' && canManageUsers ? <UserManagerPanel /> : null}
     </div>
   );
@@ -463,6 +488,521 @@ function CreateUserCard() {
       </CardContent>
     </Card>
   );
+}
+
+type ChatbotEditorMode = 'faq' | 'intent';
+
+type ChatbotDraft = {
+  id: string;
+  type: string;
+  enabled: boolean;
+  priority: string;
+  examplesJson: string;
+  answersJson: string;
+  actionUrlsJson: string;
+  tagsJson: string;
+  repliesJson: string;
+  filtersJson: string;
+  actionsJson: string;
+};
+
+function ChatbotManagerPanel() {
+  const [mode, setMode] = useState<ChatbotEditorMode>('faq');
+  const summaryQuery = useChatbotAdminSummary();
+  const embeddingStatusQuery = useChatbotEmbeddingStatus();
+  const faqsQuery = useChatbotFaqs();
+  const intentsQuery = useChatbotIntents();
+  const reloadMutation = useReloadChatbotKnowledgeMutation();
+  const importDefaultsMutation = useImportDefaultChatbotKnowledgeMutation();
+  const reindexMutation = useReindexChatbotEmbeddingsMutation();
+  const faqs = faqsQuery.data ?? [];
+  const intents = intentsQuery.data ?? [];
+  const embeddingStatus = embeddingStatusQuery.data;
+
+  return (
+    <div className="grid gap-5">
+      <Card>
+        <CardHeader className="flex-row flex-wrap items-center justify-between gap-3">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="size-5 text-primary" />
+              Chatbot knowledge
+            </CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Manage FAQ and intent definitions stored in the database. Reindex embeddings after editing examples.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={reloadMutation.isPending} type="button" variant="outline" onClick={() => reloadMutation.mutate()}>
+              <RefreshCw className="size-4" />
+              Reload
+            </Button>
+            <Button
+              disabled={importDefaultsMutation.isPending}
+              type="button"
+              variant="outline"
+              onClick={() => importDefaultsMutation.mutate(false)}
+            >
+              Import defaults
+            </Button>
+            <Button disabled={reindexMutation.isPending} type="button" onClick={() => reindexMutation.mutate()}>
+              <DatabaseZap className="size-4" />
+              Reindex embeddings
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-4">
+          <MetricCard label="FAQs" value={summaryQuery.data?.faqCount ?? faqs.length} hint={`${summaryQuery.data?.enabledFaqCount ?? 0} enabled`} />
+          <MetricCard label="Intents" value={summaryQuery.data?.intentCount ?? intents.length} hint={`${summaryQuery.data?.enabledIntentCount ?? 0} enabled`} />
+          <MetricCard
+            label="Embedding docs"
+            value={reindexMutation.data?.documents ?? embeddingStatus?.activeDocuments ?? '—'}
+            hint={embeddingStatus ? `${embeddingStatus.faqDocuments} FAQ / ${embeddingStatus.intentDocuments} intent` : 'Loading index status'}
+          />
+          <MetricCard
+            label="Embedding model"
+            value={embeddingStatus?.enabled === false ? 'Off' : embeddingStatus?.dimension ?? '—'}
+            hint={embeddingStatus?.model ?? 'Waiting'}
+          />
+        </CardContent>
+      </Card>
+
+      <div className="flex w-full flex-wrap gap-2 rounded-lg border bg-card p-1">
+        <Button className="flex-1 sm:flex-none" type="button" variant={mode === 'faq' ? 'default' : 'ghost'} onClick={() => setMode('faq')}>
+          FAQs
+        </Button>
+        <Button className="flex-1 sm:flex-none" type="button" variant={mode === 'intent' ? 'default' : 'ghost'} onClick={() => setMode('intent')}>
+          Intents
+        </Button>
+      </div>
+
+      {mode === 'faq' ? <ChatbotFaqEditor faqs={faqs} isLoading={faqsQuery.isLoading} /> : null}
+      {mode === 'intent' ? <ChatbotIntentEditor intents={intents} isLoading={intentsQuery.isLoading} /> : null}
+    </div>
+  );
+}
+
+function MetricCard({ hint, label, value }: { hint: string; label: string; value: number | string }) {
+  return (
+    <div className="rounded-2xl border bg-background p-4">
+      <p className="text-xs font-bold uppercase text-muted-foreground">{label}</p>
+      <p className="mt-2 text-2xl font-extrabold">{value}</p>
+      <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
+function ChatbotFaqEditor({ faqs, isLoading }: { faqs: ChatbotFaq[]; isLoading: boolean }) {
+  const [selectedId, setSelectedId] = useState('');
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [draft, setDraft] = useState<ChatbotDraft>(() => faqDraft());
+  const saveMutation = useSaveChatbotFaqMutation();
+  const deleteMutation = useDeleteChatbotFaqMutation();
+  const selected = faqs.find((faq) => faq.id === selectedId);
+
+  useEffect(() => {
+    if (selected) {
+      setDraft(faqDraft(selected));
+    }
+  }, [selected]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      const payload = draftToFaq(draft);
+      saveMutation.mutate(payload, {
+        onSuccess: (saved) => {
+          setSelectedId(saved.id);
+          setEditorOpen(false);
+        },
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Invalid FAQ payload');
+    }
+  }
+
+  return (
+    <>
+      <KnowledgeEditorLayout
+        items={faqs}
+        isLoading={isLoading}
+        selectedId={selectedId}
+        title="FAQs"
+        emptyText="No FAQ definitions yet."
+        onCreate={() => {
+          setSelectedId('');
+          setDraft(faqDraft());
+          setEditorOpen(true);
+        }}
+        onSelect={(id) => {
+          setSelectedId(id);
+          setEditorOpen(true);
+        }}
+      />
+
+      {editorOpen ? (
+        <ChatbotEditorModal title={selectedId ? `Edit FAQ: ${selectedId}` : 'New FAQ'} onClose={() => setEditorOpen(false)}>
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <CommonDraftFields draft={draft} setDraft={setDraft} />
+            <JsonTextarea label="Examples JSON" value={draft.examplesJson} onChange={(value) => setDraft((current) => ({ ...current, examplesJson: value }))} />
+            <JsonTextarea label="Answers JSON" value={draft.answersJson} onChange={(value) => setDraft((current) => ({ ...current, answersJson: value }))} />
+            <JsonTextarea label="Action URLs JSON" value={draft.actionUrlsJson} rows={4} onChange={(value) => setDraft((current) => ({ ...current, actionUrlsJson: value }))} />
+            <JsonTextarea label="Tags JSON" value={draft.tagsJson} rows={4} onChange={(value) => setDraft((current) => ({ ...current, tagsJson: value }))} />
+            <EditorActions
+              canDelete={Boolean(selectedId)}
+              isDeleting={deleteMutation.isPending}
+              isSaving={saveMutation.isPending}
+              onDelete={() => {
+                if (selectedId && window.confirm(`Delete FAQ ${selectedId}?`)) {
+                  deleteMutation.mutate(selectedId, {
+                    onSuccess: () => {
+                      setSelectedId('');
+                      setDraft(faqDraft());
+                      setEditorOpen(false);
+                    },
+                  });
+                }
+              }}
+            />
+          </form>
+        </ChatbotEditorModal>
+      ) : null}
+    </>
+  );
+}
+
+function ChatbotIntentEditor({ intents, isLoading }: { intents: ChatbotIntent[]; isLoading: boolean }) {
+  const [selectedId, setSelectedId] = useState('');
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [draft, setDraft] = useState<ChatbotDraft>(() => intentDraft());
+  const saveMutation = useSaveChatbotIntentMutation();
+  const deleteMutation = useDeleteChatbotIntentMutation();
+  const selected = intents.find((intent) => intent.id === selectedId);
+
+  useEffect(() => {
+    if (selected) {
+      setDraft(intentDraft(selected));
+    }
+  }, [selected]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      const payload = draftToIntent(draft);
+      saveMutation.mutate(payload, {
+        onSuccess: (saved) => {
+          setSelectedId(saved.id);
+          setEditorOpen(false);
+        },
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Invalid intent payload');
+    }
+  }
+
+  return (
+    <>
+      <KnowledgeEditorLayout
+        items={intents}
+        isLoading={isLoading}
+        selectedId={selectedId}
+        title="Intents"
+        emptyText="No intent definitions yet."
+        onCreate={() => {
+          setSelectedId('');
+          setDraft(intentDraft());
+          setEditorOpen(true);
+        }}
+        onSelect={(id) => {
+          setSelectedId(id);
+          setEditorOpen(true);
+        }}
+      />
+
+      {editorOpen ? (
+        <ChatbotEditorModal title={selectedId ? `Edit intent: ${selectedId}` : 'New intent'} onClose={() => setEditorOpen(false)}>
+          <form className="grid gap-4" onSubmit={handleSubmit}>
+            <CommonDraftFields draft={draft} setDraft={setDraft} />
+            <JsonTextarea label="Examples JSON" value={draft.examplesJson} onChange={(value) => setDraft((current) => ({ ...current, examplesJson: value }))} />
+            <JsonTextarea label="Replies JSON" value={draft.repliesJson} onChange={(value) => setDraft((current) => ({ ...current, repliesJson: value }))} />
+            <JsonTextarea label="Filters JSON" value={draft.filtersJson} rows={4} onChange={(value) => setDraft((current) => ({ ...current, filtersJson: value }))} />
+            <JsonTextarea label="Actions JSON" value={draft.actionsJson} onChange={(value) => setDraft((current) => ({ ...current, actionsJson: value }))} />
+            <JsonTextarea label="Tags JSON" value={draft.tagsJson} rows={4} onChange={(value) => setDraft((current) => ({ ...current, tagsJson: value }))} />
+            <EditorActions
+              canDelete={Boolean(selectedId)}
+              isDeleting={deleteMutation.isPending}
+              isSaving={saveMutation.isPending}
+              onDelete={() => {
+                if (selectedId && window.confirm(`Delete intent ${selectedId}?`)) {
+                  deleteMutation.mutate(selectedId, {
+                    onSuccess: () => {
+                      setSelectedId('');
+                      setDraft(intentDraft());
+                      setEditorOpen(false);
+                    },
+                  });
+                }
+              }}
+            />
+          </form>
+        </ChatbotEditorModal>
+      ) : null}
+    </>
+  );
+}
+
+function KnowledgeEditorLayout({
+  emptyText,
+  isLoading,
+  items,
+  onCreate,
+  onSelect,
+  selectedId,
+  title,
+}: {
+  emptyText: string;
+  isLoading: boolean;
+  items: Array<{ id: string; enabled?: boolean | null; priority?: number | null; type?: string | null }>;
+  onCreate: () => void;
+  onSelect: (id: string) => void;
+  selectedId: string;
+  title: string;
+}) {
+  return (
+    <div className="grid gap-5">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-row items-center gap-2">
+            <CardTitle>{title}</CardTitle>
+            <Button className="h-8 gap-1 px-2" size="sm" type="button" variant="outline" onClick={onCreate}>
+              <Plus className="size-3.5" />
+              New
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="grid max-h-[720px] gap-2 overflow-y-auto">
+          {isLoading ? <p className="text-sm text-muted-foreground">Loading...</p> : null}
+          {!isLoading && !items.length ? <p className="text-sm text-muted-foreground">{emptyText}</p> : null}
+          {items.map((item) => (
+            <button
+              key={item.id}
+              className={cn(
+                'grid gap-1 rounded-xl border p-3 text-left transition hover:border-primary',
+                selectedId === item.id ? 'border-primary bg-primary/5' : 'bg-background',
+              )}
+              type="button"
+              onClick={() => onSelect(item.id)}
+            >
+              <span className="line-clamp-1 text-sm font-bold">{item.id}</span>
+              <span className="flex flex-wrap gap-1">
+                <Badge variant={item.enabled === false ? 'outline' : 'secondary'}>{item.enabled === false ? 'disabled' : 'enabled'}</Badge>
+                <Badge variant="outline">{item.type || 'intent'}</Badge>
+                <Badge variant="outline">priority {item.priority ?? 0}</Badge>
+              </span>
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ChatbotEditorModal({
+  children,
+  onClose,
+  title,
+}: {
+  children: ReactNode;
+  onClose: () => void;
+  title: string;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[80] grid place-items-center bg-background/80 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={onClose}
+    >
+      <div
+        className="flex max-h-[min(860px,calc(100vh-2rem))] w-[min(980px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border bg-card shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
+          <h2 className="line-clamp-1 text-lg font-extrabold">{title}</h2>
+          <Button aria-label="Close editor" size="icon" type="button" variant="ghost" onClick={onClose}>
+            <X className="size-4" />
+          </Button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function CommonDraftFields({
+  draft,
+  setDraft,
+}: {
+  draft: ChatbotDraft;
+  setDraft: Dispatch<SetStateAction<ChatbotDraft>>;
+}) {
+  return (
+    <div className="grid gap-3 md:grid-cols-4">
+      <label className="grid gap-1 text-sm font-bold">
+        ID
+        <Input value={draft.id} onChange={(event) => setDraft((current) => ({ ...current, id: event.target.value }))} />
+      </label>
+      <label className="grid gap-1 text-sm font-bold">
+        Type
+        <Input value={draft.type} onChange={(event) => setDraft((current) => ({ ...current, type: event.target.value }))} />
+      </label>
+      <label className="grid gap-1 text-sm font-bold">
+        Priority
+        <Input type="number" value={draft.priority} onChange={(event) => setDraft((current) => ({ ...current, priority: event.target.value }))} />
+      </label>
+      <label className="grid gap-1 text-sm font-bold">
+        Status
+        <select
+          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+          value={draft.enabled ? 'enabled' : 'disabled'}
+          onChange={(event) => setDraft((current) => ({ ...current, enabled: event.target.value === 'enabled' }))}
+        >
+          <option value="enabled">Enabled</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </label>
+    </div>
+  );
+}
+
+function JsonTextarea({
+  label,
+  onChange,
+  rows = 7,
+  value,
+}: {
+  label: string;
+  onChange: (value: string) => void;
+  rows?: number;
+  value: string;
+}) {
+  return (
+    <label className="grid gap-1 text-sm font-bold">
+      {label}
+      <textarea
+        className="min-h-24 rounded-md border border-input bg-background px-3 py-2 font-mono text-xs leading-5 outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+        rows={rows}
+        spellCheck={false}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </label>
+  );
+}
+
+function EditorActions({
+  canDelete,
+  isDeleting,
+  isSaving,
+  onDelete,
+}: {
+  canDelete: boolean;
+  isDeleting: boolean;
+  isSaving: boolean;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap justify-end gap-2 border-t pt-4">
+      <Button disabled={!canDelete || isDeleting} type="button" variant="destructive" onClick={onDelete}>
+        <Trash2 className="size-4" />
+        Delete
+      </Button>
+      <Button disabled={isSaving} type="submit">
+        Save
+      </Button>
+    </div>
+  );
+}
+
+function faqDraft(faq?: ChatbotFaq): ChatbotDraft {
+  return {
+    id: faq?.id ?? 'new_faq',
+    type: faq?.type ?? 'faq',
+    enabled: faq?.enabled ?? true,
+    priority: String(faq?.priority ?? 0),
+    examplesJson: prettyJson(faq?.examples ?? { vi: [], en: [] }),
+    answersJson: prettyJson(faq?.answers ?? { vi: '', en: '' }),
+    actionUrlsJson: prettyJson(faq?.actionUrls ?? []),
+    tagsJson: prettyJson(faq?.tags ?? []),
+    repliesJson: '{}',
+    filtersJson: '{}',
+    actionsJson: '[]',
+  };
+}
+
+function intentDraft(intent?: ChatbotIntent): ChatbotDraft {
+  return {
+    id: intent?.id ?? 'new_intent',
+    type: intent?.type ?? 'intent',
+    enabled: intent?.enabled ?? true,
+    priority: String(intent?.priority ?? 0),
+    examplesJson: prettyJson(intent?.examples ?? { vi: [], en: [] }),
+    answersJson: '{}',
+    actionUrlsJson: '[]',
+    tagsJson: prettyJson(intent?.tags ?? []),
+    repliesJson: prettyJson(intent?.replies ?? { vi: '', en: '' }),
+    filtersJson: prettyJson(intent?.filters ?? {}),
+    actionsJson: prettyJson(intent?.actions ?? []),
+  };
+}
+
+function draftToFaq(draft: ChatbotDraft): ChatbotFaq {
+  return {
+    id: requireId(draft.id),
+    type: draft.type || 'faq',
+    enabled: draft.enabled,
+    priority: Number(draft.priority) || 0,
+    examples: parseJson(draft.examplesJson, 'Examples JSON'),
+    answers: parseJson(draft.answersJson, 'Answers JSON'),
+    actionUrls: parseJson(draft.actionUrlsJson, 'Action URLs JSON'),
+    tags: parseJson(draft.tagsJson, 'Tags JSON'),
+  };
+}
+
+function draftToIntent(draft: ChatbotDraft): ChatbotIntent {
+  return {
+    id: requireId(draft.id),
+    type: draft.type || 'intent',
+    enabled: draft.enabled,
+    priority: Number(draft.priority) || 0,
+    examples: parseJson(draft.examplesJson, 'Examples JSON'),
+    replies: parseJson(draft.repliesJson, 'Replies JSON'),
+    filters: parseJson(draft.filtersJson, 'Filters JSON'),
+    tags: parseJson(draft.tagsJson, 'Tags JSON'),
+    actions: parseJson(draft.actionsJson, 'Actions JSON'),
+  };
+}
+
+function prettyJson(value: unknown) {
+  return JSON.stringify(value, null, 2);
+}
+
+function parseJson<T>(value: string, label: string): T {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    throw new Error(`${label} is not valid JSON`);
+  }
+}
+
+function requireId(id: string) {
+  const trimmed = id.trim();
+  if (!trimmed) {
+    throw new Error('ID is required');
+  }
+  return trimmed;
 }
 
 function UserRow({ user }: { user: User }) {

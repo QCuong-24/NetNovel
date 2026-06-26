@@ -10,6 +10,7 @@ export const queryKeys = {
   search: ['search'] as const,
   collection: ['collection'] as const,
   adminUsers: ['adminUsers'] as const,
+  adminChatbot: ['adminChatbot'] as const,
   users: ['users'] as const,
   comments: ['comments'] as const,
   dataReports: ['dataReports'] as const,

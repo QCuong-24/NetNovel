@@ -89,6 +89,17 @@ export const endpoints = {
     update: (userId: string) => `/admin/users/${userId}`,
     delete: (userId: string) => `/admin/users/${userId}`,
   },
+  adminChatbot: {
+    summary: '/admin/chatbot/summary',
+    reload: '/admin/chatbot/reload',
+    importDefaults: '/admin/chatbot/import-defaults',
+    reindexEmbeddings: '/admin/chatbot/embeddings/reindex',
+    embeddingStatus: '/admin/chatbot/embeddings/status',
+    faqs: '/admin/chatbot/faqs',
+    faq: (id: string) => `/admin/chatbot/faqs/${encodeURIComponent(id)}`,
+    intents: '/admin/chatbot/intents',
+    intent: (id: string) => `/admin/chatbot/intents/${encodeURIComponent(id)}`,
+  },
   comments: {
     byNovel: (novelId: string) => `/novels/${novelId}/comments`,
     byChapter: (chapterId: string) => `/chapters/${chapterId}/comments`,

@@ -1,4 +1,4 @@
-package com.example.netnovel_server.chatbot.service;
+package com.example.netnovel_server.chatbot.service.matching;
 
 import com.example.netnovel_server.chatbot.model.ChatbotLanguage;
 import com.example.netnovel_server.chatbot.model.ChatbotMatchResult;
@@ -7,3 +7,4 @@ public interface ChatbotIntentMatcher {
 
     ChatbotMatchResult match(String message, ChatbotLanguage language);
 }
+

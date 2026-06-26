@@ -1,104 +1,48 @@
-package com.example.netnovel_server.chatbot.service;
+package com.example.netnovel_server.chatbot.service.matching;
 
 import com.example.netnovel_server.chatbot.model.ChatbotIntent;
-import com.example.netnovel_server.chatbot.model.ChatbotFaq;
 import com.example.netnovel_server.chatbot.model.ChatbotLanguage;
 import com.example.netnovel_server.chatbot.model.ChatbotMatchResult;
 import com.example.netnovel_server.chatbot.model.ChatbotSynonyms;
+import com.example.netnovel_server.chatbot.service.ChatbotKnowledgeBase;
+import com.example.netnovel_server.chatbot.service.language.ChatbotTextNormalizer;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Extracts novel-search filters from a normalized message.
+ *
+ * Owns genre/tag/status/sort/author/title/free-query detection and decides
+ * whether the resulting intent should be filtered_novels, search_by_title,
+ * popular_novels, latest_novels, or a configured intent.
+ */
 @Component
-public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
+public class NovelFilterExtractor {
 
     private final ChatbotKnowledgeBase knowledgeBase;
     private final ChatbotTextNormalizer normalizer;
+    private final ConfiguredIntentMatcher configuredIntentMatcher;
 
-    public RuleBasedChatbotIntentMatcher(ChatbotKnowledgeBase knowledgeBase, ChatbotTextNormalizer normalizer) {
+    public NovelFilterExtractor(
+        ChatbotKnowledgeBase knowledgeBase,
+        ChatbotTextNormalizer normalizer,
+        ConfiguredIntentMatcher configuredIntentMatcher
+    ) {
         this.knowledgeBase = knowledgeBase;
         this.normalizer = normalizer;
+        this.configuredIntentMatcher = configuredIntentMatcher;
     }
 
-    @Override
-    public ChatbotMatchResult match(String message, ChatbotLanguage language) {
-        String normalized = normalizer.normalize(message);
-        if (normalized.isBlank()) {
-            return ChatbotMatchResult.fallback(language);
-        }
-
-        ChatbotMatchResult clarification = matchClarification(normalized, language);
-        if (clarification != null) {
-            return clarification;
-        }
-
-        ChatbotMatchResult faqMatch = matchFaq(normalized, language);
-        ChatbotMatchResult intentMatch = matchIntent(normalized, language);
-
-        if ("title".equals(intentMatch.filters().get("scope"))) {
-            return intentMatch;
-        }
-
-        if (
-            faqMatch.confidence() >= 0.45
-                && intentMatch.confidence() >= 0.45
-                && intentMatch.filters().isEmpty()
-                && Math.abs(faqMatch.confidence() - intentMatch.confidence()) < 0.15
-        ) {
-            return ChatbotMatchResult.clarify(language, "general", Math.max(faqMatch.confidence(), intentMatch.confidence()));
-        }
-
-        if (faqMatch.confidence() >= intentMatch.confidence()) {
-            return faqMatch;
-        }
-
-        return intentMatch;
-    }
-
-    private ChatbotMatchResult matchClarification(String normalized, ChatbotLanguage language) {
-        if (containsAny(normalized, "luu truyen", "luu lai", "save novel", "save story")) {
-            return ChatbotMatchResult.clarify(language, "save_novel", 0.4);
-        }
-
-        if (containsAny(normalized, "truyen hay", "truyen nao hay", "good novel", "good novels", "recommend something")) {
-            return ChatbotMatchResult.clarify(language, "search", 0.35);
-        }
-
-        return null;
-    }
-
-    private ChatbotMatchResult matchFaq(String normalized, ChatbotLanguage language) {
-        ChatbotFaq bestFaq = null;
-        double bestScore = 0.0;
-        String lang = language.code();
-
-        for (ChatbotFaq faq : knowledgeBase.faqs()) {
-            for (String example : faq.examples().getOrDefault(lang, List.of())) {
-                String normalizedExample = normalizer.normalize(example);
-                double score = phraseScore(normalized, normalizedExample, language);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestFaq = faq;
-                }
-            }
-        }
-
-        if (bestFaq == null || bestScore < 0.45) {
-            return ChatbotMatchResult.fallback(language);
-        }
-
-        return new ChatbotMatchResult("faq", language, Math.min(bestScore, 0.98), 0.0, false, null, Map.of(), bestFaq, null);
-    }
-
-    private ChatbotMatchResult matchIntent(String normalized, ChatbotLanguage language) {
+    public ChatbotMatchResult match(String normalized, ChatbotLanguage language) {
         Map<String, String> filters = new HashMap<>();
         double score = 0.0;
         String intent = "search_novel";
         ChatbotSynonyms synonyms = knowledgeBase.synonyms();
 
-        ChatbotIntent configuredIntent = matchConfiguredIntent(normalized, language);
+        ChatbotIntent configuredIntent = configuredIntentMatcher.match(normalized, language);
         if (configuredIntent != null) {
             if ("navigation".equals(configuredIntent.type())) {
                 return new ChatbotMatchResult(
@@ -157,7 +101,7 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
             score += 0.45;
         }
 
-        String query = extractQuery(normalized, filters);
+        String query = extractQuery(normalized, filters, synonyms);
         if (!query.isBlank() && !filters.containsKey("q")) {
             filters.put("q", query);
             score += 0.25;
@@ -167,6 +111,10 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
             score += 0.2;
         }
 
+        if (shouldUseFilteredNovelIntent(intent, filters)) {
+            intent = "filtered_novels";
+        }
+
         if (filters.isEmpty() && score < 0.45) {
             return ChatbotMatchResult.fallback(language);
         }
@@ -174,55 +122,18 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
         return new ChatbotMatchResult(intent, language, Math.min(score, 0.95), 0.0, false, null, filters, null, configuredIntent);
     }
 
-    private ChatbotIntent matchConfiguredIntent(String normalized, ChatbotLanguage language) {
-        ChatbotIntent bestIntent = null;
-        double bestScore = 0.0;
-        String lang = language.code();
-
-        for (ChatbotIntent intent : knowledgeBase.intents()) {
-            for (String example : intent.examples().getOrDefault(lang, List.of())) {
-                double score = phraseScore(normalized, normalizer.normalize(example), language);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestIntent = intent;
-                }
-            }
+    private boolean shouldUseFilteredNovelIntent(String intent, Map<String, String> filters) {
+        if (filters.isEmpty()) {
+            return false;
         }
-
-        return bestScore >= 0.65 ? bestIntent : null;
-    }
-
-    private double phraseScore(String message, String example) {
-        return phraseScore(message, example, ChatbotLanguage.VI);
-    }
-
-    private double phraseScore(String message, String example, ChatbotLanguage language) {
-        if (message.equals(example)) {
-            return 1.0;
+        if ("popular_novels".equals(intent) || "latest_novels".equals(intent) || "search_by_title".equals(intent)) {
+            return false;
         }
-        if (message.contains(example) || example.contains(message)) {
-            return 0.85;
-        }
-
-        String[] words = example.split(" ");
-        int matched = 0;
-        int importantWords = 0;
-        List<String> stopwords = knowledgeBase.synonyms().stopwords().getOrDefault(language.code(), List.of());
-        for (String word : words) {
-            if (word.length() > 2 && !stopwords.contains(word)) {
-                importantWords++;
-                if (message.contains(word)) {
-                    matched++;
-                }
-            }
-        }
-
-        if (importantWords == 0) {
-            return 0.0;
-        }
-
-        double score = (double) matched / importantWords;
-        return importantWords < 3 ? Math.min(score, 0.55) : score;
+        return filters.containsKey("genre")
+            || filters.containsKey("tag")
+            || filters.containsKey("status")
+            || filters.containsKey("author")
+            || filters.containsKey("q");
     }
 
     private boolean containsAny(String value, String... candidates) {
@@ -277,7 +188,7 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
         return "";
     }
 
-    private String extractQuery(String normalized, Map<String, String> filters) {
+    private String extractQuery(String normalized, Map<String, String> filters, ChatbotSynonyms synonyms) {
         if (!containsAny(normalized, knowledgeBase.synonyms().searchWords().getOrDefault("default", List.of()))) {
             return "";
         }
@@ -289,8 +200,24 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
             cleaned = cleaned.replace(normalizer.normalize(value), " ");
         }
 
+        cleaned = removeAliases(cleaned, filters.get("genre"), synonyms.genres());
+        cleaned = removeAliases(cleaned, filters.get("tag"), synonyms.tags());
+        cleaned = removeAliases(cleaned, filters.get("status"), synonyms.statuses());
+
         cleaned = cleaned.replaceAll("\\s+", " ").trim();
 
         return cleaned.length() >= 3 ? cleaned : "";
+    }
+
+    private String removeAliases(String value, String canonicalValue, Map<String, List<String>> synonyms) {
+        if (canonicalValue == null || canonicalValue.isBlank() || synonyms == null) {
+            return value;
+        }
+
+        String cleaned = value;
+        for (String alias : synonyms.getOrDefault(canonicalValue, List.of())) {
+            cleaned = cleaned.replace(normalizer.normalize(alias), " ");
+        }
+        return cleaned;
     }
 }

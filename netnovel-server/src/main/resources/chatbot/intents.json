@@ -5,8 +5,8 @@
     "enabled": true,
     "priority": 100,
     "examples": {
-      "vi": ["truyện hot", "truyện nổi bật", "truyện nhiều view", "truyện phổ biến", "gợi ý truyện đang hot"],
-      "en": ["popular novels", "hot novels", "top novels", "most viewed novels", "recommend popular stories"]
+      "vi": ["truyện hot", "truyện nổi bật", "truyện nhiều view", "truyện phổ biến", "gợi ý truyện đang hot", "gợi ý truyện hay"],
+      "en": ["popular novels", "hot novels", "top novels", "most viewed novels", "recommend popular stories", "recommend good books"]
     },
     "replies": {
       "vi": "Đây là một số truyện nổi bật cho bạn.",
@@ -38,81 +38,43 @@
     "actions": []
   },
   {
-    "id": "completed_novels",
+    "id": "filtered_novels",
     "type": "intent",
     "enabled": true,
     "priority": 90,
     "examples": {
-      "vi": ["truyện hoàn thành", "truyện full", "truyện đã end", "tìm truyện đã hoàn tất"],
-      "en": ["completed novels", "finished novels", "complete novels", "find finished stories"]
+      "vi": [
+        "truyện hoàn thành",
+        "truyện đang ra",
+        "truyện theo thể loại",
+        "truyện theo tag",
+        "truyện có tag",
+        "truyện kiểu tu luyện",
+        "truyện giống tu luyện",
+        "truyện ngôn tình hoàn thành",
+        "truyện tiên hiệp đang ra",
+        "tìm truyện đã hoàn tất",
+        "tìm truyện có yếu tố trò chơi"
+      ],
+      "en": [
+        "completed novels",
+        "ongoing novels",
+        "novels by genre",
+        "novels with a tag",
+        "books like cultivation",
+        "stories about cultivation",
+        "completed romance novels",
+        "ongoing xianxia novels",
+        "find finished stories",
+        "books with game elements"
+      ]
     },
     "replies": {
-      "vi": "Mình tìm thấy một số truyện đã hoàn thành cho bạn.",
-      "en": "I found some completed novels for you."
+      "vi": "Mình tìm thấy một số truyện phù hợp với tiêu chí của bạn.",
+      "en": "I found some novels that match your filters."
     },
-    "filters": {
-      "status": "COMPLETED"
-    },
-    "tags": ["search", "status"],
-    "actions": []
-  },
-  {
-    "id": "ongoing_novels",
-    "type": "intent",
-    "enabled": true,
-    "priority": 80,
-    "examples": {
-      "vi": ["truyện đang ra", "truyện chưa hoàn thành", "truyện còn update"],
-      "en": ["ongoing novels", "updating novels", "not completed novels"]
-    },
-    "replies": {
-      "vi": "Mình tìm thấy một số truyện đang ra cho bạn.",
-      "en": "I found some ongoing novels for you."
-    },
-    "filters": {
-      "status": "ONGOING"
-    },
-    "tags": ["search", "status"],
-    "actions": []
-  },
-  {
-    "id": "romance_completed_novels",
-    "type": "intent",
-    "enabled": true,
-    "priority": 70,
-    "examples": {
-      "vi": ["truyện ngôn tình hoàn thành", "ngôn tình full", "tìm romance đã end"],
-      "en": ["completed romance novels", "finished romance stories", "romance novels that are complete"]
-    },
-    "replies": {
-      "vi": "Đây là một số truyện ngôn tình đã hoàn thành.",
-      "en": "Here are some completed romance novels."
-    },
-    "filters": {
-      "genre": "Romance",
-      "status": "COMPLETED"
-    },
-    "tags": ["search", "genre", "status"],
-    "actions": []
-  },
-  {
-    "id": "xianxia_completed_novels",
-    "type": "intent",
-    "enabled": true,
-    "priority": 70,
-    "examples": {
-      "vi": ["truyện tiên hiệp hoàn thành", "tiên hiệp full", "tìm xianxia đã end"],
-      "en": ["completed xianxia novels", "finished xianxia stories", "xianxia novels that are complete"]
-    },
-    "replies": {
-      "vi": "Đây là một số truyện tiên hiệp đã hoàn thành.",
-      "en": "Here are some completed xianxia novels."
-    },
-    "filters": {
-      "genre": "Xianxia",
-      "status": "COMPLETED"
-    },
-    "tags": ["search", "genre", "status"],
+    "filters": {},
+    "tags": ["search", "filtered", "genre", "tag", "status"],
     "actions": []
   },
   {

@@ -1,8 +1,9 @@
-package com.example.netnovel_server.chatbot.service;
+package com.example.netnovel_server.chatbot.service.logging;
 
 import com.example.netnovel_server.chatbot.model.ChatbotLanguage;
 import com.example.netnovel_server.chatbot.entity.ChatbotFallbackLog;
 import com.example.netnovel_server.chatbot.repository.ChatbotFallbackLogRepository;
+import com.example.netnovel_server.chatbot.service.language.ChatbotTextNormalizer;
 import com.example.netnovel_server.utility.SecurityUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,3 +72,4 @@ public class ChatbotFallbackLogger {
         }
     }
 }
+

@@ -1,4 +1,4 @@
-package com.example.netnovel_server.chatbot.service;
+package com.example.netnovel_server.chatbot.service.language;
 
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,7 @@ public class ChatbotTextNormalizer {
         String lower = value.toLowerCase(Locale.ROOT).trim();
         String withoutMarks = Normalizer.normalize(lower, Normalizer.Form.NFD)
             .replaceAll("\\p{M}", "")
-            .replace('đ', 'd');
+            .replace('\u0111', 'd');
 
         return withoutMarks
             .replaceAll("[^a-z0-9\\s]", " ")
@@ -24,3 +24,4 @@ public class ChatbotTextNormalizer {
             .trim();
     }
 }
+
