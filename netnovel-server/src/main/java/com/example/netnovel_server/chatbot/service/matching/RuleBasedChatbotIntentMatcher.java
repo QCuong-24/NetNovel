@@ -4,6 +4,7 @@ import com.example.netnovel_server.chatbot.model.ChatbotLanguage;
 import com.example.netnovel_server.chatbot.model.ChatbotMatchResult;
 import com.example.netnovel_server.chatbot.service.ChatbotKnowledgeBase;
 import com.example.netnovel_server.chatbot.service.language.ChatbotTextNormalizer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,6 +37,7 @@ public class RuleBasedChatbotIntentMatcher implements ChatbotIntentMatcher {
         );
     }
 
+    @Autowired
     public RuleBasedChatbotIntentMatcher(
         ChatbotTextNormalizer normalizer,
         ChatbotClarificationMatcher clarificationMatcher,
