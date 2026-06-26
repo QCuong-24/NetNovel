@@ -12,8 +12,19 @@ import { NovelCard } from '@/features/novels/components/novel-card';
 import { useGenres, useTags } from '@/features/novels/hooks/use-novels';
 import type { PageResponse, Novel } from '@/features/novels/types';
 import { useHashTab } from '@/hooks/use-hash-tab';
-import { useAdvancedNovelSearch, usePublicNovelSearch, useReindexNovelsMutation } from '../hooks/use-search';
-import type { AdvancedNovelSearchParams, PublicNovelSearchParams, SearchSort } from '../types';
+import {
+  useAdvancedNovelSearch,
+  useElasticDiagnostics,
+  usePublicNovelSearch,
+  useRebuildNovelIndexMutation,
+  useReindexNovelsMutation,
+} from '../hooks/use-search';
+import type {
+  AdvancedNovelSearchParams,
+  ElasticDiagnosticsBucket,
+  PublicNovelSearchParams,
+  SearchSort,
+} from '../types';
 
 const SEARCH_PAGE_SIZE = 18;
 
@@ -570,6 +581,8 @@ function FilterDropdown({
 function ReindexPanel() {
   const { t } = useTranslation();
   const reindexMutation = useReindexNovelsMutation();
+  const rebuildMutation = useRebuildNovelIndexMutation();
+  const diagnosticsQuery = useElasticDiagnostics();
 
   return (
     <Card>
@@ -581,17 +594,128 @@ function ReindexPanel() {
       </CardHeader>
       <CardContent className="grid gap-4">
         <p className="text-sm leading-6 text-muted-foreground">{t('searchPage.reindex.description')}</p>
-        <Button className="w-fit" disabled={reindexMutation.isPending} type="button" onClick={() => reindexMutation.mutate()}>
-          <RefreshCw className={reindexMutation.isPending ? 'animate-spin' : undefined} />
-          {reindexMutation.isPending ? t('searchPage.reindex.running') : t('searchPage.reindex.action')}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button className="w-fit" disabled={reindexMutation.isPending} type="button" onClick={() => reindexMutation.mutate()}>
+            <RefreshCw className={reindexMutation.isPending ? 'animate-spin' : undefined} />
+            {reindexMutation.isPending ? t('searchPage.reindex.running') : t('searchPage.reindex.action')}
+          </Button>
+          <Button
+            className="w-fit"
+            disabled={rebuildMutation.isPending}
+            type="button"
+            variant="outline"
+            onClick={() => rebuildMutation.mutate(undefined, { onSuccess: () => diagnosticsQuery.refetch() })}
+          >
+            <RefreshCw className={rebuildMutation.isPending ? 'animate-spin' : undefined} />
+            {rebuildMutation.isPending ? 'Rebuilding...' : 'Rebuild index'}
+          </Button>
+          <Button className="w-fit" disabled={diagnosticsQuery.isFetching} type="button" variant="outline" onClick={() => diagnosticsQuery.refetch()}>
+            <RefreshCw className={diagnosticsQuery.isFetching ? 'animate-spin' : undefined} />
+            Refresh diagnostics
+          </Button>
+        </div>
+        <ElasticDiagnosticsPanel
+          diagnostics={diagnosticsQuery.data}
+          isLoading={diagnosticsQuery.isLoading}
+          error={diagnosticsQuery.error}
+        />
         {reindexMutation.data ? (
           <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-3 text-xs">
             {JSON.stringify(reindexMutation.data, null, 2)}
           </pre>
         ) : null}
+        {rebuildMutation.data ? (
+          <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-3 text-xs">
+            {JSON.stringify(rebuildMutation.data, null, 2)}
+          </pre>
+        ) : null}
       </CardContent>
     </Card>
+  );
+}
+
+function ElasticDiagnosticsPanel({
+  diagnostics,
+  error,
+  isLoading,
+}: {
+  diagnostics?: import('../types').ElasticDiagnosticsResponse;
+  error: unknown;
+  isLoading: boolean;
+}) {
+  if (isLoading) {
+    return <div className="rounded-lg border p-4 text-sm text-muted-foreground">Loading diagnostics...</div>;
+  }
+
+  if (error) {
+    return <div className="rounded-lg border border-destructive/50 p-4 text-sm text-destructive">Could not load diagnostics.</div>;
+  }
+
+  if (!diagnostics) {
+    return null;
+  }
+
+  return (
+    <section className="grid gap-4 rounded-lg border bg-background p-4">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <DiagnosticStat label="Index" value={diagnostics.indexName} />
+        <DiagnosticStat label="Exists" value={diagnostics.exists ? 'yes' : 'no'} />
+        <DiagnosticStat label="Documents" value={String(diagnostics.documentCount)} />
+        <DiagnosticStat label="Mapping" value={diagnostics.mappingVersion} />
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <DiagnosticMap title="Field mappings" values={diagnostics.fieldMappings} />
+        <DiagnosticBuckets title="Statuses" buckets={diagnostics.statusBuckets} />
+        <DiagnosticBuckets title="Top genres" buckets={diagnostics.topGenres} />
+        <DiagnosticBuckets title="Top tags" buckets={diagnostics.topTags} />
+        <DiagnosticBuckets title="Crawled" buckets={diagnostics.crawledBuckets} />
+      </div>
+    </section>
+  );
+}
+
+function DiagnosticStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border bg-muted/40 p-3">
+      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 break-words text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function DiagnosticMap({ title, values }: { title: string; values: Record<string, string> }) {
+  return (
+    <section className="rounded-md border p-3">
+      <h3 className="text-sm font-bold">{title}</h3>
+      <div className="mt-2 grid gap-1 text-sm">
+        {Object.entries(values).map(([key, value]) => (
+          <div key={key} className="flex justify-between gap-3">
+            <span className="text-muted-foreground">{key}</span>
+            <span className="font-semibold">{value}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DiagnosticBuckets({ buckets, title }: { buckets: ElasticDiagnosticsBucket[]; title: string }) {
+  return (
+    <section className="rounded-md border p-3">
+      <h3 className="text-sm font-bold">{title}</h3>
+      <div className="mt-2 grid gap-1 text-sm">
+        {buckets.length ? (
+          buckets.map((bucket) => (
+            <div key={bucket.key} className="flex justify-between gap-3">
+              <span className="truncate text-muted-foreground">{bucket.key}</span>
+              <span className="font-semibold">{bucket.count}</span>
+            </div>
+          ))
+        ) : (
+          <p className="text-muted-foreground">No data</p>
+        )}
+      </div>
+    </section>
   );
 }
 

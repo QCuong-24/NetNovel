@@ -43,7 +43,7 @@ public class ElasticNovelIndexManager {
         }
     }
 
-    private boolean indexExists() {
+    public boolean indexExists() {
         try {
             restClient.performRequest(new Request("HEAD", "/" + novelIndexName));
             return true;
@@ -51,6 +51,18 @@ public class ElasticNovelIndexManager {
             return exception.getResponse().getStatusLine().getStatusCode() != 404;
         } catch (IOException exception) {
             throw new SearchUnavailableException("Could not connect to Elasticsearch", exception);
+        }
+    }
+
+    public void deleteNovelIndexIfExists() {
+        if (!indexExists()) {
+            return;
+        }
+
+        try {
+            restClient.performRequest(new Request("DELETE", "/" + novelIndexName));
+        } catch (IOException exception) {
+            throw new SearchUnavailableException("Could not delete Elasticsearch novel index: " + novelIndexName, exception);
         }
     }
 

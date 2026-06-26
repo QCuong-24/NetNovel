@@ -2,6 +2,7 @@ import { endpoints } from '@/lib/api/endpoints';
 import { httpClient } from '@/lib/api/http-client';
 import type {
   AdvancedNovelSearchParams,
+  ElasticDiagnosticsResponse,
   ElasticReindexResponse,
   NovelSearchPage,
   NovelSearchResultPage,
@@ -74,6 +75,18 @@ export async function getSearchSuggestions(query: string, limit = 8) {
 
 export async function reindexNovels() {
   const response = await httpClient.post<ElasticReindexResponse>(endpoints.advancedSearch.reindexNovels);
+
+  return response.data;
+}
+
+export async function rebuildNovelIndex() {
+  const response = await httpClient.post<ElasticReindexResponse>(endpoints.advancedSearch.rebuildNovels);
+
+  return response.data;
+}
+
+export async function getElasticDiagnostics() {
+  const response = await httpClient.get<ElasticDiagnosticsResponse>(endpoints.advancedSearch.diagnostics);
 
   return response.data;
 }

@@ -48,7 +48,17 @@ public class ElasticNovelSearchIndexer {
     @Transactional(readOnly = true)
     public ElasticReindexResponseDTO reindexAllNovels() {
         indexManager.ensureNovelIndex();
+        return indexAllNovels();
+    }
 
+    @Transactional(readOnly = true)
+    public ElasticReindexResponseDTO rebuildNovelIndex() {
+        indexManager.deleteNovelIndexIfExists();
+        indexManager.ensureNovelIndex();
+        return indexAllNovels();
+    }
+
+    private ElasticReindexResponseDTO indexAllNovels() {
         int indexed = 0;
         int failed = 0;
         for (Novel novel : novelRepository.findAll()) {

@@ -35,7 +35,28 @@ export type SearchSuggestion = {
 };
 
 export type ElasticReindexResponse = {
+  indexName?: string;
+  indexed?: number;
+  failed?: number;
   indexedCount?: number;
   failedCount?: number;
   message?: string;
+};
+
+export type ElasticDiagnosticsBucket = {
+  key: string;
+  count: number;
+};
+
+export type ElasticDiagnosticsResponse = {
+  enabled: boolean;
+  indexName: string;
+  exists: boolean;
+  documentCount: number;
+  mappingVersion: string;
+  fieldMappings: Record<string, string>;
+  statusBuckets: ElasticDiagnosticsBucket[];
+  topGenres: ElasticDiagnosticsBucket[];
+  topTags: ElasticDiagnosticsBucket[];
+  crawledBuckets: ElasticDiagnosticsBucket[];
 };

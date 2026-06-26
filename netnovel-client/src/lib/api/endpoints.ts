@@ -31,6 +31,8 @@ export const endpoints = {
   advancedSearch: {
     novels: '/advanced/search/novels',
     reindexNovels: '/advanced/search/reindex/novels',
+    rebuildNovels: '/advanced/search/reindex/novels/rebuild',
+    diagnostics: '/advanced/search/diagnostics',
   },
   chatbot: {
     message: '/chatbot/message',

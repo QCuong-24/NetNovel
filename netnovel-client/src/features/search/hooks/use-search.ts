@@ -2,7 +2,14 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from '@/config/query-keys';
 import { getApiErrorMessage } from '@/lib/api/api-error';
-import { getSearchSuggestions, reindexNovels, searchAdvancedNovels, searchPublicNovels } from '../api/search-api';
+import {
+  getElasticDiagnostics,
+  getSearchSuggestions,
+  rebuildNovelIndex,
+  reindexNovels,
+  searchAdvancedNovels,
+  searchPublicNovels,
+} from '../api/search-api';
 import type { AdvancedNovelSearchParams, PublicNovelSearchParams } from '../types';
 
 export function usePublicNovelSearch(params: PublicNovelSearchParams, enabled: boolean) {
@@ -40,5 +47,25 @@ export function useReindexNovelsMutation() {
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'Could not reindex novels'));
     },
+  });
+}
+
+export function useRebuildNovelIndexMutation() {
+  return useMutation({
+    mutationFn: rebuildNovelIndex,
+    onSuccess: () => {
+      toast.success('Novel index rebuilt');
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Could not rebuild novel index'));
+    },
+  });
+}
+
+export function useElasticDiagnostics(enabled = true) {
+  return useQuery({
+    queryKey: [...queryKeys.search, 'elastic-diagnostics'],
+    queryFn: getElasticDiagnostics,
+    enabled,
   });
 }

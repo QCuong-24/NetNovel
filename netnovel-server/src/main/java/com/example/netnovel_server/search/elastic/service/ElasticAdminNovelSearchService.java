@@ -111,18 +111,18 @@ public class ElasticAdminNovelSearchService {
 
         List<String> filters = new ArrayList<>();
         if (!normalizedStatus.isBlank()) {
-            filters.add(termFilter("status.keyword", normalizedStatus));
+            filters.add(exactTermFilter("status", normalizedStatus));
         }
         if (!normalizedGenres.isEmpty()) {
             filters.addAll(normalizedGenres.stream()
-                .map(genre -> termFilter("genres.keyword", genre))
+                .map(genre -> exactTermFilter("genres", genre))
                 .toList());
         }
         if (!normalizedTags.isEmpty()) {
-            filters.add(termsFilter("tags.keyword", normalizedTags));
+            filters.add(exactTermsFilter("tags", normalizedTags));
         }
         if (!normalizedSource.isBlank()) {
-            filters.add(termFilter("sourceName.keyword", normalizedSource));
+            filters.add(exactTermFilter("sourceName", normalizedSource));
         }
         if (crawled != null) {
             filters.add("""
@@ -200,6 +200,34 @@ public class ElasticAdminNovelSearchService {
         return """
             { "terms": { "%s": %s } }
             """.formatted(field, jsonArray(values));
+    }
+
+    private String exactTermFilter(String field, String value) {
+        return """
+            {
+              "bool": {
+                "should": [
+                  %s,
+                  %s
+                ],
+                "minimum_should_match": 1
+              }
+            }
+            """.formatted(termFilter(field, value), termFilter(field + ".keyword", value));
+    }
+
+    private String exactTermsFilter(String field, List<String> values) {
+        return """
+            {
+              "bool": {
+                "should": [
+                  %s,
+                  %s
+                ],
+                "minimum_should_match": 1
+              }
+            }
+            """.formatted(termsFilter(field, values), termsFilter(field + ".keyword", values));
     }
 
     private String jsonString(String value) {

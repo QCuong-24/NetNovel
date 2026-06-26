@@ -62,7 +62,9 @@ public class SecurityConfig {
                     "/api/crawl-tasks",
                     "/api/crawl-tasks/**"
                 ).hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/advanced/search/diagnostics").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/advanced/search/reindex/novels").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/advanced/search/reindex/novels/rebuild").hasRole("ADMIN")
                 .requestMatchers("/api/advanced/search/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/tags/**").hasAnyRole("MANAGER", "ADMIN")
