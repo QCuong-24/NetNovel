@@ -130,6 +130,83 @@ a {
     linear-gradient(45deg, rgba(255, 255, 255, 0.18) 25%, transparent 25%);
 }
 
+@keyframes hero-slide-motion {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-slide-motion {
+  animation: hero-slide-motion 420ms ease-out both;
+}
+
+.surface-motion {
+  transition:
+    transform 180ms ease-out,
+    box-shadow 180ms ease-out,
+    border-color 180ms ease-out;
+}
+
+@media (hover: hover) {
+  .surface-motion:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes dropdown-motion {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-motion {
+  animation: dropdown-motion 160ms ease-out both;
+}
+
+@keyframes panel-motion {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-motion {
+  animation: panel-motion 200ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface-motion {
+    transition: none;
+  }
+
+  .surface-motion:hover {
+    transform: none;
+  }
+
+  .dropdown-motion,
+  .panel-motion,
+  .hero-slide-motion {
+    animation: none;
+  }
+}
+
 .reader-bg-default {
   background: hsl(var(--reader));
   color: hsl(var(--reader-foreground));

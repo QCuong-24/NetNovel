@@ -734,11 +734,11 @@ function SearchResults({
   const novels = page?.content ?? [];
 
   if (isLoading) {
-    return <div className="grid min-h-48 place-items-center text-sm font-semibold text-muted-foreground">{t('searchPage.loading')}</div>;
+    return <div className="panel-motion grid min-h-48 place-items-center text-sm font-semibold text-muted-foreground">{t('searchPage.loading')}</div>;
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="panel-motion grid gap-4">
       {!novels.length ? (
         <div className="rounded-lg border border-dashed p-5 text-sm text-muted-foreground">{emptyText}</div>
       ) : (

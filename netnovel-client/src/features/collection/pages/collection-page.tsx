@@ -121,9 +121,9 @@ export function CollectionPage() {
           title={t('collection.followedNovels.title')}
           emptyText={t('collection.followedNovels.empty')}
         >
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
             {followedNovels.map((item) => (
-              <div className="grid gap-2" key={item.followId}>
+              <div className="grid h-full grid-rows-[1fr_auto] gap-2" key={item.followId}>
                 <NovelCard novel={item.novel} />
                 <p className="text-xs font-semibold text-muted-foreground">
                   {t('collection.followedNovels.followedAt', { date: formatDateTime(item.followedAt ?? undefined) })}
@@ -142,9 +142,9 @@ export function CollectionPage() {
           title={t('collection.recommendations.title')}
           emptyText={t('collection.recommendations.empty')}
         >
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
             {recommendations.map((item) => (
-              <div className="grid gap-2" key={item.novel.novelId}>
+              <div className="grid h-full grid-rows-[1fr_auto] gap-2" key={item.novel.novelId}>
                 <NovelCard novel={item.novel} />
                 <p className="text-xs font-semibold text-muted-foreground">{t(`collection.recommendations.reasons.${item.reason}`)}</p>
               </div>
@@ -176,7 +176,7 @@ function CollectionSection({
   const { t } = useTranslation();
 
   return (
-    <Card>
+    <Card className="panel-motion">
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">

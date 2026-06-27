@@ -2,6 +2,7 @@ package com.example.netnovel_server.recommendation.service;
 
 import com.example.netnovel_server.dto.NovelDTO;
 import com.example.netnovel_server.dto.NovelSearchResultDTO;
+import com.example.netnovel_server.embedding.config.NovelEmbeddingProperties;
 import com.example.netnovel_server.recommendation.entity.UserNovelInteraction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,14 +24,20 @@ public class SemanticPreferenceRecommendationService {
     private static final int SIMILAR_PER_PROFILE_NOVEL = 20;
 
     private final ObjectProvider<ElasticSemanticRecommendationService> semanticRecommendationServiceProvider;
+    private final NovelEmbeddingProperties embeddingProperties;
 
     public SemanticPreferenceRecommendationService(
-        ObjectProvider<ElasticSemanticRecommendationService> semanticRecommendationServiceProvider
+        ObjectProvider<ElasticSemanticRecommendationService> semanticRecommendationServiceProvider,
+        NovelEmbeddingProperties embeddingProperties
     ) {
         this.semanticRecommendationServiceProvider = semanticRecommendationServiceProvider;
+        this.embeddingProperties = embeddingProperties;
     }
 
     public Map<Long, Double> scoreCandidates(List<UserNovelInteraction> interactions) {
+        if (!embeddingProperties.enabled()) {
+            return Map.of();
+        }
         ElasticSemanticRecommendationService service = semanticRecommendationServiceProvider.getIfAvailable();
         if (service == null || interactions == null || interactions.isEmpty()) {
             return Map.of();

@@ -1,5 +1,5 @@
-import { ArrowLeft, ArrowRight, BookOpen, Bookmark, LibraryBig, SlidersHorizontal } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { BookOpen, Bookmark, ChevronLeft, ChevronRight, LibraryBig, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +37,7 @@ export function HomePage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const touchStartXRef = useRef<number | null>(null);
   const lastReadingQuery = useLastReading(3, Boolean(user));
   const recommendationsQuery = useForYouRecommendations(6, Boolean(user));
   const hotNovelsQuery = useNovelList({ kind: 'hot', page: 0, size: 6 });
@@ -48,6 +49,8 @@ export function HomePage() {
   const slides = [
     {
       icon: LibraryBig,
+      background: 'from-slate-950 via-indigo-950 to-sky-800',
+      glow: 'bg-sky-300/20',
       eyebrow: t('home.slides.discover.eyebrow'),
       title: t('home.slides.discover.title'),
       description: t('home.slides.discover.description'),
@@ -56,6 +59,8 @@ export function HomePage() {
     },
     {
       icon: SlidersHorizontal,
+      background: 'from-zinc-950 via-violet-950 to-fuchsia-800',
+      glow: 'bg-fuchsia-300/20',
       eyebrow: t('home.slides.reader.eyebrow'),
       title: t('home.slides.reader.title'),
       description: t('home.slides.reader.description'),
@@ -64,6 +69,8 @@ export function HomePage() {
     },
     {
       icon: Bookmark,
+      background: 'from-emerald-950 via-teal-900 to-cyan-800',
+      glow: 'bg-emerald-300/20',
       eyebrow: t('home.slides.collection.eyebrow'),
       title: t('home.slides.collection.title'),
       description: t('home.slides.collection.description'),
@@ -91,47 +98,77 @@ export function HomePage() {
     setActiveSlide((index + slides.length) % slides.length);
   }
 
+  function handleTouchEnd(clientX: number) {
+    if (touchStartXRef.current === null) {
+      return;
+    }
+
+    const distance = clientX - touchStartXRef.current;
+    touchStartXRef.current = null;
+
+    if (Math.abs(distance) < 44) {
+      return;
+    }
+
+    showSlide(activeSlide + (distance < 0 ? 1 : -1));
+  }
+
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-6 md:px-6 md:py-8">
       <section
         aria-label={t('home.heroLabel')}
         aria-roledescription="carousel"
-        className="relative overflow-hidden rounded-xl bg-hero text-primary-foreground shadow-sm"
+        className={`relative h-[18rem] overflow-hidden rounded-xl bg-gradient-to-br text-white shadow-sm sm:h-[20rem] md:h-[24rem] ${slide.background}`}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
         }}
         onFocus={() => setIsPaused(true)}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
+        onTouchCancel={() => {
+          touchStartXRef.current = null;
+          setIsPaused(false);
+        }}
+        onTouchEnd={(event) => {
+          handleTouchEnd(event.changedTouches[0]?.clientX ?? 0);
+          setIsPaused(false);
+        }}
+        onTouchStart={(event) => {
+          touchStartXRef.current = event.touches[0]?.clientX ?? null;
+          setIsPaused(true);
+        }}
       >
         <div className="pointer-events-none absolute -right-12 -top-20 size-72 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 left-1/3 size-72 rounded-full bg-black/10 blur-3xl" />
-        <div className="relative grid min-h-80 gap-8 px-6 py-8 md:grid-cols-[1.35fr_0.65fr] md:px-10 md:py-12">
-          <div className="grid content-center gap-5">
-            <Badge className="w-fit bg-white/15 text-white hover:bg-white/20">{slide.eyebrow}</Badge>
-            <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-normal md:text-6xl">{slide.title}</h1>
-            <p className="max-w-2xl text-base leading-7 text-white/85 md:text-lg">{slide.description}</p>
+        <div className={`pointer-events-none absolute -bottom-28 left-1/3 size-72 rounded-full ${slide.glow} blur-3xl`} />
+        <div key={`mobile-icon-${activeSlide}`} className="hero-slide-motion pointer-events-none absolute -bottom-5 -right-4 z-0 grid size-32 place-items-center rounded-[2rem] border border-white/10 bg-white/5 opacity-15 backdrop-blur-sm sm:size-40 md:hidden">
+          <slide.icon className="size-16" strokeWidth={1.5} />
+        </div>
+        <div className="relative z-10 grid h-full gap-5 px-5 py-6 pb-12 md:grid-cols-[1.35fr_0.65fr] md:px-12 md:py-10">
+          <div key={`content-${activeSlide}`} className="hero-slide-motion grid max-w-3xl content-center gap-3 sm:gap-4">
+            <Badge className="w-fit border-white/20 bg-white/15 text-white hover:bg-white/20">{slide.eyebrow}</Badge>
+            <h1 className="max-w-3xl text-3xl font-extrabold leading-tight tracking-normal text-white sm:text-4xl md:text-6xl">{slide.title}</h1>
+            <p className="max-w-2xl text-sm leading-6 text-white/85 sm:text-base md:text-lg md:leading-7">{slide.description}</p>
             <div className="flex flex-wrap gap-3">
-              <Button asChild variant="secondary"><Link to={slide.to}>{slide.action}</Link></Button>
+              <Button asChild className="bg-white !text-slate-950 shadow-sm hover:bg-white/90 hover:!text-slate-950">
+                <Link className="!text-slate-950" to={slide.to}>{slide.action}</Link>
+              </Button>
             </div>
           </div>
-          <div className="grid place-items-center">
-            <div className="grid size-40 place-items-center rounded-[2rem] border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm md:size-52">
-              <slide.icon className="size-16 md:size-20" strokeWidth={1.5} />
+          <div key={`desktop-icon-${activeSlide}`} className="hero-slide-motion hidden place-items-center md:grid">
+            <div className="grid size-44 place-items-center rounded-[2rem] border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm lg:size-52">
+              <slide.icon className="size-16 text-white md:size-20" strokeWidth={1.5} />
             </div>
           </div>
         </div>
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 px-4 py-4 md:px-6">
-          <div className="flex gap-2">
+        <div className="absolute inset-x-0 bottom-3 flex justify-center px-4">
+          <div className="flex rounded-full border border-white/10 bg-black/15 px-2.5 py-2 backdrop-blur-sm">
             {slides.map((item, index) => (
               <button key={item.eyebrow} aria-current={activeSlide === index ? 'true' : undefined} aria-label={t('home.showSlide', { number: index + 1 })} className={`h-2 rounded-full transition-all ${activeSlide === index ? 'w-7 bg-white' : 'w-2 bg-white/45 hover:bg-white/70'}`} type="button" onClick={() => showSlide(index)} />
             ))}
           </div>
-          <div className="flex gap-2">
-            <Button aria-label={t('home.previousSlide')} className="border-white/20 bg-white/10 text-white hover:bg-white/20" size="icon" type="button" variant="outline" onClick={() => showSlide(activeSlide - 1)}><ArrowLeft /></Button>
-            <Button aria-label={t('home.nextSlide')} className="border-white/20 bg-white/10 text-white hover:bg-white/20" size="icon" type="button" variant="outline" onClick={() => showSlide(activeSlide + 1)}><ArrowRight /></Button>
-          </div>
         </div>
+        <Button aria-label={t('home.previousSlide')} className="absolute left-4 top-1/2 z-20 hidden -translate-y-1/2 border-0 bg-transparent text-white/75 shadow-none hover:bg-white/10 hover:text-white md:inline-flex" size="icon" type="button" variant="ghost" onClick={() => showSlide(activeSlide - 1)}><ChevronLeft className="size-8 text-white" strokeWidth={2.25} /></Button>
+        <Button aria-label={t('home.nextSlide')} className="absolute right-4 top-1/2 z-20 hidden -translate-y-1/2 border-0 bg-transparent text-white/75 shadow-none hover:bg-white/10 hover:text-white md:inline-flex" size="icon" type="button" variant="ghost" onClick={() => showSlide(activeSlide + 1)}><ChevronRight className="size-8 text-white" strokeWidth={2.25} /></Button>
       </section>
 
       <AdSlot slot="home_top_banner" />

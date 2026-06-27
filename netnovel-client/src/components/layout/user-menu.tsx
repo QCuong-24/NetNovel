@@ -51,7 +51,7 @@ export function UserMenu({ user, isLoggingOut = false, onLogout }: UserMenuProps
   return (
     <div className="relative" ref={menuRef}>
       <button
-        className="flex size-10 cursor-pointer list-none items-center justify-center overflow-hidden rounded-full border bg-card text-sm font-extrabold text-primary shadow-sm transition-colors hover:bg-accent [&::-webkit-details-marker]:hidden"
+        className="flex size-10 cursor-pointer list-none items-center justify-center overflow-hidden rounded-full border bg-card text-sm font-extrabold text-primary shadow-sm transition-[background-color,transform] duration-150 ease-out hover:scale-105 hover:bg-accent active:scale-95 [&::-webkit-details-marker]:hidden"
         aria-label={t('nav.profile')}
         type="button"
         onClick={() => setIsOpen((current) => !current)}
@@ -64,7 +64,7 @@ export function UserMenu({ user, isLoggingOut = false, onLogout }: UserMenuProps
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 top-12 z-50 grid w-60 gap-1 rounded-lg border border-border/80 bg-background p-2 text-foreground shadow-2xl ring-1 ring-black/10 dark:ring-white/15">
+        <div className="dropdown-motion absolute right-0 top-12 z-50 grid w-60 origin-top-right gap-1 rounded-lg border border-border/80 bg-background p-2 text-foreground shadow-2xl ring-1 ring-black/10 dark:ring-white/15">
           <div className="border-b px-3 py-2">
             <p className="truncate text-sm font-bold">{user.username}</p>
             <p className="truncate text-xs text-muted-foreground">{user.email}</p>
