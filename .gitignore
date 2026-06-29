@@ -6,6 +6,7 @@
 
 # Local recommendation seeder tool
 tools/recommendation-seeder/
+tools/generate-seeder/
 
 # Documentation
 document/
@@ -31,6 +32,8 @@ Thumbs.db
 
 # Runtime data
 *.pid
+storage/
+**/storage/
 
 # CodeGraph local index and cache
 .codegraph/

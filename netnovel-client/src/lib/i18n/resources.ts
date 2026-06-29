@@ -29,6 +29,14 @@ export const resources = {
         bookmark: 'Bookmark',
         bookmarked: 'Bookmarked',
       },
+      audio: {
+        title: 'Audio',
+        close: 'Close audio',
+        listen: 'Listen',
+        refresh: 'Refresh',
+        generating: 'Generating audio...',
+        cached: 'Cached',
+      },
       comments: {
         title: 'Comments',
         total: '{{count}} comments',
@@ -604,6 +612,14 @@ export const resources = {
       bookmarkActions: {
         bookmark: 'Dấu trang',
         bookmarked: 'Đã đánh dấu trang',
+      },
+      audio: {
+        title: 'Audio',
+        close: 'Đóng audio',
+        listen: 'Nghe',
+        refresh: 'Làm mới',
+        generating: 'Đang tạo audio...',
+        cached: 'Đã lưu cache',
       },
       comments: {
         title: 'Bình luận',

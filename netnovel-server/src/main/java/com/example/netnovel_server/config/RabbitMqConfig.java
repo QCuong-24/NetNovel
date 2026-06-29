@@ -34,6 +34,25 @@ public class RabbitMqConfig {
     }
 
     @Bean
+    public DirectExchange audioExchange(@Value("${app.audio.rabbit.exchange:netnovel.audio}") String exchangeName) {
+        return new DirectExchange(exchangeName, true, false);
+    }
+
+    @Bean
+    public Queue audioGenerationQueue(@Value("${app.audio.rabbit.generation-queue:audio.generation}") String queueName) {
+        return new Queue(queueName, true);
+    }
+
+    @Bean
+    public Binding audioGenerationBinding(
+        Queue audioGenerationQueue,
+        DirectExchange audioExchange,
+        @Value("${app.audio.rabbit.generation-routing-key:audio.generation}") String routingKey
+    ) {
+        return BindingBuilder.bind(audioGenerationQueue).to(audioExchange).with(routingKey);
+    }
+
+    @Bean
     public JacksonJsonMessageConverter jacksonJsonMessageConverter() {
         return new JacksonJsonMessageConverter();
     }

@@ -79,6 +79,14 @@ export const endpoints = {
     detail: (chapterId: string) => `/chapters/${chapterId}`,
     update: (chapterId: string) => `/chapters/${chapterId}`,
     delete: (chapterId: string) => `/chapters/${chapterId}`,
+    audio: (chapterId: string) => `/chapters/${chapterId}/audio`,
+  },
+  audioAssets: {
+    detail: (assetId: string) => `/audio-assets/${assetId}`,
+    file: (assetId: string) => `/audio-assets/${assetId}/file`,
+  },
+  audio: {
+    voices: '/audio/voices',
   },
   rankings: {
     list: '/rankings',
@@ -102,6 +110,16 @@ export const endpoints = {
     faq: (id: string) => `/admin/chatbot/faqs/${encodeURIComponent(id)}`,
     intents: '/admin/chatbot/intents',
     intent: (id: string) => `/admin/chatbot/intents/${encodeURIComponent(id)}`,
+  },
+  adminAudio: {
+    dashboard: '/admin/audio/dashboard',
+    assets: '/admin/audio/assets',
+    assetRetry: (assetId: string) => `/admin/audio/assets/${assetId}/retry`,
+    asset: (assetId: string) => `/admin/audio/assets/${assetId}`,
+    cleanupExpired: '/admin/audio/cleanup-expired',
+    voices: '/admin/audio/voices',
+    voice: (voiceId: string) => `/admin/audio/voices/${voiceId}`,
+    syncVoices: '/admin/audio/voices/sync',
   },
   comments: {
     byNovel: (novelId: string) => `/novels/${novelId}/comments`,

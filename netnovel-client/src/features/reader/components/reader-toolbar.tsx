@@ -1,4 +1,4 @@
-import { ArrowLeft, Pencil, Settings, Trash2 } from 'lucide-react';
+import { ArrowLeft, LogIn, Pencil, Settings, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -89,7 +89,7 @@ export function ReaderToolbar({ backTo, editTo, chapterId, novelId, settings, on
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
+    <header className="fixed inset-x-0 top-0 z-50 border-b bg-background/90 shadow-sm backdrop-blur">
       <div className="mx-auto flex min-h-14 max-w-5xl items-center gap-2 px-4">
         <Button asChild className="shrink-0" size="sm" variant="ghost">
           <Link to={backTo}>
@@ -152,9 +152,16 @@ export function ReaderToolbar({ backTo, editTo, chapterId, novelId, settings, on
               onLogout={() => logoutMutation.mutateAsync()}
             />
           ) : (
-            <Button asChild className="hidden sm:inline-flex" size="sm" variant="outline">
-              <Link to="/login">{t('auth.login')}</Link>
-            </Button>
+            <>
+              <Button asChild className="sm:hidden" size="icon" variant="outline">
+                <Link aria-label={t('auth.login')} to="/login">
+                  <LogIn />
+                </Link>
+              </Button>
+              <Button asChild className="hidden sm:inline-flex" size="sm" variant="outline">
+                <Link to="/login">{t('auth.login')}</Link>
+              </Button>
+            </>
           )}
         </div>
       </div>

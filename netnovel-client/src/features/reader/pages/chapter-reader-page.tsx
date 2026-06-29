@@ -1,9 +1,10 @@
-import { Bookmark } from 'lucide-react';
+import { Bookmark, Volume2, X } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AdSlot } from '@/features/ads/components/ad-slot';
 import { Button } from '@/components/ui/button';
+import { ChapterAudioPlayer } from '@/features/audio/components/chapter-audio-player';
 import { ChapterNavigation } from '@/features/chapters/components/chapter-navigation';
 import { useChapter, useNovelChapters } from '@/features/chapters/hooks/use-chapters';
 import { CommentSection } from '@/features/comments/components/comment-section';
@@ -24,6 +25,8 @@ export function ChapterReaderPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { chapterId, novelId } = useParams();
+  const [isAudioOpen, setIsAudioOpen] = useState(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const { settings, classes, updateSetting } = useReaderSettings();
   const { data: user } = useCurrentUser();
   const { data: chapter, error, isError, isLoading } = useChapter(chapterId);
@@ -106,8 +109,15 @@ export function ChapterReaderPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate, nextChapter, previousChapter]);
 
+  useEffect(() => {
+    if (!user) {
+      setIsAudioOpen(false);
+      setIsAudioPlaying(false);
+    }
+  }, [user]);
+
   return (
-    <div className={cn('min-h-screen min-w-0 max-w-full overflow-x-hidden text-reader-page-foreground', classes.background)}>
+    <div className={cn('min-h-screen min-w-0 max-w-full overflow-x-hidden pt-14 text-reader-page-foreground', classes.background)}>
       <ReaderToolbar
         backTo={backToNovel}
         chapterId={chapter?.chapterId ? String(chapter.chapterId) : chapterId}
@@ -116,6 +126,51 @@ export function ChapterReaderPage() {
         settings={settings}
         onChange={updateSetting}
       />
+      {user && chapterId ? (
+        <>
+          <Button
+            aria-expanded={isAudioOpen}
+            aria-label={t('audio.title')}
+            className={cn(
+              'fixed right-16 top-[4.5rem] z-30 overflow-visible bg-background/70 shadow-md backdrop-blur hover:bg-background/90',
+              isAudioPlaying && 'text-primary',
+            )}
+            size="icon"
+            title={t('audio.title')}
+            type="button"
+            variant="outline"
+            onClick={() => setIsAudioOpen((current) => !current)}
+          >
+            {isAudioPlaying ? (
+              <>
+                <span className="absolute inset-1 rounded-full border border-primary/50 animate-ping" />
+                <span className="absolute inset-2 rounded-full border border-primary/30 animate-pulse" />
+              </>
+            ) : null}
+            <Volume2 className="relative z-10" />
+          </Button>
+          <div
+            className={cn(
+              'panel-motion fixed right-4 top-[7.5rem] z-40 w-[min(92vw,28rem)] rounded-xl border bg-background/95 p-3 shadow-2xl backdrop-blur',
+              !isAudioOpen && 'pointer-events-none invisible opacity-0',
+            )}
+          >
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="text-sm font-extrabold">{t('audio.title')}</p>
+                <Button
+                  aria-label={t('audio.close')}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsAudioOpen(false)}
+                >
+                  <X />
+                </Button>
+              </div>
+              <ChapterAudioPlayer key={chapterId} chapterId={chapterId} onPlayingChange={setIsAudioPlaying} />
+            </div>
+        </>
+      ) : null}
       {user && chapterId ? (
         <Button
           aria-label={isChapterBookmarked ? t('bookmarkActions.bookmarked') : t('bookmarkActions.bookmark')}

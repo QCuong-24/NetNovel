@@ -1,7 +1,7 @@
 import { type Dispatch, type FormEvent, type ReactNode, type SetStateAction, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Activity, Bell, Bookmark, Bot, DatabaseZap, Eye, Heart, MessageCircle, Plus, RefreshCw, ShieldCheck, Trash2, Users, X } from 'lucide-react';
+import { Activity, Bell, Bookmark, Bot, DatabaseZap, Eye, Heart, MessageCircle, Plus, RefreshCw, ShieldCheck, Trash2, Users, Volume2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,10 +41,11 @@ import {
   useSaveChatbotIntentMutation,
 } from '@/features/admin-chatbot/hooks/use-admin-chatbot';
 import type { ChatbotFaq, ChatbotIntent } from '@/features/admin-chatbot/types';
+import { AudioManagerPanel } from '@/features/admin-audio/components/audio-manager-panel';
 
-type DashboardTab = 'statistic' | 'reports' | 'interactions' | 'users' | 'chatbot';
+type DashboardTab = 'statistic' | 'reports' | 'interactions' | 'chatbot' | 'audio' | 'users';
 
-const dashboardTabs: DashboardTab[] = ['statistic', 'reports', 'interactions', 'users', 'chatbot'];
+const dashboardTabs: DashboardTab[] = ['statistic', 'reports', 'interactions', 'chatbot', 'audio', 'users'];
 const roles = ['USER', 'MANAGER', 'ADMIN'];
 
 function isAdmin(user?: User) {
@@ -70,7 +71,7 @@ export function DashboardPage() {
   const [activeTab, setActiveTab] = useHashTab(dashboardTabs, 'statistic');
 
   useEffect(() => {
-    if (!canManageUsers && (activeTab === 'interactions' || activeTab === 'users' || activeTab === 'chatbot')) {
+    if (!canManageUsers && (activeTab === 'interactions' || activeTab === 'users' || activeTab === 'chatbot' || activeTab === 'audio')) {
       setActiveTab('statistic');
     }
   }, [activeTab, canManageUsers, setActiveTab]);
@@ -138,6 +139,15 @@ export function DashboardPage() {
             <Button
               className="flex-1 sm:flex-none"
               type="button"
+              variant={activeTab === 'audio' ? 'default' : 'ghost'}
+              onClick={() => setActiveTab('audio')}
+            >
+              <Volume2 />
+              Audio
+            </Button>
+            <Button
+              className="flex-1 sm:flex-none"
+              type="button"
               variant={activeTab === 'users' ? 'default' : 'ghost'}
               onClick={() => setActiveTab('users')}
             >
@@ -152,6 +162,7 @@ export function DashboardPage() {
       {activeTab === 'reports' ? <DataReportsPanel /> : null}
       {activeTab === 'interactions' && canManageUsers ? <InteractionAggregationPanel /> : null}
       {activeTab === 'chatbot' && canManageUsers ? <ChatbotManagerPanel /> : null}
+      {activeTab === 'audio' && canManageUsers ? <AudioManagerPanel /> : null}
       {activeTab === 'users' && canManageUsers ? <UserManagerPanel /> : null}
     </div>
   );
