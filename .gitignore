@@ -9,7 +9,7 @@ tools/recommendation-seeder/
 tools/generate-seeder/
 
 # Documentation
-document/
+/document/
 
 # Java / Maven
 **/target/
