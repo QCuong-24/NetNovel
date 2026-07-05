@@ -20,7 +20,7 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - run: cd netnovel-server && ./mvnw test
+      - run: cd netnovel-server && sh ./mvnw test
 
   test_crawler:
     runs-on: ubuntu-latest
@@ -35,6 +35,9 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    needs:
+      - test_server
+      - test_crawler
 
     steps:
       - name: Deploy to DigitalOcean Droplet

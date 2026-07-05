@@ -6,7 +6,9 @@ describe('cn', () => {
   // UI components rely on cn() to combine conditional classes and resolve Tailwind conflicts.
 
   it('joins truthy class names', () => {
-    expect(cn('flex', false && 'hidden', 'items-center')).toBe('flex items-center');
+    const isHidden = false;
+
+    expect(cn('flex', isHidden && 'hidden', 'items-center')).toBe('flex items-center');
   });
 
   it('merges conflicting tailwind classes with the latest value winning', () => {
