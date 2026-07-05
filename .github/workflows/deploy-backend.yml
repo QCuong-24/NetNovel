@@ -11,6 +11,28 @@ on:
       - ".github/workflows/deploy-backend.yml"
 
 jobs:
+  test_server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: cd netnovel-server && ./mvnw test
+
+  test_crawler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: cd netnovel-crawler && mvn test
+
   deploy:
     runs-on: ubuntu-latest
 

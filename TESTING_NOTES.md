@@ -39,7 +39,19 @@ Covered areas:
   - `NovelController`: list pagination, search pagination, latest-updates pagination, completed pagination, updated date-range pagination, detail, create, update, delete
   - `BookmarkController`: my-bookmark detail, bookmark existence check, generic bookmark create, chapter bookmark create, novel bookmark delete
   - `CommentController`: replies, context chain, create novel comment, create reply, update comment, user delete, moderation delete
-  - Note: paged `Page<T>` JSON routes are intentionally left for fuller MVC/Jackson slice tests.
+  - Note: standalone tests stay focused on direct route/body/status contracts; selected `Page<T>` JSON routes are covered in MVC slice tests below.
+- MVC slice tests with `@WebMvcTest`
+  - `CommentController`: novel root comments and chapter root comments with real Spring MVC `Pageable` binding and `Page<T>` JSON serialization
+  - `BookmarkController`: all bookmarks and chapter bookmarks with real Spring MVC `Pageable` binding and `Page<T>` JSON serialization
+  - Note: security filters are disabled in this slice so the tests stay focused on endpoint mapping/Jackson/Page behavior. JWT dependencies are mocked only so the MVC context can start.
+- Security MVC slice tests with `@WebMvcTest` + real `SecurityConfig`
+  - public `GET /api/novels/{novelId}` is accessible without authentication
+  - anonymous `POST /api/novels` is rejected before reaching `NovelService`
+  - authenticated users can post to `POST /api/novels`
+  - public `GET /api/comments/{commentId}/replies` is accessible without authentication
+  - regular `USER` role is rejected by moderation delete
+  - `MANAGER` role can call moderation delete
+  - Note: JWT parsing is not the target of these tests. `JwtService` and `CustomUserDetailsService` are mocked so the real JWT filter can be constructed while `@WithMockUser` supplies authentication.
 - `AuthService`
   - register success path
   - duplicate email rejection
@@ -201,6 +213,7 @@ Covered areas:
   - `auth-api`: login, register, Google login, current user, logout
   - `chapter-api`: get, list by novel, create, update, delete
   - `comment-api`: target routing, pagination query strings, replies/context, create/update/delete/moderation delete
+  - `novel-api`: detail, all/newest/completed list routes, hot/genre search-backed list routes, similar/semantic/hybrid recommendation routes, create/update/delete, view/follow/like/bookmark interactions, tags/genres
 - React Query hooks
   - `use-auth`: current-user query enablement, login cache/token side effects, logout cleanup
   - `use-chapters`: query enablement, chapter fetches, create invalidation, update cache write/invalidation
@@ -212,8 +225,8 @@ Suggested next frontend tests:
 - More React Query hooks
   - `use-collection`
 - API clients
-  - `novel-api` list routing for all/newest/completed/hot/genre
-  - interaction endpoints for view/follow/like/bookmark
+  - `bookmark-api` if bookmark client helpers are added
+  - `recommendation-api` if recommendation calls move out of `novel-api`
 - Page-level smoke tests
   - `novel-create-page`
   - `chapter-create-page`
@@ -223,9 +236,9 @@ Suggested next frontend tests:
 
 Last verified:
 
-- server: `96` tests passed
+- server: `106` tests passed
 - crawler: `9` tests passed
-- frontend: `66` tests passed
+- frontend: `74` tests passed
 
 Known follow-up:
 
