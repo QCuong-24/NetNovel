@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ChatbotLanguageDetectorTest {
 
+    // Language detection smoke coverage for short English and Vietnamese user messages.
+
     private final ChatbotLanguageDetector detector = new ChatbotLanguageDetector();
 
     @Test

@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RuleBasedChatbotIntentMatcherTest {
 
+    // Rule-based chatbot intent coverage: filters, FAQs, navigation intents, ambiguity, and fallback.
+
     private RuleBasedChatbotIntentMatcher matcher;
 
     @BeforeEach
