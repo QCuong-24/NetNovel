@@ -82,7 +82,7 @@ describe('novel-api', () => {
     mockedHttpClient.get.mockResolvedValue({ data: searchPage });
 
     await expect(getSimilarNovels('10')).resolves.toEqual(page([novel()]));
-    expect(mockedHttpClient.get).toHaveBeenCalledWith('/recommendations/novels/10/similar?page=0&size=5');
+    expect(mockedHttpClient.get).toHaveBeenCalledWith('/recommendations/novels/10/similar?page=0&size=6');
 
     await expect(getSemanticSimilarNovels('10', 3)).resolves.toEqual(page([novel()]));
     expect(mockedHttpClient.get).toHaveBeenCalledWith('/recommendations/novels/10/similar/semantic?page=0&size=3');

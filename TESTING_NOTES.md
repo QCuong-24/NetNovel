@@ -51,7 +51,29 @@ Covered areas:
   - public `GET /api/comments/{commentId}/replies` is accessible without authentication
   - regular `USER` role is rejected by moderation delete
   - `MANAGER` role can call moderation delete
+  - anonymous users are rejected from bookmark list APIs before reaching `BookmarkService`
+  - authenticated users can call bookmark list APIs
+  - regular `USER` role is rejected from tag catalog APIs
+  - `MANAGER` role can call tag catalog APIs
+  - regular `USER` role is rejected from crawl task APIs
+  - `MANAGER` role can call crawl task APIs
+  - `MANAGER` role is rejected from crawl chapter record APIs
+  - `ADMIN` role can call crawl chapter record APIs
+  - regular `USER` role is rejected from admin user APIs
+  - `ADMIN` role can call admin user APIs
+  - `MANAGER` role can call user-event data reports
+  - `MANAGER` role is rejected from user-novel interaction rebuild
+  - `ADMIN` role can rebuild user-novel interactions
+  - `MANAGER` role is rejected from advanced search reindex
+  - `ADMIN` role can call advanced search reindex
+  - `MANAGER` role is rejected from manual user notifications
+  - `ADMIN` role can send manual user notifications
   - Note: JWT parsing is not the target of these tests. `JwtService` and `CustomUserDetailsService` are mocked so the real JWT filter can be constructed while `@WithMockUser` supplies authentication.
+- `JwtAuthenticationFilter`
+  - Bearer token from `Authorization` header authenticates and continues the filter chain
+  - notification stream can authenticate from `access_token` query parameter
+  - invalid token clears `SecurityContext` and still continues the filter chain
+  - missing token skips JWT lookup and continues the filter chain
 - `AuthService`
   - register success path
   - duplicate email rejection
@@ -236,7 +258,7 @@ Suggested next frontend tests:
 
 Last verified:
 
-- server: `106` tests passed
+- server: `127` tests passed
 - crawler: `9` tests passed
 - frontend: `74` tests passed
 

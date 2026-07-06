@@ -30,7 +30,7 @@ export async function getNovel(novelId: string) {
   return response.data;
 }
 
-export async function getSimilarNovels(novelId: string, size = 5) {
+export async function getSimilarNovels(novelId: string, size = 6) {
   const pageParams = buildPageParams(0, size);
   const response = await httpClient.get<PageResponse<NovelSearchResult>>(
     withPageParams(endpoints.recommendations.similarNovels(novelId), pageParams),
@@ -42,7 +42,7 @@ export async function getSimilarNovels(novelId: string, size = 5) {
   } satisfies PageResponse<Novel>;
 }
 
-export async function getSemanticSimilarNovels(novelId: string, size = 5) {
+export async function getSemanticSimilarNovels(novelId: string, size = 6) {
   const pageParams = buildPageParams(0, size);
   const response = await httpClient.get<PageResponse<NovelSearchResult>>(
     withPageParams(endpoints.recommendations.semanticSimilarNovels(novelId), pageParams),
@@ -54,7 +54,7 @@ export async function getSemanticSimilarNovels(novelId: string, size = 5) {
   } satisfies PageResponse<Novel>;
 }
 
-export async function getHybridSimilarNovels(novelId: string, size = 5) {
+export async function getHybridSimilarNovels(novelId: string, size = 6) {
   const pageParams = buildPageParams(0, size);
   const response = await httpClient.get<PageResponse<SimilarNovelRecommendation>>(
     withPageParams(endpoints.recommendations.hybridSimilarNovels(novelId), pageParams),

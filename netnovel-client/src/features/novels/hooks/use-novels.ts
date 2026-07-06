@@ -64,11 +64,11 @@ export function useNovelList(params: NovelListParams) {
   });
 }
 
-export function useSimilarNovels(novelId?: string) {
+export function useSimilarNovels(novelId?: string, enabled = true) {
   return useQuery({
     queryKey: [...queryKeys.novels, novelId, 'similar'],
     queryFn: () => getSimilarNovels(novelId!),
-    enabled: Boolean(novelId),
+    enabled: enabled && Boolean(novelId),
   });
 }
 
@@ -142,19 +142,19 @@ export function useToggleNovelLikeMutation(novelId: string) {
   });
 }
 
-export function useSemanticSimilarNovels(novelId?: string) {
+export function useSemanticSimilarNovels(novelId?: string, enabled = true) {
   return useQuery({
     queryKey: [...queryKeys.novels, novelId, 'similar', 'semantic'],
     queryFn: () => getSemanticSimilarNovels(novelId!),
-    enabled: Boolean(novelId),
+    enabled: enabled && Boolean(novelId),
   });
 }
 
-export function useHybridSimilarNovels(novelId?: string) {
+export function useHybridSimilarNovels(novelId?: string, enabled = true) {
   return useQuery({
     queryKey: [...queryKeys.novels, novelId, 'similar', 'hybrid'],
     queryFn: () => getHybridSimilarNovels(novelId!),
-    enabled: Boolean(novelId),
+    enabled: enabled && Boolean(novelId),
   });
 }
 
