@@ -238,5 +238,232 @@
         "requiredRoles": []
       }
     ]
+  },
+  {
+    "id": "completed_novels",
+    "type": "intent",
+    "enabled": true,
+    "priority": 94,
+    "examples": {
+      "vi": ["truyện hoàn thành", "truyện đã full", "truyện full", "novel đã hoàn thành", "tìm truyện hoàn thành"],
+      "en": ["completed novels", "finished novels", "fully completed novels", "find completed novels", "completed stories"]
+    },
+    "replies": {
+      "vi": "Đây là một số truyện đã hoàn thành.",
+      "en": "Here are some completed novels."
+    },
+    "filters": {
+      "status": "COMPLETED"
+    },
+    "tags": ["search", "completed", "status"],
+    "actions": []
+  },
+  {
+    "id": "ongoing_novels",
+    "type": "intent",
+    "enabled": true,
+    "priority": 93,
+    "examples": {
+      "vi": ["truyện đang ra", "truyện đang cập nhật", "truyện ongoing", "tìm truyện chưa hoàn thành", "truyện còn đang viết"],
+      "en": ["ongoing novels", "currently updating novels", "novels still updating", "find ongoing stories", "not completed novels"]
+    },
+    "replies": {
+      "vi": "Đây là một số truyện đang được cập nhật.",
+      "en": "Here are some ongoing novels."
+    },
+    "filters": {
+      "status": "ONGOING"
+    },
+    "tags": ["search", "ongoing", "status"],
+    "actions": []
+  },
+  {
+    "id": "navigate_home",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 88,
+    "examples": {
+      "vi": ["về trang chủ", "mở trang chủ", "trang home", "homepage", "quay lại home"],
+      "en": ["go home", "open homepage", "open home page", "back to home", "homepage"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở trang chủ tại đây.",
+      "en": "You can open the homepage here."
+    },
+    "filters": {},
+    "tags": ["navigation", "home"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở trang chủ",
+          "en": "Open home"
+        },
+        "type": "navigate",
+        "value": "/",
+        "requiredRoles": []
+      }
+    ]
+  },
+  {
+    "id": "navigate_novels",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 87,
+    "examples": {
+      "vi": ["mở danh sách truyện", "vào thư viện truyện", "xem tất cả truyện", "mở novels", "browse truyện"],
+      "en": ["open novels", "browse novels", "open novel list", "show all novels", "go to library"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở danh sách truyện tại đây.",
+      "en": "You can open the novel list here."
+    },
+    "filters": {},
+    "tags": ["navigation", "novels", "library"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở danh sách truyện",
+          "en": "Open novels"
+        },
+        "type": "navigate",
+        "value": "/novels",
+        "requiredRoles": []
+      }
+    ]
+  },
+  {
+    "id": "navigate_rankings",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 86,
+    "examples": {
+      "vi": ["mở bảng xếp hạng", "xem ranking", "trang xếp hạng", "top truyện", "bảng xếp hạng truyện"],
+      "en": ["open rankings", "ranking page", "novel rankings", "top ranking novels", "go to rankings"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở bảng xếp hạng tại đây.",
+      "en": "You can open the rankings page here."
+    },
+    "filters": {},
+    "tags": ["navigation", "ranking"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở bảng xếp hạng",
+          "en": "Open rankings"
+        },
+        "type": "navigate",
+        "value": "/rankings",
+        "requiredRoles": []
+      }
+    ]
+  },
+  {
+    "id": "navigate_completed_novels",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 84,
+    "examples": {
+      "vi": ["mở trang truyện hoàn thành", "vào danh sách truyện full", "xem trang completed novels", "trang truyện đã hoàn thành"],
+      "en": ["open completed novels page", "go to completed novels", "completed novels page", "show completed stories page"]
+    },
+    "replies": {
+      "vi": "Bạn có thể mở trang truyện hoàn thành tại đây.",
+      "en": "You can open the completed novels page here."
+    },
+    "filters": {},
+    "tags": ["navigation", "completed", "novels"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở truyện hoàn thành",
+          "en": "Open completed novels"
+        },
+        "type": "navigate",
+        "value": "/novels/completed",
+        "requiredRoles": []
+      }
+    ]
+  },
+  {
+    "id": "navigate_admin_chatbot",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 83,
+    "examples": {
+      "vi": ["quản lý chatbot", "mở chatbot admin", "sửa faq chatbot", "sửa intent chatbot", "mở trang quản lý faq intent"],
+      "en": ["manage chatbot", "open chatbot admin", "edit chatbot faq", "edit chatbot intents", "open faq intent manager"]
+    },
+    "replies": {
+      "vi": "Trang quản lý chatbot nằm trong dashboard và chỉ dành cho Admin.",
+      "en": "Chatbot management is inside the dashboard and is available for Admin only."
+    },
+    "filters": {},
+    "tags": ["navigation", "chatbot", "admin"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở quản lý chatbot",
+          "en": "Open chatbot manager"
+        },
+        "type": "navigate",
+        "value": "/dashboard#chatbot",
+        "requiredRoles": ["ADMIN"]
+      }
+    ]
+  },
+  {
+    "id": "navigate_user_manager",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 82,
+    "examples": {
+      "vi": ["quản lý user", "mở user manager", "quản lý người dùng", "mở danh sách tài khoản", "trang quản lý tài khoản"],
+      "en": ["manage users", "open user manager", "user management page", "open account manager", "manage accounts"]
+    },
+    "replies": {
+      "vi": "Trang quản lý người dùng nằm trong dashboard và chỉ dành cho Admin.",
+      "en": "User management is inside the dashboard and is available for Admin only."
+    },
+    "filters": {},
+    "tags": ["navigation", "users", "admin"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở quản lý user",
+          "en": "Open user manager"
+        },
+        "type": "navigate",
+        "value": "/dashboard#users",
+        "requiredRoles": ["ADMIN"]
+      }
+    ]
+  },
+  {
+    "id": "navigate_crawl_tasks",
+    "type": "navigation",
+    "enabled": true,
+    "priority": 81,
+    "examples": {
+      "vi": ["mở crawl tasks", "quản lý crawler", "xem tác vụ crawl", "trang crawl truyện", "mở trình crawl"],
+      "en": ["open crawl tasks", "manage crawler", "crawler tasks page", "open crawler", "view crawl jobs"]
+    },
+    "replies": {
+      "vi": "Trang crawl tasks dành cho Manager/Admin.",
+      "en": "The crawl tasks page is available for Manager/Admin."
+    },
+    "filters": {},
+    "tags": ["navigation", "crawler", "manager"],
+    "actions": [
+      {
+        "labels": {
+          "vi": "Mở crawl tasks",
+          "en": "Open crawl tasks"
+        },
+        "type": "navigate",
+        "value": "/crawl-tasks",
+        "requiredRoles": ["MANAGER", "ADMIN"]
+      }
+    ]
   }
 ]

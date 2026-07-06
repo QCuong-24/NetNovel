@@ -1,7 +1,7 @@
 import { type Dispatch, type FormEvent, type ReactNode, type SetStateAction, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Activity, Bell, Bookmark, Bot, DatabaseZap, Eye, Heart, MessageCircle, Plus, RefreshCw, ShieldCheck, Trash2, Users, Volume2, X } from 'lucide-react';
+import { Activity, Bell, Bookmark, Bot, DatabaseZap, Eye, Heart, MessageCircle, Plus, RefreshCw, Send, ShieldCheck, Trash2, Users, Volume2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,8 +39,9 @@ import {
   useReloadChatbotKnowledgeMutation,
   useSaveChatbotFaqMutation,
   useSaveChatbotIntentMutation,
+  useTestChatbotMessageMutation,
 } from '@/features/admin-chatbot/hooks/use-admin-chatbot';
-import type { ChatbotFaq, ChatbotIntent } from '@/features/admin-chatbot/types';
+import type { ChatbotAdminTestResponse, ChatbotFaq, ChatbotIntent } from '@/features/admin-chatbot/types';
 import { AudioManagerPanel } from '@/features/admin-audio/components/audio-manager-panel';
 
 type DashboardTab = 'statistic' | 'reports' | 'interactions' | 'chatbot' | 'audio' | 'users';
@@ -519,6 +520,7 @@ type ChatbotDraft = {
 
 function ChatbotManagerPanel() {
   const [mode, setMode] = useState<ChatbotEditorMode>('faq');
+  const [testModalOpen, setTestModalOpen] = useState(false);
   const summaryQuery = useChatbotAdminSummary();
   const embeddingStatusQuery = useChatbotEmbeddingStatus();
   const faqsQuery = useChatbotFaqs();
@@ -560,6 +562,10 @@ function ChatbotManagerPanel() {
               <DatabaseZap className="size-4" />
               Reindex embeddings
             </Button>
+            <Button type="button" variant="secondary" onClick={() => setTestModalOpen(true)}>
+              <MessageCircle className="size-4" />
+              Test message
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-4">
@@ -589,6 +595,7 @@ function ChatbotManagerPanel() {
 
       {mode === 'faq' ? <ChatbotFaqEditor faqs={faqs} isLoading={faqsQuery.isLoading} /> : null}
       {mode === 'intent' ? <ChatbotIntentEditor intents={intents} isLoading={intentsQuery.isLoading} /> : null}
+      {testModalOpen ? <ChatbotTestMessageModal onClose={() => setTestModalOpen(false)} /> : null}
     </div>
   );
 }
@@ -849,6 +856,160 @@ function ChatbotEditorModal({
         <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
       </div>
     </div>
+  );
+}
+
+function ChatbotTestMessageModal({ onClose }: { onClose: () => void }) {
+  const [message, setMessage] = useState('tìm truyện tu tiên');
+  const [language, setLanguage] = useState<'auto' | 'vi' | 'en'>('auto');
+  const [role, setRole] = useState<'USER' | 'MANAGER' | 'ADMIN'>('USER');
+  const testMutation = useTestChatbotMessageMutation();
+  const result = testMutation.data;
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!message.trim()) {
+      toast.error('Message is required');
+      return;
+    }
+    testMutation.mutate({
+      message: message.trim(),
+      language: language === 'auto' ? '' : language,
+      roles: [role],
+    });
+  }
+
+  return (
+    <ChatbotEditorModal title="Test chatbot message" onClose={onClose}>
+      <div className="grid gap-5">
+        <form className="grid gap-4 rounded-2xl border bg-background p-4" onSubmit={handleSubmit}>
+          <label className="grid gap-1 text-sm font-bold">
+            Message
+            <textarea
+              className="min-h-24 rounded-md border border-input bg-background px-3 py-2 text-sm leading-6 outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+            />
+          </label>
+          <label className="grid gap-1 text-sm font-bold md:max-w-xs">
+            Language hint
+            <select
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+              value={language}
+              onChange={(event) => setLanguage(event.target.value as 'auto' | 'vi' | 'en')}
+            >
+              <option value="auto">Auto detect</option>
+              <option value="vi">Vietnamese</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-sm font-bold md:max-w-xs">
+            Test as role
+            <select
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+              value={role}
+              onChange={(event) => setRole(event.target.value as 'USER' | 'MANAGER' | 'ADMIN')}
+            >
+              <option value="USER">USER</option>
+              <option value="MANAGER">MANAGER</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+          </label>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button disabled={testMutation.isPending} type="submit">
+              <Send className="size-4" />
+              {testMutation.isPending ? 'Testing...' : 'Run test'}
+            </Button>
+          </div>
+        </form>
+
+        {result ? <ChatbotTestResult result={result} /> : (
+          <p className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">
+            Enter a message to inspect detected language, intent, filters, response type, actions, and permission/search-mode behavior.
+          </p>
+        )}
+      </div>
+    </ChatbotEditorModal>
+  );
+}
+
+function ChatbotTestResult({ result }: { result: ChatbotAdminTestResponse }) {
+  return (
+    <div className="grid gap-4">
+      <div className="grid gap-3 md:grid-cols-4">
+        <TestMetric label="Language" value={result.detectedLanguage} hint={result.requestedLanguage ? `hint: ${result.requestedLanguage}` : 'auto'} />
+        <TestMetric label="Intent" value={result.intent} hint={result.intentType ?? 'rule/faq'} />
+        <TestMetric label="Confidence" value={result.confidence.toFixed(2)} hint={`second ${result.secondBestConfidence.toFixed(2)}`} />
+        <TestMetric label="Role" value={result.testRoles?.join('/') || 'USER'} hint={result.permissionDenied ? 'permission denied' : `search: ${result.searchMode}`} />
+        <TestMetric label="Response type" value={result.responseType} hint={result.permissionDenied ? 'permission denied' : `search: ${result.searchMode}`} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Matcher details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-3 text-sm">
+            <DebugRow label="FAQ ID" value={result.faqId ?? '—'} />
+            <DebugRow label="Ambiguous" value={String(result.ambiguous)} />
+            <DebugRow label="Clarification" value={result.clarificationType ?? '—'} />
+            <DebugRow label="Semantic tried" value={String(result.semanticTried)} />
+            <DebugRow label="Semantic used" value={String(result.semanticUsed)} />
+            <DebugRow label="Novel results" value={String(result.novelResultCount ?? 0)} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Bot response</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-3 text-sm">
+            <p className="rounded-xl bg-muted p-3 leading-6">{result.response.reply}</p>
+            <DebugRow label="Actions" value={result.actionValues.length ? result.actionValues.join(', ') : '—'} />
+            <DebugRow label="Suggestions" value={result.response.suggestedQuestions?.join(', ') || '—'} />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <JsonPreview title="Filters JSON" value={result.filters} />
+        <JsonPreview title="Full response JSON" value={result.response} />
+      </div>
+    </div>
+  );
+}
+
+function TestMetric({ hint, label, value }: { hint: string; label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border bg-background p-4">
+      <p className="text-xs font-bold uppercase text-muted-foreground">{label}</p>
+      <p className="mt-2 line-clamp-1 text-lg font-extrabold">{value}</p>
+      <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
+function DebugRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-2 rounded-lg border bg-background px-3 py-2">
+      <span className="font-semibold text-muted-foreground">{label}</span>
+      <span className="max-w-full break-words text-right font-mono text-xs">{value}</span>
+    </div>
+  );
+}
+
+function JsonPreview({ title, value }: { title: string; value: unknown }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <pre className="max-h-72 overflow-auto rounded-xl bg-muted p-3 text-xs leading-5">
+          {prettyJson(value)}
+        </pre>
+      </CardContent>
+    </Card>
   );
 }
 

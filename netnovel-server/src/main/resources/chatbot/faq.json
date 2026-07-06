@@ -350,5 +350,197 @@
     },
     "actionUrls": ["/novels"],
     "tags": ["reader", "chapter", "reading"]
+  },
+  {
+    "id": "advanced_search_permission",
+    "type": "faq",
+    "enabled": true,
+    "priority": 118,
+    "examples": {
+      "vi": ["tại sao tôi không dùng được tìm kiếm nâng cao", "advanced search cần quyền gì", "vì sao không tìm theo tag được", "tìm kiếm nâng cao dành cho ai", "tag search bị chặn"],
+      "en": ["why can't i use advanced search", "who can use advanced search", "why can't i search by tag", "advanced search permission", "tag search is blocked"]
+    },
+    "answers": {
+      "vi": "Advanced Search dành cho Manager/Admin vì nó hỗ trợ các bộ lọc sâu hơn như tag. Nếu bạn là user thường, chatbot sẽ chuyển yêu cầu đó sang tìm kiếm công khai bằng từ khóa để bạn vẫn có thể tiếp tục tìm truyện.",
+      "en": "Advanced Search is available for Manager/Admin because it supports deeper filters such as tags. If you are a normal user, the chatbot will fall back to public keyword search so you can still continue searching."
+    },
+    "actionUrls": ["/search#public"],
+    "tags": ["search", "advanced", "permission", "tag"]
+  },
+  {
+    "id": "public_search_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 116,
+    "examples": {
+      "vi": ["public search là gì", "tìm kiếm công khai là gì", "tìm kiếm thường làm được gì", "search public có gì", "tìm kiếm cơ bản"],
+      "en": ["what is public search", "what can public search do", "basic search", "public search features", "normal search"]
+    },
+    "answers": {
+      "vi": "Public Search là tìm kiếm cơ bản cho người dùng thông thường. Bạn có thể tìm bằng tên truyện hoặc từ khóa, và chatbot sẽ mở kết quả ở chế độ public.",
+      "en": "Public Search is the basic search mode for regular users. You can search by title or keyword, and the chatbot will open results in public mode."
+    },
+    "actionUrls": ["/search#public"],
+    "tags": ["search", "public", "basic"]
+  },
+  {
+    "id": "advanced_search_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 115,
+    "examples": {
+      "vi": ["advanced search là gì", "tìm kiếm nâng cao là gì", "advanced search có gì", "lọc nâng cao truyện", "tìm kiếm nhiều điều kiện"],
+      "en": ["what is advanced search", "advanced search features", "advanced novel filters", "search with advanced filters", "filter novels by many conditions"]
+    },
+    "answers": {
+      "vi": "Advanced Search cho phép lọc truyện chính xác hơn, đặc biệt là theo tag và các điều kiện nâng cao. Chức năng này hiện dành cho Manager/Admin.",
+      "en": "Advanced Search lets you filter novels more precisely, especially by tags and advanced conditions. This feature is currently available for Manager/Admin."
+    },
+    "actionUrls": ["/search#advanced"],
+    "tags": ["search", "advanced", "filter"]
+  },
+  {
+    "id": "tag_search_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 114,
+    "examples": {
+      "vi": ["tag search là gì", "tìm theo tag là gì", "tag dùng để làm gì", "tag truyện là gì", "tag cultivation là gì"],
+      "en": ["what is tag search", "what are novel tags", "search by tag", "what does tag mean", "how do tags work"]
+    },
+    "answers": {
+      "vi": "Tag mô tả đặc điểm cụ thể của truyện, ví dụ Cultivation, System, Reincarnation hoặc Game Elements. Khác với genre, tag chi tiết hơn và hiện được dùng trong Advanced Search.",
+      "en": "Tags describe specific novel traits, such as Cultivation, System, Reincarnation, or Game Elements. Unlike genres, tags are more detailed and are currently used in Advanced Search."
+    },
+    "actionUrls": ["/search#advanced"],
+    "tags": ["search", "tag", "advanced"]
+  },
+  {
+    "id": "genre_vs_tag_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 113,
+    "examples": {
+      "vi": ["genre và tag khác gì", "thể loại và tag khác nhau thế nào", "genre là gì tag là gì", "xianxia là genre hay tag", "cultivation là genre hay tag"],
+      "en": ["genre vs tag", "what is the difference between genre and tag", "are genres and tags different", "is cultivation a genre or tag", "genre and tag explanation"]
+    },
+    "answers": {
+      "vi": "Genre là nhóm lớn của truyện như Fantasy, Romance hoặc Xianxia. Tag là đặc điểm chi tiết hơn như Cultivation, Weak to Strong, System hoặc Harem. Vì tags của hệ thống chủ yếu dùng tiếng Anh, chatbot sẽ cố gắng map câu tiếng Việt sang tag tiếng Anh khi có thể.",
+      "en": "Genres are broad categories such as Fantasy, Romance, or Xianxia. Tags are more specific traits such as Cultivation, Weak to Strong, System, or Harem. Since this system mainly stores tags in English, the chatbot tries to map Vietnamese phrases to English tags when possible."
+    },
+    "actionUrls": ["/search#public"],
+    "tags": ["genre", "tag", "search"]
+  },
+  {
+    "id": "permission_denied_help",
+    "type": "faq",
+    "enabled": true,
+    "priority": 111,
+    "examples": {
+      "vi": ["không có quyền", "bị chặn quyền truy cập", "access denied là gì", "forbidden là gì", "tại sao tôi không mở được trang này"],
+      "en": ["access denied", "permission denied", "why can't i open this page", "forbidden error", "i do not have permission"]
+    },
+    "answers": {
+      "vi": "Một số trang hoặc chức năng chỉ dành cho vai trò phù hợp như Manager/Admin. Chatbot sẽ không đưa bạn đến trang vượt quyền, nhưng sẽ gợi ý lựa chọn công khai nếu có.",
+      "en": "Some pages or features require a suitable role such as Manager/Admin. The chatbot will not send you to a page you cannot access, but it may suggest a public alternative when available."
+    },
+    "actionUrls": ["/"],
+    "tags": ["permission", "access", "role"]
+  },
+  {
+    "id": "empty_search_results_help",
+    "type": "faq",
+    "enabled": true,
+    "priority": 86,
+    "examples": {
+      "vi": ["không tìm thấy kết quả", "search không ra kết quả", "không có kết quả tìm kiếm", "kết quả tìm kiếm trống", "không thấy novel phù hợp"],
+      "en": ["no search results", "search found nothing", "could not find novels", "no matching novels", "empty search results"]
+    },
+    "answers": {
+      "vi": "Nếu không có kết quả, bạn có thể thử rút ngắn từ khóa, dùng tên tiếng Anh, đổi genre/tag, hoặc tìm bằng public search trước. Với tag, user thường sẽ được chuyển sang tìm bằng từ khóa công khai.",
+      "en": "If there are no results, try shortening the keyword, using an English title, changing the genre/tag, or using public search first. For tags, normal users are redirected to public keyword search."
+    },
+    "actionUrls": ["/search#public"],
+    "tags": ["search", "empty", "help"]
+  },
+  {
+    "id": "cannot_login_help",
+    "type": "faq",
+    "enabled": true,
+    "priority": 84,
+    "examples": {
+      "vi": ["không đăng nhập được", "đăng nhập thất bại", "login lỗi", "tôi không vào được tài khoản", "không sign in được"],
+      "en": ["cannot login", "login failed", "i can't sign in", "sign in error", "can't access my account"]
+    },
+    "answers": {
+      "vi": "Bạn hãy kiểm tra lại email/tên đăng nhập và mật khẩu. Nếu vẫn không đăng nhập được, hãy thử tải lại trang hoặc liên hệ quản trị viên để kiểm tra tài khoản.",
+      "en": "Please check your email/username and password. If login still fails, try refreshing the page or contact an administrator to check your account."
+    },
+    "actionUrls": ["/login"],
+    "tags": ["login", "auth", "support"]
+  },
+  {
+    "id": "reading_progress_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 83,
+    "examples": {
+      "vi": ["web có lưu lịch sử đọc không", "lịch sử đọc ở đâu", "đọc tiếp ở đâu", "continue reading hoạt động sao", "đọc gần đây ở đâu"],
+      "en": ["does the site save reading progress", "where is reading history", "how does continue reading work", "continue reading feature", "reading progress"]
+    },
+    "answers": {
+      "vi": "Khi bạn đọc truyện sau khi đăng nhập, hệ thống có thể lưu tiến độ để bạn quay lại đọc tiếp từ bộ sưu tập hoặc khu vực đọc gần đây.",
+      "en": "When you read novels while logged in, the system can save your progress so you can continue later from your collection or recent reading area."
+    },
+    "actionUrls": ["/collection"],
+    "tags": ["reading", "progress", "collection"]
+  },
+  {
+    "id": "chatbot_capabilities",
+    "type": "faq",
+    "enabled": true,
+    "priority": 109,
+    "examples": {
+      "vi": ["chatbot làm được gì", "bot hỗ trợ gì", "chatbot có chức năng gì", "bạn giúp được gì", "chatbot hỗ trợ những gì"],
+      "en": ["what can the chatbot do", "chatbot capabilities", "what can you help with", "what does this bot support", "chatbot features"]
+    },
+    "answers": {
+      "vi": "Chatbot có thể giải thích chức năng website, hỗ trợ tìm truyện, mở các trang phù hợp, trả lời FAQ và xử lý một số yêu cầu theo quyền của tài khoản.",
+      "en": "The chatbot can explain website features, help search for novels, open relevant pages, answer FAQs, and handle some requests according to your account role."
+    },
+    "actionUrls": ["/search#public"],
+    "tags": ["chatbot", "help", "features"]
+  },
+  {
+    "id": "chatbot_limitations",
+    "type": "faq",
+    "enabled": true,
+    "priority": 88,
+    "examples": {
+      "vi": ["chatbot chưa làm được gì", "giới hạn của chatbot", "bot có hạn chế gì", "chatbot trả lời sai thì sao", "bot không hiểu câu hỏi"],
+      "en": ["chatbot limitations", "what can't the chatbot do", "bot limitations", "what if the chatbot is wrong", "the bot does not understand"]
+    },
+    "answers": {
+      "vi": "Chatbot tập trung vào NetNovel: tìm truyện, giải thích chức năng và điều hướng. Những câu hỏi ngoài phạm vi website hoặc quá mơ hồ có thể cần bạn diễn đạt rõ hơn.",
+      "en": "The chatbot focuses on NetNovel: novel search, feature explanations, and navigation. Questions outside the website scope or very ambiguous messages may need clearer wording."
+    },
+    "actionUrls": [],
+    "tags": ["chatbot", "limitations", "fallback"]
+  },
+  {
+    "id": "chatbot_technology_explanation",
+    "type": "faq",
+    "enabled": true,
+    "priority": 87,
+    "examples": {
+      "vi": ["chatbot dùng công nghệ gì", "bot hoạt động như nào", "chatbot được xây dựng thế nào", "giải thích kỹ thuật chatbot", "chatbot dùng intent hay embedding"],
+      "en": ["how does the chatbot work", "what technology does the chatbot use", "chatbot technical explanation", "does the chatbot use intent or embedding", "how is the bot built"]
+    },
+    "answers": {
+      "vi": "Chatbot được tổ chức theo FAQ, intent bot, rule-based matching và semantic embedding cho knowledge base. Cách này giúp bot trả lời nhanh các câu phổ biến và vẫn có khả năng mở rộng bằng vector search.",
+      "en": "The chatbot is organized around FAQs, intent bot, rule-based matching, and semantic embeddings for the knowledge base. This keeps common answers fast while allowing expansion through vector search."
+    },
+    "actionUrls": [],
+    "tags": ["chatbot", "technology", "embedding", "intent"]
   }
 ]

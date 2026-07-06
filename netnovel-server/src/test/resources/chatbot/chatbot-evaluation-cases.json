@@ -1,0 +1,378 @@
+[
+  {
+    "message": "truyện tiên hiệp hoàn thành",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "genre": "Xianxia",
+      "status": "COMPLETED"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "tìm truyện tu tiên",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Cultivation"
+    },
+    "expectedActionValueContains": "/search?q=Cultivation#public",
+    "expectedSearchMode": "public",
+    "expectedResponseType": "novel_search"
+  },
+  {
+    "message": "tôi muốn truyện kiểu tu luyện",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Cultivation"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "truyen yeu to tro choi",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Game Elements"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "truyện giả tưởng",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "genre": "Fantasy"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "truyen vo thuat",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "genre": "Martial Arts"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "truyện hot",
+    "expectedLanguage": "vi",
+    "expectedIntent": "popular_novels",
+    "expectedFilters": {
+      "sort": "popular"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "tìm truyện có tên đấu phá",
+    "expectedLanguage": "vi",
+    "expectedIntent": "search_by_title",
+    "expectedFilters": {
+      "scope": "title",
+      "q": "dau pha"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "làm sao theo dõi truyện",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "how_to_follow_novel",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "collection là gì",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "collection_feature_explanation",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "mở profile",
+    "expectedLanguage": "vi",
+    "expectedIntent": "navigate_profile",
+    "expectedResponseType": "navigation",
+    "expectedActionValueContains": "/profile"
+  },
+  {
+    "message": "lưu truyện",
+    "expectedLanguage": "vi",
+    "expectedIntent": "clarify_save_novel",
+    "expectedAmbiguous": true,
+    "expectedResponseType": "clarification"
+  },
+  {
+    "message": "truyện hay",
+    "expectedLanguage": "vi",
+    "expectedIntent": "clarify_search",
+    "expectedAmbiguous": true,
+    "expectedResponseType": "clarification"
+  },
+  {
+    "message": "completed romance novels",
+    "expectedLanguage": "en",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "genre": "Romance",
+      "status": "COMPLETED"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "I want books like cultivation",
+    "expectedLanguage": "en",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Cultivation"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "show me latest novels",
+    "expectedLanguage": "en",
+    "expectedIntent": "latest_novels",
+    "expectedFilters": {
+      "sort": "latest"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "find novels containing lord of mysteries",
+    "expectedLanguage": "en",
+    "expectedIntent": "search_by_title",
+    "expectedFilters": {
+      "scope": "title",
+      "q": "lord mysteries"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "novels by Kim Dung",
+    "expectedLanguage": "en",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "author": "kim dung"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "open my collection",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_collection",
+    "expectedActionValueContains": "/collection",
+    "expectedResponseType": "navigation"
+  },
+  {
+    "message": "what features does this website have",
+    "expectedLanguage": "en",
+    "expectedIntent": "faq",
+    "expectedFaqId": "website_overview",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "what is bookmark",
+    "expectedLanguage": "en",
+    "expectedIntent": "faq",
+    "expectedFaqId": "how_to_bookmark",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "save novel",
+    "expectedLanguage": "en",
+    "expectedIntent": "clarify_save_novel",
+    "expectedAmbiguous": true,
+    "expectedResponseType": "clarification"
+  },
+  {
+    "message": "what is the weather tomorrow",
+    "expectedLanguage": "en",
+    "expectedIntent": "fallback",
+    "expectedFallback": true,
+    "expectedResponseType": "fallback"
+  },
+  {
+    "message": "what is two plus two",
+    "expectedLanguage": "en",
+    "expectedIntent": "fallback",
+    "expectedFallback": true,
+    "expectedResponseType": "fallback"
+  },
+  {
+    "message": "tại sao tôi không dùng được tìm kiếm nâng cao",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "advanced_search_permission",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "tag search là gì",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "tag_search_explanation",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "genre và tag khác gì",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "genre_vs_tag_explanation",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "why login failed",
+    "expectedLanguage": "en",
+    "expectedIntent": "faq",
+    "expectedFaqId": "cannot_login_help",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "chatbot làm được gì",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "chatbot_capabilities",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "chatbot dùng công nghệ gì",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "chatbot_technology_explanation",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "no search results",
+    "expectedLanguage": "en",
+    "expectedIntent": "faq",
+    "expectedFaqId": "empty_search_results_help",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "why permission denied",
+    "expectedLanguage": "en",
+    "expectedIntent": "faq",
+    "expectedFaqId": "permission_denied_help",
+    "expectedResponseType": "faq"
+  },
+  {
+    "message": "truyện đang ra",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "status": "ONGOING"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "completed novels",
+    "expectedLanguage": "en",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "status": "COMPLETED"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public",
+    "expectedActionValueContains": "#public"
+  },
+  {
+    "message": "please go home",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_home",
+    "expectedActionValueContains": "/",
+    "expectedResponseType": "navigation"
+  },
+  {
+    "message": "open novel list",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_novels",
+    "expectedActionValueContains": "/novels",
+    "expectedResponseType": "navigation"
+  },
+  {
+    "message": "please open rankings",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_rankings",
+    "expectedActionValueContains": "/rankings",
+    "expectedResponseType": "navigation"
+  },
+  {
+    "message": "quản lý chatbot",
+    "expectedLanguage": "vi",
+    "expectedIntent": "navigate_admin_chatbot",
+    "expectedPermissionDenied": true,
+    "expectedResponseType": "permission_denied"
+  },
+  {
+    "message": "quản lý chatbot",
+    "expectedLanguage": "vi",
+    "expectedIntent": "navigate_admin_chatbot",
+    "roles": [
+      "ADMIN"
+    ],
+    "expectedActionValueContains": "/dashboard#chatbot",
+    "expectedPermissionDenied": false,
+    "expectedResponseType": "navigation"
+  },
+  {
+    "message": "tìm truyện tu tiên",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "roles": [
+      "MANAGER"
+    ],
+    "expectedFilters": {
+      "tag": "Cultivation"
+    },
+    "expectedActionValueContains": "/search?q=Cultivation#advanced",
+    "expectedSearchMode": "advanced",
+    "expectedResponseType": "novel_search"
+  },
+  {
+    "message": "open crawl tasks",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_crawl_tasks",
+    "roles": [
+      "USER"
+    ],
+    "expectedPermissionDenied": true,
+    "expectedResponseType": "permission_denied"
+  },
+  {
+    "message": "open crawl tasks",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_crawl_tasks",
+    "roles": [
+      "MANAGER"
+    ],
+    "expectedPermissionDenied": false,
+    "expectedResponseType": "navigation",
+    "expectedActionValueContains": "/crawl-tasks"
+  }
+]

@@ -14,6 +14,7 @@ import {
   reloadChatbotKnowledge,
   saveChatbotFaq,
   saveChatbotIntent,
+  testChatbotMessage,
 } from '../api/admin-chatbot-api';
 
 export function useChatbotAdminSummary() {
@@ -125,5 +126,12 @@ export function useReindexChatbotEmbeddingsMutation() {
       toast.success(response.message);
     },
     onError: (error) => toast.error(getApiErrorMessage(error, 'Could not reindex chatbot embeddings')),
+  });
+}
+
+export function useTestChatbotMessageMutation() {
+  return useMutation({
+    mutationFn: testChatbotMessage,
+    onError: (error) => toast.error(getApiErrorMessage(error, 'Could not test chatbot message')),
   });
 }

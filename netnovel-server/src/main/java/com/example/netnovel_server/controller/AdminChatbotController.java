@@ -1,10 +1,13 @@
 package com.example.netnovel_server.controller;
 
 import com.example.netnovel_server.chatbot.dto.ChatbotAdminSummaryDTO;
+import com.example.netnovel_server.chatbot.dto.ChatbotAdminTestRequestDTO;
+import com.example.netnovel_server.chatbot.dto.ChatbotAdminTestResponseDTO;
 import com.example.netnovel_server.chatbot.dto.ChatbotEmbeddingReindexResponseDTO;
 import com.example.netnovel_server.chatbot.dto.ChatbotEmbeddingStatusDTO;
 import com.example.netnovel_server.chatbot.model.ChatbotFaq;
 import com.example.netnovel_server.chatbot.model.ChatbotIntent;
+import com.example.netnovel_server.chatbot.service.ChatbotAdminTestService;
 import com.example.netnovel_server.chatbot.service.embedding.ChatbotEmbeddingReindexService;
 import com.example.netnovel_server.chatbot.service.embedding.ChatbotEmbeddingStatusService;
 import com.example.netnovel_server.chatbot.service.ChatbotKnowledgeAdminService;
@@ -31,15 +34,18 @@ public class AdminChatbotController {
     private final ChatbotKnowledgeAdminService adminService;
     private final ChatbotEmbeddingReindexService embeddingReindexService;
     private final ChatbotEmbeddingStatusService embeddingStatusService;
+    private final ChatbotAdminTestService adminTestService;
 
     public AdminChatbotController(
         ChatbotKnowledgeAdminService adminService,
         ChatbotEmbeddingReindexService embeddingReindexService,
-        ChatbotEmbeddingStatusService embeddingStatusService
+        ChatbotEmbeddingStatusService embeddingStatusService,
+        ChatbotAdminTestService adminTestService
     ) {
         this.adminService = adminService;
         this.embeddingReindexService = embeddingReindexService;
         this.embeddingStatusService = embeddingStatusService;
+        this.adminTestService = adminTestService;
     }
 
     @GetMapping("/summary")
@@ -72,6 +78,12 @@ public class AdminChatbotController {
     @Operation(summary = "Get chatbot embedding index status")
     public ResponseEntity<ChatbotEmbeddingStatusDTO> embeddingStatus() {
         return ResponseEntity.ok(embeddingStatusService.status());
+    }
+
+    @PostMapping("/test-message")
+    @Operation(summary = "Test a chatbot message and return matcher/response debug details")
+    public ResponseEntity<ChatbotAdminTestResponseDTO> testMessage(@RequestBody ChatbotAdminTestRequestDTO request) {
+        return ResponseEntity.ok(adminTestService.test(request));
     }
 
     @GetMapping("/faqs")

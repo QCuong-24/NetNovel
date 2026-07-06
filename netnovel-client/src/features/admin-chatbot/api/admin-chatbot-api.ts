@@ -2,6 +2,8 @@ import { endpoints } from '@/lib/api/endpoints';
 import { httpClient } from '@/lib/api/http-client';
 import type {
   ChatbotAdminSummary,
+  ChatbotAdminTestRequest,
+  ChatbotAdminTestResponse,
   ChatbotEmbeddingReindexResponse,
   ChatbotEmbeddingStatus,
   ChatbotFaq,
@@ -24,6 +26,16 @@ export async function importDefaultChatbotKnowledge(replaceExisting: boolean) {
   const response = await httpClient.post<ChatbotAdminSummary>(
     `${endpoints.adminChatbot.importDefaults}?replaceExisting=${replaceExisting}`,
   );
+
+  return response.data;
+}
+
+export async function testChatbotMessage(payload: ChatbotAdminTestRequest) {
+  const response = await httpClient.post<ChatbotAdminTestResponse>(endpoints.adminChatbot.testMessage, {
+    message: payload.message,
+    language: payload.language || undefined,
+    roles: payload.roles?.length ? payload.roles : ['USER'],
+  });
 
   return response.data;
 }

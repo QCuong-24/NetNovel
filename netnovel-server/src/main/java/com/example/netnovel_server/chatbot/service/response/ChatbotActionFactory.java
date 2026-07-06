@@ -38,8 +38,8 @@ public class ChatbotActionFactory {
             .toList();
     }
 
-    public ChatbotActionDTO searchResultsAction(Map<String, String> filters, String language) {
-        return navigateAction(text(language, "Xem thêm kết quả", "See more results"), searchUrl(filters));
+    public ChatbotActionDTO searchResultsAction(Map<String, String> filters, String language, boolean advancedMode) {
+        return navigateAction(text(language, "Xem thêm kết quả", "See more results"), searchUrl(filters, advancedMode));
     }
 
     public ChatbotActionDTO collectionAction(String language) {
@@ -74,7 +74,7 @@ public class ChatbotActionFactory {
         return text(language, "Mở trang liên quan", "Open related page");
     }
 
-    private String searchUrl(Map<String, String> filters) {
+    private String searchUrl(Map<String, String> filters, boolean advancedMode) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/search");
         addQueryParam(builder, "q", filters.get("q"));
         addQueryParam(builder, "status", filters.get("status"));
@@ -85,6 +85,7 @@ public class ChatbotActionFactory {
             addQueryParam(builder, "q", fallbackQuery);
         }
 
+        builder.fragment(advancedMode ? "advanced" : "public");
         return builder.build().encode().toUriString();
     }
 

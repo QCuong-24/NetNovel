@@ -56,7 +56,7 @@ public class ChatbotService {
             return responseFactory.navigationResponse(match);
         }
 
-        if (match.confidence() >= 0.45 && match.intent().contains("novel")) {
+        if (match.confidence() >= 0.45 && isNovelSearchIntent(match)) {
             ChatbotResponseDTO response = responseFactory.novelSearchResponse(match);
             if (response.getNovels().isEmpty()) {
                 fallbackLogger.log(message, language, match.intent(), match.confidence(), match.filters(), 0);
@@ -66,6 +66,10 @@ public class ChatbotService {
 
         fallbackLogger.log(message, language, match.intent(), match.confidence(), match.filters(), null);
         return responseFactory.fallbackResponse(language);
+    }
+
+    private boolean isNovelSearchIntent(ChatbotMatchResult match) {
+        return match.intent().contains("novel") || "search_by_title".equals(match.intent());
     }
 
     private boolean shouldTrySemantic(ChatbotMatchResult match) {

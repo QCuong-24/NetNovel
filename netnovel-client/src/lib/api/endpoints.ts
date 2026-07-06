@@ -104,6 +104,7 @@ export const endpoints = {
     summary: '/admin/chatbot/summary',
     reload: '/admin/chatbot/reload',
     importDefaults: '/admin/chatbot/import-defaults',
+    testMessage: '/admin/chatbot/test-message',
     reindexEmbeddings: '/admin/chatbot/embeddings/reindex',
     embeddingStatus: '/admin/chatbot/embeddings/status',
     faqs: '/admin/chatbot/faqs',

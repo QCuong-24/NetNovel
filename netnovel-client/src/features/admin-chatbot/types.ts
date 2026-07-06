@@ -57,3 +57,40 @@ export type ChatbotEmbeddingStatus = {
   intentDocuments: number;
   lastIndexedAt?: string | null;
 };
+
+export type ChatbotAdminTestRequest = {
+  message: string;
+  language?: 'vi' | 'en' | '';
+  roles?: string[];
+};
+
+export type ChatbotAdminTestResponse = {
+  message: string;
+  requestedLanguage?: string | null;
+  testRoles: string[];
+  detectedLanguage: string;
+  intent: string;
+  confidence: number;
+  secondBestConfidence: number;
+  ambiguous: boolean;
+  clarificationType?: string | null;
+  filters: Record<string, string>;
+  faqId?: string | null;
+  intentType?: string | null;
+  responseType: string;
+  semanticTried: boolean;
+  semanticUsed: boolean;
+  permissionDenied: boolean;
+  searchMode: string;
+  novelResultCount?: number | null;
+  response: {
+    reply: string;
+    language: string;
+    intent: string;
+    confidence: number;
+    novels: unknown[];
+    suggestedQuestions: string[];
+    actions: Array<{ label: string; type: string; value: string }>;
+  };
+  actionValues: string[];
+};

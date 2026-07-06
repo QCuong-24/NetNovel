@@ -4,6 +4,7 @@ import com.example.netnovel_server.chatbot.dto.ChatbotActionDTO;
 import com.example.netnovel_server.chatbot.dto.ChatbotResponseDTO;
 import com.example.netnovel_server.chatbot.model.ChatbotFaq;
 import com.example.netnovel_server.chatbot.model.ChatbotIntent;
+import com.example.netnovel_server.chatbot.model.ChatbotIntentAction;
 import com.example.netnovel_server.chatbot.model.ChatbotLanguage;
 import com.example.netnovel_server.chatbot.model.ChatbotMatchResult;
 import com.example.netnovel_server.chatbot.service.ChatbotKnowledgeBase;
@@ -12,7 +13,9 @@ import com.example.netnovel_server.dto.NovelDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class ChatbotResponseFactory {
@@ -20,15 +23,18 @@ public class ChatbotResponseFactory {
     private final ChatbotKnowledgeBase knowledgeBase;
     private final ChatbotNovelSearchService novelSearchService;
     private final ChatbotActionFactory actionFactory;
+    private final ChatbotSearchAccessPolicy searchAccessPolicy;
 
     public ChatbotResponseFactory(
         ChatbotKnowledgeBase knowledgeBase,
         ChatbotNovelSearchService novelSearchService,
-        ChatbotActionFactory actionFactory
+        ChatbotActionFactory actionFactory,
+        ChatbotSearchAccessPolicy searchAccessPolicy
     ) {
         this.knowledgeBase = knowledgeBase;
         this.novelSearchService = novelSearchService;
         this.actionFactory = actionFactory;
+        this.searchAccessPolicy = searchAccessPolicy;
     }
 
     public ChatbotResponseDTO faqResponse(ChatbotMatchResult match) {
@@ -47,9 +53,12 @@ public class ChatbotResponseFactory {
 
     public ChatbotResponseDTO novelSearchResponse(ChatbotMatchResult match) {
         String language = match.language().code();
-        List<NovelDTO> novels = novelSearchService.search(match.filters());
+        ChatbotSearchAccessDecision searchAccess = searchAccessPolicy.decide(match.filters());
+        List<NovelDTO> novels = novelSearchService.search(searchAccess.searchFilters());
 
-        String reply = novels.isEmpty()
+        String reply = searchAccess.publicFallback()
+            ? publicFallbackSearchText(language, match.filters().get("tag"))
+            : novels.isEmpty()
             ? text(language,
                 "Mình chưa tìm thấy truyện phù hợp. Bạn thử đổi thể loại hoặc từ khóa nhé.",
                 "I couldn't find matching novels yet. Try another genre or keyword.")
@@ -72,7 +81,11 @@ public class ChatbotResponseFactory {
             .confidence(match.confidence())
             .novels(novels)
             .suggestedQuestions(knowledgeBase.suggestions(language))
-            .actions(List.of(actionFactory.searchResultsAction(match.filters(), language)))
+            .actions(List.of(actionFactory.searchResultsAction(
+                searchAccess.actionFilters(),
+                language,
+                searchAccess.advancedMode()
+            )))
             .build();
     }
 
@@ -81,10 +94,8 @@ public class ChatbotResponseFactory {
         String language = match.language().code();
         var actions = actionFactory.navigationActions(intent, language);
 
-        String reply = actions.isEmpty() && "navigate_dashboard".equals(intent.id())
-            ? text(language,
-                "Tài khoản của bạn chưa có quyền mở dashboard.",
-                "Your account does not have access to the dashboard.")
+        String reply = actions.isEmpty() && hasRestrictedActions(intent)
+            ? navigationPermissionDeniedText(language, requiredRoles(intent))
             : intent.replies().getOrDefault(language, intent.replies().getOrDefault("en", ""));
 
         return ChatbotResponseDTO.builder()
@@ -154,5 +165,38 @@ public class ChatbotResponseFactory {
 
     private String text(String language, String vi, String en) {
         return "en".equals(language) ? en : vi;
+    }
+
+    private String publicFallbackSearchText(String language, String tag) {
+        String safeTag = tag == null || tag.isBlank() ? text(language, "tag này", "this tag") : tag;
+        return text(language,
+            "Mình nhận ra bạn muốn tìm theo tag \"" + safeTag + "\", nhưng lọc theo tag thuộc Advanced Search dành cho Manager/Admin. Mình sẽ chuyển bạn sang tìm kiếm công khai bằng từ khóa này trước nhé.",
+            "I understand you want to search by the \"" + safeTag + "\" tag, but tag filtering belongs to Advanced Search for Manager/Admin. I'll open public keyword search for you instead.");
+    }
+
+    private boolean hasRestrictedActions(ChatbotIntent intent) {
+        return intent.actions() != null && intent.actions().stream()
+            .anyMatch(action -> action.requiredRoles() != null && !action.requiredRoles().isEmpty());
+    }
+
+    private Set<String> requiredRoles(ChatbotIntent intent) {
+        Set<String> roles = new LinkedHashSet<>();
+        if (intent.actions() == null) {
+            return roles;
+        }
+
+        for (ChatbotIntentAction action : intent.actions()) {
+            if (action.requiredRoles() != null) {
+                roles.addAll(action.requiredRoles());
+            }
+        }
+        return roles;
+    }
+
+    private String navigationPermissionDeniedText(String language, Set<String> roles) {
+        String roleText = roles.isEmpty() ? text(language, "vai trò phù hợp", "a suitable role") : String.join("/", roles);
+        return text(language,
+            "Mình hiểu bạn muốn mở trang này, nhưng tài khoản của bạn chưa có quyền truy cập. Chức năng này yêu cầu " + roleText + ".",
+            "I understand you want to open this page, but your account does not have permission to access it. This feature requires " + roleText + ".");
     }
 }
