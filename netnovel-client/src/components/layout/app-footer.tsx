@@ -21,8 +21,8 @@ export function AppFooter() {
 
   return (
     <footer className="border-t bg-card text-card-foreground">
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-6">
-        <div className="grid gap-3">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-x-6 gap-y-8 px-4 py-8 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-6">
+        <div className="col-span-2 grid gap-3 md:col-span-1">
           <Link to={routes.home} className="flex items-center gap-2 font-extrabold text-primary">
             <LibraryBig className="size-6" />
             <span>NetNovel</span>
@@ -48,9 +48,9 @@ export function AppFooter() {
           ))}
         </div>
 
-        <div className="grid content-start gap-3">
+        <div className="col-span-2 grid content-start gap-3 sm:col-span-1">
           <h2 className="text-sm font-bold">{t('common.preferences')}</h2>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-[auto_auto] items-center justify-start gap-2">
             <ThemeToggle />
             <LanguageSwitcher />
           </div>

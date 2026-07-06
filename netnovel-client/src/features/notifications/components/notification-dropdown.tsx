@@ -51,7 +51,7 @@ export function NotificationDropdown() {
       </Button>
 
       {isOpen ? (
-        <div className="dropdown-motion absolute right-0 top-12 z-50 grid w-[min(92vw,24rem)] origin-top-right gap-3 rounded-lg border border-border/80 bg-background p-3 text-foreground shadow-2xl ring-1 ring-black/10 dark:ring-white/15">
+        <div className="dropdown-motion fixed inset-x-3 top-16 z-50 grid max-h-[calc(100dvh-5rem)] w-auto origin-top gap-3 rounded-lg border border-border/80 bg-background p-3 text-foreground shadow-2xl ring-1 ring-black/10 dark:ring-white/15 sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-[min(92vw,24rem)] sm:origin-top-right">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-extrabold">{t('notifications.title')}</p>
