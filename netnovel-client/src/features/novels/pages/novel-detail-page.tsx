@@ -54,6 +54,33 @@ function extractCrawledSourceUrl(description: string) {
   }
 }
 
+function isNovelBackRoute(route: string | null) {
+  if (!route) {
+    return false;
+  }
+
+  try {
+    const pathname = new URL(route, window.location.origin).pathname;
+
+    if (pathname === routes.novels) {
+      return true;
+    }
+
+    if (
+      pathname === routes.novelsNewest ||
+      pathname === routes.novelsHot ||
+      pathname === routes.novelsCompleted ||
+      /^\/novels\/genres\/[^/]+$/.test(pathname)
+    ) {
+      return true;
+    }
+
+    return /^\/novels\/[^/]+$/.test(pathname) && pathname !== routes.novelNew;
+  } catch {
+    return false;
+  }
+}
+
 export function NovelDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -159,7 +186,7 @@ export function NovelDetailPage() {
     const historyIndex = window.history.state?.idx;
     const previousRoute = getPreviousRoute();
 
-    if (typeof historyIndex === 'number' && historyIndex > 0 && previousRoute?.startsWith(routes.novels)) {
+    if (typeof historyIndex === 'number' && historyIndex > 0 && isNovelBackRoute(previousRoute)) {
       navigate(-1);
     } else {
       navigate(routes.novels);
@@ -195,7 +222,7 @@ export function NovelDetailPage() {
     return (
       <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-6">
         <div className="flex items-center justify-between gap-3">
-          <Button type="button" variant="ghost" onClick={handleBack}>
+          <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>
             <ArrowLeft />
             {t('novelPages.back')}
           </Button>
