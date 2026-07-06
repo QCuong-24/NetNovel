@@ -191,6 +191,33 @@ a {
   animation: panel-motion 200ms ease-out both;
 }
 
+.chart-line-draw {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: chart-line-draw 650ms ease-out forwards;
+}
+
+@keyframes chart-line-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.chart-point-pop {
+  opacity: 0;
+  transform: scale(0.85);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chart-point-pop 220ms ease-out 420ms forwards;
+}
+
+@keyframes chart-point-pop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .surface-motion {
     transition: none;
@@ -202,8 +229,19 @@ a {
 
   .dropdown-motion,
   .panel-motion,
+  .chart-line-draw,
+  .chart-point-pop,
   .hero-slide-motion {
     animation: none;
+  }
+
+  .chart-line-draw {
+    stroke-dashoffset: 0;
+  }
+
+  .chart-point-pop {
+    opacity: 1;
+    transform: none;
   }
 }
 

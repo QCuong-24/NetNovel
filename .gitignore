@@ -9,6 +9,7 @@ tools/recommendation-seeder/
 tools/generate-seeder/
 tools/k6/
 tools/search-eval/
+tools/recommend-eval/
 # tools/k6/
 tools/k6/data/
 

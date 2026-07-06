@@ -376,9 +376,11 @@ export function NovelDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge>{t(`novelForm.statusOptions.${novel.status}`)}</Badge>
               {novel.genres.map((genre) => (
-                <Badge key={genre} variant="secondary">
-                  {genre}
-                </Badge>
+                <Link className="rounded-full transition-transform hover:scale-105" key={genre} to={routes.novelsGenre(genre)}>
+                  <Badge className="cursor-pointer hover:bg-primary/15" variant="secondary">
+                    {genre}
+                  </Badge>
+                </Link>
               ))}
             </div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-normal md:text-6xl">

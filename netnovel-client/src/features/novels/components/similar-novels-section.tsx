@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,6 +45,8 @@ function translateHybridReason(t: ReturnType<typeof useTranslation>['t'], reason
 
 export function SimilarNovelsSection({ novelId }: SimilarNovelsSectionProps) {
   const { t } = useTranslation();
+  const sectionRef = useRef<HTMLDivElement | null>(null);
+  const [expandedReasonKey, setExpandedReasonKey] = useState<string | null>(null);
   const hasTokens = hasAuthTokens();
   const currentUserQuery = useCurrentUser();
   const roles = currentUserQuery.data?.roles;
@@ -64,12 +67,38 @@ export function SimilarNovelsSection({ novelId }: SimilarNovelsSectionProps) {
   const hybridRecommendations = hybridQuery.data?.content ?? [];
   const hasContent = useHybrid ? hybridRecommendations.length > 0 : basicNovels.length > 0;
 
+  useEffect(() => {
+    if (!expandedReasonKey) {
+      return undefined;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!sectionRef.current?.contains(event.target as Node)) {
+        setExpandedReasonKey(null);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setExpandedReasonKey(null);
+      }
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [expandedReasonKey]);
+
   if (!isLoading && !hasContent) {
     return null;
   }
 
   return (
-    <Card>
+    <Card ref={sectionRef}>
       <CardHeader>
         <CardTitle>{t('novelPages.similarNovels')}</CardTitle>
       </CardHeader>
@@ -79,22 +108,43 @@ export function SimilarNovelsSection({ novelId }: SimilarNovelsSectionProps) {
         ) : useHybrid ? (
           <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
             {hybridRecommendations.map((recommendation) => (
-              <div className="grid h-full grid-rows-[1fr_auto] gap-2" key={recommendation.novel.novelId}>
+              <div className="relative grid h-full grid-rows-[1fr_auto] gap-2" key={recommendation.novel.novelId}>
                 <NovelCard novel={recommendation.novel} />
-                {recommendation.reasons.length ? (
-                  <div className="flex flex-wrap gap-1">
-                    {recommendation.reasons.slice(0, 2).map((reason) => (
-                      <Badge className="text-[10px] leading-4" key={reason} variant="secondary">
-                        {translateHybridReason(t, reason)}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : null}
+                <div className="grid h-16 content-start gap-1 overflow-visible">
+                  {recommendation.reasons.slice(0, 2).map((reason, index) => {
+                    const translatedReason = translateHybridReason(t, reason);
+                    const reasonKey = `${recommendation.novel.novelId}-${index}-${reason}`;
+                    const isExpanded = expandedReasonKey === reasonKey;
+
+                    return (
+                      <button
+                        aria-expanded={isExpanded}
+                        className="relative min-w-0 text-left"
+                        key={reasonKey}
+                        title={translatedReason}
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setExpandedReasonKey((current) => (current === reasonKey ? null : reasonKey));
+                        }}
+                      >
+                        <Badge className="block max-w-full truncate px-2 py-1 text-[10px] leading-4" variant="secondary">
+                          {translatedReason}
+                        </Badge>
+                        {isExpanded ? (
+                          <span className="absolute left-0 top-[calc(100%+0.25rem)] z-20 w-56 rounded-lg border border-primary/30 bg-background px-3 py-2 text-xs font-semibold leading-5 text-foreground shadow-2xl ring-1 ring-black/15 dark:bg-slate-950 dark:ring-white/15">
+                            {translatedReason}
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
             {basicNovels.map((novel) => (
               <NovelCard key={novel.novelId} novel={novel} />
             ))}
