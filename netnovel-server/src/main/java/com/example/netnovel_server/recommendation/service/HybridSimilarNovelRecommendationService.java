@@ -28,8 +28,8 @@ public class HybridSimilarNovelRecommendationService {
 
     private static final Logger log = LoggerFactory.getLogger(HybridSimilarNovelRecommendationService.class);
 
-    private static final double SEMANTIC_WEIGHT = 0.50;
-    private static final double CONTENT_WEIGHT = 0.30;
+    private static final double SEMANTIC_WEIGHT = 0.40;
+    private static final double CONTENT_WEIGHT = 0.40;
     private static final double POPULARITY_WEIGHT = 0.20;
 
     private final NovelRepository novelRepository;

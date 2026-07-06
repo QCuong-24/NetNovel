@@ -29,9 +29,9 @@ public class HybridRecommendationService {
     private static final double CONTENT_WEIGHT = 0.50;
     private static final double ITEM_SIMILARITY_WEIGHT = 0.35;
     private static final double POPULARITY_FRESHNESS_WEIGHT = 0.15;
-    private static final double SEMANTIC_CONTENT_WEIGHT = 0.30;
+    private static final double SEMANTIC_CONTENT_WEIGHT = 0.35;
     private static final double SEMANTIC_ITEM_SIMILARITY_WEIGHT = 0.30;
-    private static final double SEMANTIC_PREFERENCE_WEIGHT = 0.25;
+    private static final double SEMANTIC_PREFERENCE_WEIGHT = 0.20;
     private static final double SEMANTIC_POPULARITY_FRESHNESS_WEIGHT = 0.15;
     private static final int MAX_PER_AUTHOR = 2;
     private static final int MAX_PER_PRIMARY_GENRE = 3;
