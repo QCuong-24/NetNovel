@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { httpClient } from '@/lib/api/http-client';
 
-import { createChapter, deleteChapter, getChapter, getNovelChapters, updateChapter } from './chapter-api';
+import { createChapter, deleteChapter, getChapter, getNovelChapterPage, getNovelChapters, updateChapter } from './chapter-api';
 
 vi.mock('@/lib/api/http-client', () => ({
   httpClient: {
@@ -38,6 +38,23 @@ describe('chapter-api', () => {
     await expect(getNovelChapters('10')).resolves.toBe(data);
 
     expect(mockedHttpClient.get).toHaveBeenCalledWith('/novels/10/chapters/all');
+  });
+
+  it('gets a paginated chapter list for a novel', async () => {
+    const data = {
+      content: [chapter()],
+      first: true,
+      last: false,
+      number: 0,
+      size: 10,
+      totalElements: 25,
+      totalPages: 3,
+    };
+    mockedHttpClient.get.mockResolvedValue({ data });
+
+    await expect(getNovelChapterPage('10', { page: 1, size: 5 })).resolves.toBe(data);
+
+    expect(mockedHttpClient.get).toHaveBeenCalledWith('/novels/10/chapters?page=1&size=5');
   });
 
   it('creates a chapter with payload', async () => {

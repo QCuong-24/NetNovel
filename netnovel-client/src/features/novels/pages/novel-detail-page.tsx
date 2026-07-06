@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { routes } from '@/config/routes';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { ChapterListSection } from '@/features/chapters/components/chapter-list-section';
-import { useNovelChapters } from '@/features/chapters/hooks/use-chapters';
+import { useNovelChapterPage } from '@/features/chapters/hooks/use-chapters';
 import { CommentSection } from '@/features/comments/components/comment-section';
 import { useCreateCrawlTaskMutation } from '@/features/crawl-tasks/hooks/use-crawl-tasks';
 import { getPreviousRoute } from '@/lib/navigation/route-history';
@@ -94,7 +94,7 @@ export function NovelDetailPage() {
   const { data: user } = useCurrentUser();
   const canEdit = canManageNovels(user);
   const { data: novel, isError, isLoading } = useNovel(novelId);
-  const { data: chapters = [], isLoading: isChaptersLoading } = useNovelChapters(novelId);
+  const { data: initialChapterPage, isLoading: isChaptersLoading } = useNovelChapterPage(novelId, { page: 0, size: 10 });
   const novelTagsQuery = useNovelTags(canEdit ? novelId : undefined);
   const { data: interaction } = useMyNovelInteraction(novelId);
   const updateNovelMutation = useUpdateNovelMutation(novelId ?? '');
@@ -242,7 +242,9 @@ export function NovelDetailPage() {
   const hasCrawledTag = novelTagsQuery.data?.some((tag) => tag.name.toLowerCase() === 'crawled') ?? false;
   const canRefetchCrawledNovel =
     canEdit && Boolean(crawledSourceUrl) && hasCrawledTag;
-  const sortedReadableChapters = [...chapters].sort((left, right) => left.chapterNumber - right.chapterNumber);
+  const sortedReadableChapters = [...(initialChapterPage?.content ?? [])].sort(
+    (left, right) => left.chapterNumber - right.chapterNumber,
+  );
   const firstChapter = sortedReadableChapters[0];
   const isPreviewOnly = novel.accessStatus === 'PREVIEW_ONLY';
   const isPreviewLimitedForViewer = isPreviewOnly && !canEdit;

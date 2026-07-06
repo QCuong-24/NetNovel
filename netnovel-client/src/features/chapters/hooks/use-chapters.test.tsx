@@ -7,6 +7,7 @@ import { createQueryWrapper, createTestQueryClient } from '@/test/query-client';
 import {
   useChapter,
   useCreateChapterMutation,
+  useNovelChapterPage,
   useNovelChapters,
   useUpdateChapterMutation,
 } from './use-chapters';
@@ -22,14 +23,16 @@ vi.mock('../api/chapter-api', () => ({
   createChapter: vi.fn(),
   deleteChapter: vi.fn(),
   getChapter: vi.fn(),
+  getNovelChapterPage: vi.fn(),
   getNovelChapters: vi.fn(),
   updateChapter: vi.fn(),
 }));
 
-import { createChapter, getChapter, getNovelChapters, updateChapter } from '../api/chapter-api';
+import { createChapter, getChapter, getNovelChapterPage, getNovelChapters, updateChapter } from '../api/chapter-api';
 
 const mockedCreateChapter = vi.mocked(createChapter);
 const mockedGetChapter = vi.mocked(getChapter);
+const mockedGetNovelChapterPage = vi.mocked(getNovelChapterPage);
 const mockedGetNovelChapters = vi.mocked(getNovelChapters);
 const mockedUpdateChapter = vi.mocked(updateChapter);
 
@@ -63,6 +66,26 @@ describe('use-chapters hooks', () => {
 
     await waitFor(() => expect(result.current.data).toEqual(chapters));
     expect(mockedGetNovelChapters).toHaveBeenCalledWith('10');
+  });
+
+  it('fetches a paginated chapter list for a novel', async () => {
+    const page = {
+      content: [chapter()],
+      first: true,
+      last: false,
+      number: 0,
+      size: 10,
+      totalElements: 25,
+      totalPages: 3,
+    };
+    mockedGetNovelChapterPage.mockResolvedValue(page);
+
+    const { result } = renderHook(() => useNovelChapterPage('10', { page: 1, size: 5 }), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.data).toEqual(page));
+    expect(mockedGetNovelChapterPage).toHaveBeenCalledWith('10', { page: 1, size: 5 });
   });
 
   it('create mutation calls API and invalidates the novel chapter list', async () => {

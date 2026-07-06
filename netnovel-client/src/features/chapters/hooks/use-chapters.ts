@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from '@/config/query-keys';
 import { getApiErrorMessage } from '@/lib/api/api-error';
-import { createChapter, deleteChapter, getChapter, getNovelChapters, updateChapter } from '../api/chapter-api';
-import type { ChapterPayload } from '../types';
+import { createChapter, deleteChapter, getChapter, getNovelChapterPage, getNovelChapters, updateChapter } from '../api/chapter-api';
+import type { ChapterPageParams, ChapterPayload } from '../types';
 
 export function useChapter(chapterId?: string) {
   return useQuery({
@@ -13,10 +13,21 @@ export function useChapter(chapterId?: string) {
   });
 }
 
-export function useNovelChapters(novelId?: string) {
+export function useNovelChapters(novelId?: string, enabled = true) {
   return useQuery({
-    queryKey: [...queryKeys.chapters, 'novel', novelId],
+    queryKey: [...queryKeys.chapters, 'novel', novelId, 'all'],
     queryFn: () => getNovelChapters(novelId!),
+    enabled: Boolean(novelId) && enabled,
+  });
+}
+
+export function useNovelChapterPage(novelId?: string, params: ChapterPageParams = {}) {
+  const page = params.page ?? 0;
+  const size = params.size ?? 10;
+
+  return useQuery({
+    queryKey: [...queryKeys.chapters, 'novel', novelId, 'page', page, size],
+    queryFn: () => getNovelChapterPage(novelId!, { page, size }),
     enabled: Boolean(novelId),
   });
 }

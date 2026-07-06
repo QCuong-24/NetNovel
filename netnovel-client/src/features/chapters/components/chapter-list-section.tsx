@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
 import { canManageNovels } from '@/features/novels/lib/novel-permissions';
 import { formatDateTime } from '@/features/novels/lib/novel-format';
-import { useDeleteChapterMutation, useNovelChapters } from '../hooks/use-chapters';
+import { useDeleteChapterMutation, useNovelChapterPage, useNovelChapters } from '../hooks/use-chapters';
 
 type ChapterListSectionProps = {
   novelId: string;
@@ -23,19 +23,25 @@ function removeCountdown(countdowns: Record<number, number>, chapterId: number) 
 export function ChapterListSection({ novelId }: ChapterListSectionProps) {
   const { t } = useTranslation();
   const { data: user } = useCurrentUser();
-  const { data: chapters = [], isLoading } = useNovelChapters(novelId);
-  const deleteChapterMutation = useDeleteChapterMutation(novelId);
-  const canEditChapter = canManageNovels(user);
   const [showAllChapters, setShowAllChapters] = useState(false);
   const [isDescending, setIsDescending] = useState(false);
+  const { data: initialChapterPage, isLoading: isInitialPageLoading } = useNovelChapterPage(novelId, {
+    page: 0,
+    size: 10,
+  });
+  const { data: allChapters, isFetching: isAllChaptersFetching } = useNovelChapters(novelId, showAllChapters);
+  const deleteChapterMutation = useDeleteChapterMutation(novelId);
+  const canEditChapter = canManageNovels(user);
   const [pendingDeleteCountdowns, setPendingDeleteCountdowns] = useState<Record<number, number>>({});
   const deleteTimeoutsRef = useRef(new Map<number, ReturnType<typeof setTimeout>>());
   const deleteIntervalsRef = useRef(new Map<number, ReturnType<typeof setInterval>>());
+  const chapters = showAllChapters ? (allChapters ?? initialChapterPage?.content ?? []) : (initialChapterPage?.content ?? []);
+  const totalChapterCount = initialChapterPage?.totalElements ?? chapters.length;
+  const isLoading = isInitialPageLoading || (showAllChapters && isAllChaptersFetching && !allChapters);
   const sortedChapters = [...chapters].sort((left, right) =>
     isDescending ? right.chapterNumber - left.chapterNumber : left.chapterNumber - right.chapterNumber,
   );
-  const visibleChapters = showAllChapters ? sortedChapters : sortedChapters.slice(0, 10);
-  const hasHiddenChapters = sortedChapters.length > visibleChapters.length;
+  const hasHiddenChapters = !showAllChapters && totalChapterCount > sortedChapters.length;
 
   useEffect(() => {
     const timeouts = deleteTimeoutsRef.current;
@@ -126,7 +132,7 @@ export function ChapterListSection({ novelId }: ChapterListSectionProps) {
         {!isLoading && !chapters.length ? (
           <p className="text-sm text-muted-foreground">{t('chapters.empty')}</p>
         ) : null}
-        {visibleChapters.map((chapter) => {
+        {sortedChapters.map((chapter) => {
           const pendingDeleteSeconds = pendingDeleteCountdowns[chapter.chapterId];
           const isPendingDelete = typeof pendingDeleteSeconds === 'number';
 
@@ -187,16 +193,15 @@ export function ChapterListSection({ novelId }: ChapterListSectionProps) {
             </div>
           );
         })}
-        {chapters.length > 10 ? (
+        {totalChapterCount > 10 ? (
           <Button
             className="mt-2 w-full"
+            disabled={isAllChaptersFetching}
             type="button"
             variant="outline"
             onClick={() => setShowAllChapters((current) => !current)}
           >
-            {hasHiddenChapters
-              ? t('chapters.viewMore', { count: sortedChapters.length - visibleChapters.length })
-              : t('chapters.viewLess')}
+            {hasHiddenChapters ? t('chapters.viewMore', { count: totalChapterCount - sortedChapters.length }) : t('chapters.viewLess')}
           </Button>
         ) : null}
       </CardContent>

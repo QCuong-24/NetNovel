@@ -1,3 +1,5 @@
+import type { PageResponse } from '@/features/novels/types';
+
 export type ChapterSummary = {
   chapterId: number;
   novelId: number;
@@ -15,4 +17,11 @@ export type ChapterPayload = {
   title: string;
   chapterNumber: number;
   content: string;
+};
+
+export type ChapterPage = PageResponse<ChapterSummary>;
+
+export type ChapterPageParams = {
+  page?: number;
+  size?: number;
 };
