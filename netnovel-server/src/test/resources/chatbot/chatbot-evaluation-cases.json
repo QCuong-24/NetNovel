@@ -9,7 +9,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "tìm truyện tu tiên",
@@ -20,7 +21,8 @@
     },
     "expectedActionValueContains": "/search?q=Cultivation#public",
     "expectedSearchMode": "public",
-    "expectedResponseType": "novel_search"
+    "expectedResponseType": "novel_search",
+    "suite": "functional"
   },
   {
     "message": "tôi muốn truyện kiểu tu luyện",
@@ -31,7 +33,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "truyen yeu to tro choi",
@@ -42,7 +45,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "truyện giả tưởng",
@@ -53,7 +57,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "truyen vo thuat",
@@ -64,7 +69,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "truyện hot",
@@ -75,7 +81,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "tìm truyện có tên đấu phá",
@@ -87,42 +94,48 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "làm sao theo dõi truyện",
     "expectedLanguage": "vi",
     "expectedIntent": "faq",
     "expectedFaqId": "how_to_follow_novel",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "collection là gì",
     "expectedLanguage": "vi",
     "expectedIntent": "faq",
     "expectedFaqId": "collection_feature_explanation",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "mở profile",
     "expectedLanguage": "vi",
     "expectedIntent": "navigate_profile",
     "expectedResponseType": "navigation",
-    "expectedActionValueContains": "/profile"
+    "expectedActionValueContains": "/profile",
+    "suite": "functional"
   },
   {
     "message": "lưu truyện",
     "expectedLanguage": "vi",
     "expectedIntent": "clarify_save_novel",
     "expectedAmbiguous": true,
-    "expectedResponseType": "clarification"
+    "expectedResponseType": "clarification",
+    "suite": "functional"
   },
   {
     "message": "truyện hay",
     "expectedLanguage": "vi",
     "expectedIntent": "clarify_search",
     "expectedAmbiguous": true,
-    "expectedResponseType": "clarification"
+    "expectedResponseType": "clarification",
+    "suite": "functional"
   },
   {
     "message": "completed romance novels",
@@ -134,7 +147,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "I want books like cultivation",
@@ -145,7 +159,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "show me latest novels",
@@ -156,7 +171,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "find novels containing lord of mysteries",
@@ -168,7 +184,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "novels by Kim Dung",
@@ -179,105 +196,120 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "open my collection",
     "expectedLanguage": "en",
     "expectedIntent": "navigate_collection",
     "expectedActionValueContains": "/collection",
-    "expectedResponseType": "navigation"
+    "expectedResponseType": "navigation",
+    "suite": "functional"
   },
   {
     "message": "what features does this website have",
     "expectedLanguage": "en",
     "expectedIntent": "faq",
     "expectedFaqId": "website_overview",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "what is bookmark",
     "expectedLanguage": "en",
     "expectedIntent": "faq",
     "expectedFaqId": "how_to_bookmark",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "save novel",
     "expectedLanguage": "en",
     "expectedIntent": "clarify_save_novel",
     "expectedAmbiguous": true,
-    "expectedResponseType": "clarification"
+    "expectedResponseType": "clarification",
+    "suite": "functional"
   },
   {
     "message": "what is the weather tomorrow",
     "expectedLanguage": "en",
     "expectedIntent": "fallback",
     "expectedFallback": true,
-    "expectedResponseType": "fallback"
+    "expectedResponseType": "fallback",
+    "suite": "functional"
   },
   {
     "message": "what is two plus two",
     "expectedLanguage": "en",
     "expectedIntent": "fallback",
     "expectedFallback": true,
-    "expectedResponseType": "fallback"
+    "expectedResponseType": "fallback",
+    "suite": "functional"
   },
   {
     "message": "tại sao tôi không dùng được tìm kiếm nâng cao",
     "expectedLanguage": "vi",
     "expectedIntent": "faq",
     "expectedFaqId": "advanced_search_permission",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "tag search là gì",
     "expectedLanguage": "vi",
     "expectedIntent": "faq",
     "expectedFaqId": "tag_search_explanation",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "genre và tag khác gì",
     "expectedLanguage": "vi",
     "expectedIntent": "faq",
     "expectedFaqId": "genre_vs_tag_explanation",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "why login failed",
     "expectedLanguage": "en",
     "expectedIntent": "faq",
     "expectedFaqId": "cannot_login_help",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "chatbot làm được gì",
     "expectedLanguage": "vi",
     "expectedIntent": "faq",
     "expectedFaqId": "chatbot_capabilities",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "chatbot dùng công nghệ gì",
     "expectedLanguage": "vi",
     "expectedIntent": "faq",
     "expectedFaqId": "chatbot_technology_explanation",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "no search results",
     "expectedLanguage": "en",
     "expectedIntent": "faq",
     "expectedFaqId": "empty_search_results_help",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "why permission denied",
     "expectedLanguage": "en",
     "expectedIntent": "faq",
     "expectedFaqId": "permission_denied_help",
-    "expectedResponseType": "faq"
+    "expectedResponseType": "faq",
+    "suite": "functional"
   },
   {
     "message": "truyện đang ra",
@@ -288,7 +320,8 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "completed novels",
@@ -299,35 +332,40 @@
     },
     "expectedResponseType": "novel_search",
     "expectedSearchMode": "public",
-    "expectedActionValueContains": "#public"
+    "expectedActionValueContains": "#public",
+    "suite": "functional"
   },
   {
     "message": "please go home",
     "expectedLanguage": "en",
     "expectedIntent": "navigate_home",
     "expectedActionValueContains": "/",
-    "expectedResponseType": "navigation"
+    "expectedResponseType": "navigation",
+    "suite": "functional"
   },
   {
     "message": "open novel list",
     "expectedLanguage": "en",
     "expectedIntent": "navigate_novels",
     "expectedActionValueContains": "/novels",
-    "expectedResponseType": "navigation"
+    "expectedResponseType": "navigation",
+    "suite": "functional"
   },
   {
     "message": "please open rankings",
     "expectedLanguage": "en",
     "expectedIntent": "navigate_rankings",
     "expectedActionValueContains": "/rankings",
-    "expectedResponseType": "navigation"
+    "expectedResponseType": "navigation",
+    "suite": "functional"
   },
   {
     "message": "quản lý chatbot",
     "expectedLanguage": "vi",
     "expectedIntent": "navigate_admin_chatbot",
     "expectedPermissionDenied": true,
-    "expectedResponseType": "permission_denied"
+    "expectedResponseType": "permission_denied",
+    "suite": "functional"
   },
   {
     "message": "quản lý chatbot",
@@ -338,7 +376,8 @@
     ],
     "expectedActionValueContains": "/dashboard#chatbot",
     "expectedPermissionDenied": false,
-    "expectedResponseType": "navigation"
+    "expectedResponseType": "navigation",
+    "suite": "functional"
   },
   {
     "message": "tìm truyện tu tiên",
@@ -352,7 +391,8 @@
     },
     "expectedActionValueContains": "/search?q=Cultivation#advanced",
     "expectedSearchMode": "advanced",
-    "expectedResponseType": "novel_search"
+    "expectedResponseType": "novel_search",
+    "suite": "functional"
   },
   {
     "message": "open crawl tasks",
@@ -362,7 +402,8 @@
       "USER"
     ],
     "expectedPermissionDenied": true,
-    "expectedResponseType": "permission_denied"
+    "expectedResponseType": "permission_denied",
+    "suite": "functional"
   },
   {
     "message": "open crawl tasks",
@@ -373,6 +414,254 @@
     ],
     "expectedPermissionDenied": false,
     "expectedResponseType": "navigation",
-    "expectedActionValueContains": "/crawl-tasks"
+    "expectedActionValueContains": "/crawl-tasks",
+    "suite": "functional"
+  },
+  {
+    "suite": "robustness",
+    "message": "cho toi truyen tu tien full",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Cultivation",
+      "status": "COMPLETED"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "muon doc may bo co he thong",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "System"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "book like game element pls",
+    "expectedLanguage": "en",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Game Elements"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "co truyen fantasy nao xong roi ko",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "genre": "Fantasy",
+      "status": "COMPLETED"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "novel nao moi update z",
+    "expectedLanguage": "vi",
+    "expectedIntent": "latest_novels",
+    "expectedFilters": {
+      "sort": "latest"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "mo quan ly bot",
+    "expectedLanguage": "vi",
+    "expectedIntent": "navigate_admin_chatbot",
+    "expectedPermissionDenied": true,
+    "expectedResponseType": "permission_denied"
+  },
+  {
+    "suite": "robustness",
+    "message": "sao ko vao dc dashboard",
+    "expectedLanguage": "vi",
+    "expectedIntent": "navigate_dashboard",
+    "expectedPermissionDenied": true,
+    "expectedResponseType": "permission_denied"
+  },
+  {
+    "suite": "robustness",
+    "message": "lam sao luu chuong nay lai",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "how_to_bookmark",
+    "expectedResponseType": "faq"
+  },
+  {
+    "suite": "robustness",
+    "message": "toi bi mat nut follow",
+    "expectedLanguage": "vi",
+    "expectedIntent": "faq",
+    "expectedFaqId": "how_to_follow_novel",
+    "expectedResponseType": "faq"
+  },
+  {
+    "suite": "robustness",
+    "message": "can tim truyen ten lord mysteries",
+    "expectedLanguage": "vi",
+    "expectedIntent": "search_by_title",
+    "expectedFilters": {
+      "scope": "title",
+      "q": "lord mysteries"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "toi muon tim theo tag reincarnation",
+    "expectedLanguage": "vi",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Reincarnation"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "find me reincarnation novels and open rankings",
+    "expectedLanguage": "en",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Reincarnation"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "open rank page pls",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_rankings",
+    "expectedActionValueContains": "/rankings",
+    "expectedResponseType": "navigation"
+  },
+  {
+    "suite": "robustness",
+    "message": "i want to save this chapter for later",
+    "expectedLanguage": "en",
+    "expectedIntent": "faq",
+    "expectedFaqId": "how_to_bookmark",
+    "expectedResponseType": "faq"
+  },
+  {
+    "suite": "robustness",
+    "message": "why my tag search no work",
+    "expectedLanguage": "en",
+    "expectedIntent": "faq",
+    "expectedFaqId": "advanced_search_permission",
+    "expectedResponseType": "faq"
+  },
+  {
+    "suite": "robustness",
+    "message": "i need admin user page",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_user_manager",
+    "expectedPermissionDenied": true,
+    "expectedResponseType": "permission_denied"
+  },
+  {
+    "suite": "robustness",
+    "message": "i need admin user page",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_user_manager",
+    "roles": [
+      "ADMIN"
+    ],
+    "expectedPermissionDenied": false,
+    "expectedActionValueContains": "/dashboard#users",
+    "expectedResponseType": "navigation"
+  },
+  {
+    "suite": "robustness",
+    "message": "latest cultivation completed novels",
+    "expectedLanguage": "en",
+    "expectedIntent": "filtered_novels",
+    "expectedFilters": {
+      "tag": "Cultivation",
+      "status": "COMPLETED"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "bitcoin hom nay bao nhieu",
+    "expectedLanguage": "vi",
+    "expectedIntent": "fallback",
+    "expectedFallback": true,
+    "expectedResponseType": "fallback"
+  },
+  {
+    "suite": "robustness",
+    "message": "write me a poem about dragons",
+    "expectedLanguage": "en",
+    "expectedIntent": "fallback",
+    "expectedFallback": true,
+    "expectedResponseType": "fallback"
+  },
+  {
+    "suite": "robustness",
+    "message": "truyen nao vua moi cap nhat vay ban",
+    "expectedLanguage": "vi",
+    "expectedIntent": "latest_novels",
+    "expectedFilters": {
+      "sort": "latest"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "cho xem may bo hot nhat di",
+    "expectedLanguage": "vi",
+    "expectedIntent": "popular_novels",
+    "expectedFilters": {
+      "sort": "popular"
+    },
+    "expectedResponseType": "novel_search",
+    "expectedSearchMode": "public"
+  },
+  {
+    "suite": "robustness",
+    "message": "where profile",
+    "expectedLanguage": "en",
+    "expectedIntent": "navigate_profile",
+    "expectedActionValueContains": "/profile",
+    "expectedResponseType": "navigation"
+  },
+  {
+    "suite": "robustness",
+    "message": "collection help save novel follow bookmark all confuse",
+    "expectedLanguage": "en",
+    "expectedIntent": "clarify_save_novel",
+    "expectedAmbiguous": true,
+    "expectedResponseType": "clarification"
+  },
+  {
+    "suite": "robustness",
+    "message": "advanced search tag cultivation as manager",
+    "expectedLanguage": "en",
+    "expectedIntent": "filtered_novels",
+    "roles": [
+      "MANAGER"
+    ],
+    "expectedFilters": {
+      "tag": "Cultivation"
+    },
+    "expectedSearchMode": "advanced",
+    "expectedResponseType": "novel_search"
   }
 ]

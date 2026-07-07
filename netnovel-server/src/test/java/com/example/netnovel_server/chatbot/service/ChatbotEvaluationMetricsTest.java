@@ -57,11 +57,25 @@ class ChatbotEvaluationMetricsTest {
     void evaluatesCuratedChatbotDataset() throws IOException {
         when(novelSearchService.search(anyMap())).thenReturn(List.of());
         List<EvaluationCase> cases = loadCases();
-        EvaluationMetrics metrics = evaluate(cases);
+        List<EvaluationCase> functionalCases = cases.stream()
+            .filter(evaluationCase -> "functional".equals(evaluationCase.suite()))
+            .toList();
+        List<EvaluationCase> robustnessCases = cases.stream()
+            .filter(evaluationCase -> "robustness".equals(evaluationCase.suite()))
+            .toList();
 
-        System.out.println(metrics.report());
+        EvaluationMetrics overallMetrics = evaluate("overall", cases);
+        EvaluationMetrics functionalMetrics = evaluate("functional", functionalCases);
+        EvaluationMetrics robustnessMetrics = evaluate("robustness", robustnessCases);
 
-        assertTrue(metrics.failures().isEmpty(), () -> String.join(System.lineSeparator(), metrics.failures()));
+        System.out.println(overallMetrics.report());
+        System.out.println(functionalMetrics.report());
+        System.out.println(robustnessMetrics.report());
+        if (!robustnessMetrics.failures().isEmpty()) {
+            System.out.println(robustnessMetrics.failureReport());
+        }
+
+        assertTrue(functionalMetrics.failures().isEmpty(), () -> String.join(System.lineSeparator(), functionalMetrics.failures()));
     }
 
     private List<EvaluationCase> loadCases() throws IOException {
@@ -74,7 +88,7 @@ class ChatbotEvaluationMetricsTest {
         }
     }
 
-    private EvaluationMetrics evaluate(List<EvaluationCase> cases) {
+    private EvaluationMetrics evaluate(String suite, List<EvaluationCase> cases) {
         int languageCorrect = 0;
         int intentCorrect = 0;
         int faqCorrect = 0;
@@ -208,6 +222,7 @@ class ChatbotEvaluationMetricsTest {
         }
 
         return new EvaluationMetrics(
+            suite,
             cases.size(),
             languageCorrect,
             intentCorrect,
@@ -311,6 +326,7 @@ class ChatbotEvaluationMetricsTest {
     }
 
     record EvaluationCase(
+        String suite,
         String message,
         String expectedLanguage,
         String expectedIntent,
@@ -325,12 +341,14 @@ class ChatbotEvaluationMetricsTest {
         List<String> roles
     ) {
         EvaluationCase {
+            suite = suite == null || suite.isBlank() ? "functional" : suite;
             expectedFilters = expectedFilters == null ? Map.of() : expectedFilters;
             roles = roles == null ? List.of() : roles;
         }
     }
 
     record EvaluationMetrics(
+        String suite,
         int totalCases,
         int languageCorrect,
         int intentCorrect,
@@ -354,7 +372,7 @@ class ChatbotEvaluationMetricsTest {
     ) {
         String report() {
             return System.lineSeparator()
-                + "==== Chatbot evaluation metrics ====" + System.lineSeparator()
+                + "==== Chatbot evaluation metrics: " + suite + " ====" + System.lineSeparator()
                 + "Total cases: " + totalCases + System.lineSeparator()
                 + "Language accuracy: " + percent(languageCorrect, totalCases) + " (" + languageCorrect + "/" + totalCases + ")" + System.lineSeparator()
                 + "Intent accuracy: " + percent(intentCorrect, totalCases) + " (" + intentCorrect + "/" + totalCases + ")" + System.lineSeparator()
@@ -368,6 +386,14 @@ class ChatbotEvaluationMetricsTest {
                 + "Permission safety rate: " + percent(permissionSafetyCorrect, permissionSafetyTotal) + " (" + permissionSafetyCorrect + "/" + permissionSafetyTotal + ")" + System.lineSeparator()
                 + "Failures: " + failures.size() + System.lineSeparator()
                 + "====================================";
+        }
+
+        String failureReport() {
+            return System.lineSeparator()
+                + "==== Chatbot robustness failure details ====" + System.lineSeparator()
+                + String.join(System.lineSeparator(), failures)
+                + System.lineSeparator()
+                + "===========================================";
         }
 
         private String percent(int numerator, int denominator) {
