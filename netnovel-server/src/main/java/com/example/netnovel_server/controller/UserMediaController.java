@@ -6,6 +6,7 @@ import com.example.netnovel_server.dto.UserDTO;
 import com.example.netnovel_server.service.UserMediaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,7 @@ public class UserMediaController {
 
     @PatchMapping("/avatar")
     @Operation(summary = "Save current user's avatar after frontend uploads it to Cloudinary")
-    public ResponseEntity<UserDTO> updateMyAvatar(@RequestBody ImageMetadataDTO request) {
+    public ResponseEntity<UserDTO> updateMyAvatar(@Valid @RequestBody ImageMetadataDTO request) {
         return ResponseEntity.ok(userMediaService.updateMyAvatar(request));
     }
 }

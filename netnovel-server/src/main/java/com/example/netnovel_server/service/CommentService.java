@@ -8,6 +8,7 @@ import com.example.netnovel_server.exception.ForbiddenException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.CommentMapper;
 import com.example.netnovel_server.repository.*;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import com.example.netnovel_server.utility.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -181,7 +182,11 @@ public class CommentService {
         if (request == null || request.getContent() == null || request.getContent().isBlank()) {
             throw new BadRequestException("Comment content is required");
         }
-        return request.getContent().trim();
+        String sanitized = HtmlSanitizer.plainText(request.getContent());
+        if (sanitized == null || sanitized.isBlank()) {
+            throw new BadRequestException("Comment content is required");
+        }
+        return sanitized;
     }
 
     private Comment findComment(Long commentId) {

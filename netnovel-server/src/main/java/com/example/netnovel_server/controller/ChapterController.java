@@ -6,6 +6,7 @@ import com.example.netnovel_server.dto.ChapterDTO;
 import com.example.netnovel_server.service.ChapterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +46,7 @@ public class ChapterController {
     @Operation(summary = "Create a chapter for a novel")
     public ResponseEntity<ChapterContentDTO> createChapter(
         @PathVariable Long novelId,
-        @RequestBody ChapterCreateDTO request
+        @Valid @RequestBody ChapterCreateDTO request
     ) {
         return ResponseEntity.ok(chapterService.createChapter(novelId, request));
     }
@@ -54,7 +55,7 @@ public class ChapterController {
     @Operation(summary = "Update chapter title, number, and content")
     public ResponseEntity<ChapterContentDTO> updateChapter(
         @PathVariable Long chapterId,
-        @RequestBody ChapterCreateDTO request
+        @Valid @RequestBody ChapterCreateDTO request
     ) {
         return ResponseEntity.ok(chapterService.updateChapter(chapterId, request));
     }

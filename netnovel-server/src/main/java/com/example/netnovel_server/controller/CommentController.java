@@ -5,6 +5,7 @@ import com.example.netnovel_server.dto.CommentDTO;
 import com.example.netnovel_server.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +52,7 @@ public class CommentController {
     @Operation(summary = "Create a root comment for a novel")
     public ResponseEntity<CommentDTO> createNovelComment(
         @PathVariable Long novelId,
-        @RequestBody CommentCreateDTO request
+        @Valid @RequestBody CommentCreateDTO request
     ) {
         return ResponseEntity.ok(commentService.createNovelComment(novelId, request));
     }
@@ -60,7 +61,7 @@ public class CommentController {
     @Operation(summary = "Create a root comment for a chapter")
     public ResponseEntity<CommentDTO> createChapterComment(
         @PathVariable Long chapterId,
-        @RequestBody CommentCreateDTO request
+        @Valid @RequestBody CommentCreateDTO request
     ) {
         return ResponseEntity.ok(commentService.createChapterComment(chapterId, request));
     }
@@ -69,7 +70,7 @@ public class CommentController {
     @Operation(summary = "Reply to a comment")
     public ResponseEntity<CommentDTO> createReply(
         @PathVariable Long commentId,
-        @RequestBody CommentCreateDTO request
+        @Valid @RequestBody CommentCreateDTO request
     ) {
         return ResponseEntity.ok(commentService.createReply(commentId, request));
     }
@@ -78,7 +79,7 @@ public class CommentController {
     @Operation(summary = "Update own comment")
     public ResponseEntity<CommentDTO> updateComment(
         @PathVariable Long commentId,
-        @RequestBody CommentCreateDTO request
+        @Valid @RequestBody CommentCreateDTO request
     ) {
         return ResponseEntity.ok(commentService.updateComment(commentId, request));
     }

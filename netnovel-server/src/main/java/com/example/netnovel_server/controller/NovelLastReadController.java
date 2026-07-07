@@ -5,6 +5,7 @@ import com.example.netnovel_server.dto.NovelLastReadUpdateDTO;
 import com.example.netnovel_server.service.NovelLastReadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class NovelLastReadController {
 
     @PostMapping
     @Operation(summary = "Create or update current user's last read")
-    public ResponseEntity<NovelLastReadDTO> updateMyLastRead(@RequestBody NovelLastReadUpdateDTO request) {
+    public ResponseEntity<NovelLastReadDTO> updateMyLastRead(@Valid @RequestBody NovelLastReadUpdateDTO request) {
         return ResponseEntity.ok(novelLastReadService.updateMyLastRead(request));
     }
 

@@ -7,6 +7,7 @@ import com.example.netnovel_server.chatbot.service.embedding.ChatbotEmbeddingRei
 import com.example.netnovel_server.chatbot.service.ChatbotService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +30,7 @@ public class ChatbotController {
 
     @PostMapping("/message")
     @Operation(summary = "Send a message to the FAQ and intent chatbot")
-    public ResponseEntity<ChatbotResponseDTO> message(@RequestBody ChatbotRequestDTO request) {
+    public ResponseEntity<ChatbotResponseDTO> message(@Valid @RequestBody ChatbotRequestDTO request) {
         return ResponseEntity.ok(chatbotService.handle(request));
     }
 

@@ -4,6 +4,9 @@ import com.example.netnovel_server.dto.TagDTO;
 import com.example.netnovel_server.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -42,13 +45,15 @@ public class TagController {
 
     @PostMapping
     @Operation(summary = "Create a tag")
-    public ResponseEntity<TagDTO> createTag(@RequestBody TagDTO request) {
+    public ResponseEntity<TagDTO> createTag(@Valid @RequestBody TagDTO request) {
         return ResponseEntity.ok(tagService.createTag(request));
     }
 
     @PostMapping("/batch")
     @Operation(summary = "Create multiple tags from a string list")
-    public ResponseEntity<List<TagDTO>> createTags(@RequestBody List<String> tagNames) {
+    public ResponseEntity<List<TagDTO>> createTags(
+        @Valid @RequestBody List<@NotBlank(message = "Tag name is required") @Size(max = 100, message = "Tag name must not exceed 100 characters") String> tagNames
+    ) {
         return ResponseEntity.ok(tagService.createTags(tagNames));
     }
 
@@ -56,7 +61,7 @@ public class TagController {
     @Operation(summary = "Update tags of a novel")
     public ResponseEntity<List<TagDTO>> updateNovelTags(
         @PathVariable Long novelId,
-        @RequestBody List<String> tagNames
+        @Valid @RequestBody List<@NotBlank(message = "Tag name is required") @Size(max = 100, message = "Tag name must not exceed 100 characters") String> tagNames
     ) {
         return ResponseEntity.ok(tagService.updateNovelTags(novelId, tagNames));
     }

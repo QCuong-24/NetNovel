@@ -122,6 +122,12 @@ Covered areas:
 - `TokenHashUtils`
   - SHA-256 digest behavior
   - deterministic and input-sensitive hashing
+- `HtmlSanitizer`
+  - `plainText` null handling, tag removal, and trimming
+  - `basicContent` safe formatting preservation for tags such as `p`, `strong`, and safe `https` links
+  - unsafe markup removal for `script`, `javascript:` links, `class`, and `style`
+  - `safeUrlLikeText` rejection for dangerous schemes: `javascript:`, `data:`, `vbscript:`
+  - safe URL/text trimming
 - Existing chatbot tests
   - language detection
   - rule-based intent matching
@@ -132,6 +138,11 @@ Important note:
 
 Suggested next server tests:
 
+- `HtmlSanitizer`
+  - mixed-case dangerous schemes such as `JaVaScRiPt:`
+  - blank input behavior for URL-like text
+  - event-handler attributes such as `onclick`
+  - image/error-handler payloads such as `<img src=x onerror=alert(1)>`
 - `NovelService`
   - create novel success
   - reject duplicate title/source combinations if applicable
@@ -258,7 +269,7 @@ Suggested next frontend tests:
 
 Last verified:
 
-- server: `127` tests passed
+- server: `133` tests passed
 - crawler: `9` tests passed
 - frontend: `74` tests passed
 

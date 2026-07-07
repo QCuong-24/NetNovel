@@ -8,6 +8,7 @@ import com.example.netnovel_server.exception.BadRequestException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.UserMapper;
 import com.example.netnovel_server.repository.UserRepository;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import com.example.netnovel_server.utility.SecurityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,21 +40,28 @@ public class UserMediaService {
 
         imageStorageService.delete(user.getProfilePicturePublicId());
 
-        user.setProfilePictureUrl(request.getUrl());
-        user.setProfilePicturePublicId(request.getPublicId());
+        user.setProfilePictureUrl(HtmlSanitizer.safeUrlLikeText(request.getUrl()));
+        user.setProfilePicturePublicId(HtmlSanitizer.safeUrlLikeText(request.getPublicId()));
 
         return UserMapper.toDTO(userRepository.save(user));
     }
 
     private void validateImageMetadata(ImageMetadataDTO request, String folder) {
-        if (request == null || request.getUrl() == null || request.getUrl().isBlank()) {
+        if (request == null) {
             throw new BadRequestException("Image url is required");
         }
-        if (request.getPublicId() == null || request.getPublicId().isBlank()) {
+        String url = HtmlSanitizer.safeUrlLikeText(request.getUrl());
+        String publicId = HtmlSanitizer.safeUrlLikeText(request.getPublicId());
+        if (url == null || url.isBlank()) {
+            throw new BadRequestException("Image url is required");
+        }
+        if (publicId == null || publicId.isBlank()) {
             throw new BadRequestException("Image publicId is required");
         }
-        if (!request.getPublicId().startsWith(folder + "/")) {
+        if (!publicId.startsWith(folder + "/")) {
             throw new BadRequestException("Image publicId must belong to folder: " + folder);
         }
+        request.setUrl(url);
+        request.setPublicId(publicId);
     }
 }

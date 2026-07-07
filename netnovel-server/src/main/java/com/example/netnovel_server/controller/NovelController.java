@@ -5,6 +5,7 @@ import com.example.netnovel_server.dto.NovelDTO;
 import com.example.netnovel_server.service.NovelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -66,13 +67,13 @@ public class NovelController {
 
     @PostMapping
     @Operation(summary = "Create a novel")
-    public ResponseEntity<NovelDTO> createNovel(@RequestBody NovelCreateDTO request) {
+    public ResponseEntity<NovelDTO> createNovel(@Valid @RequestBody NovelCreateDTO request) {
         return ResponseEntity.ok(novelService.createNovel(request));
     }
 
     @PutMapping("/{novelId}")
     @Operation(summary = "Update a novel")
-    public ResponseEntity<NovelDTO> updateNovel(@PathVariable Long novelId, @RequestBody NovelCreateDTO request) {
+    public ResponseEntity<NovelDTO> updateNovel(@PathVariable Long novelId, @Valid @RequestBody NovelCreateDTO request) {
         return ResponseEntity.ok(novelService.updateNovel(novelId, request));
     }
 

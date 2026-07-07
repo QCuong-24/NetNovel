@@ -8,6 +8,7 @@ import com.example.netnovel_server.exception.BadRequestException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.NovelMapper;
 import com.example.netnovel_server.repository.NovelRepository;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,21 +42,28 @@ public class NovelMediaService {
 
         imageStorageService.delete(novel.getCoverImagePublicId());
 
-        novel.setCoverImageUrl(request.getUrl());
-        novel.setCoverImagePublicId(request.getPublicId());
+        novel.setCoverImageUrl(HtmlSanitizer.safeUrlLikeText(request.getUrl()));
+        novel.setCoverImagePublicId(HtmlSanitizer.safeUrlLikeText(request.getPublicId()));
 
         return NovelMapper.toDTO(novelRepository.save(novel));
     }
 
     private void validateImageMetadata(ImageMetadataDTO request, String folder) {
-        if (request == null || request.getUrl() == null || request.getUrl().isBlank()) {
+        if (request == null) {
             throw new BadRequestException("Image url is required");
         }
-        if (request.getPublicId() == null || request.getPublicId().isBlank()) {
+        String url = HtmlSanitizer.safeUrlLikeText(request.getUrl());
+        String publicId = HtmlSanitizer.safeUrlLikeText(request.getPublicId());
+        if (url == null || url.isBlank()) {
+            throw new BadRequestException("Image url is required");
+        }
+        if (publicId == null || publicId.isBlank()) {
             throw new BadRequestException("Image publicId is required");
         }
-        if (!request.getPublicId().startsWith(folder + "/")) {
+        if (!publicId.startsWith(folder + "/")) {
             throw new BadRequestException("Image publicId must belong to folder: " + folder);
         }
+        request.setUrl(url);
+        request.setPublicId(publicId);
     }
 }

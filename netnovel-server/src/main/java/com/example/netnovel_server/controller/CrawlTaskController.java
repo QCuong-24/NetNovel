@@ -8,6 +8,7 @@ import com.example.netnovel_server.entity.CrawlTaskStatus;
 import com.example.netnovel_server.service.CrawlTaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -31,7 +32,7 @@ public class CrawlTaskController {
     @PostMapping
     @Operation(summary = "Create a full novel crawl task")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    public ResponseEntity<CrawlTaskDTO> createTask(@RequestBody CrawlTaskCreateDTO request) {
+    public ResponseEntity<CrawlTaskDTO> createTask(@Valid @RequestBody CrawlTaskCreateDTO request) {
         return ResponseEntity.ok(crawlTaskService.createNovelCrawlTask(request));
     }
 

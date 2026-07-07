@@ -6,6 +6,7 @@ import com.example.netnovel_server.dto.NovelDTO;
 import com.example.netnovel_server.service.NovelMediaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class NovelMediaController {
     @Operation(summary = "Save novel cover after frontend uploads it to Cloudinary")
     public ResponseEntity<NovelDTO> updateCover(
         @PathVariable Long novelId,
-        @RequestBody ImageMetadataDTO request
+        @Valid @RequestBody ImageMetadataDTO request
     ) {
         return ResponseEntity.ok(novelMediaService.updateCover(novelId, request));
     }

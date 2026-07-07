@@ -9,6 +9,7 @@ import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.NotificationMapper;
 import com.example.netnovel_server.repository.NotificationRepository;
 import com.example.netnovel_server.repository.UserRepository;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import com.example.netnovel_server.utility.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -106,10 +107,10 @@ public class NotificationService {
     public NotificationDTO createNotification(User user, String type, String title, String message, String link) {
         Notification notification = Notification.builder()
             .user(user)
-            .type(type)
-            .title(title)
-            .message(message)
-            .link(link)
+            .type(HtmlSanitizer.plainText(type))
+            .title(HtmlSanitizer.plainText(title))
+            .message(HtmlSanitizer.plainText(message))
+            .link(HtmlSanitizer.safeUrlLikeText(link))
             .isRead(false)
             .build();
 
@@ -153,20 +154,25 @@ public class NotificationService {
         if (request == null || request.getType() == null || request.getType().isBlank()) {
             return TYPE_ADMIN;
         }
-        return request.getType().trim().toUpperCase();
+        return HtmlSanitizer.plainText(request.getType()).trim().toUpperCase();
     }
 
     private String requireText(String value, String message) {
         if (value == null || value.isBlank()) {
             throw new BadRequestException(message);
         }
-        return value.trim();
+        String sanitized = HtmlSanitizer.plainText(value);
+        if (sanitized == null || sanitized.isBlank()) {
+            throw new BadRequestException(message);
+        }
+        return sanitized;
     }
 
     private String normalizeNullableText(String value) {
         if (value == null || value.isBlank()) {
             return null;
         }
-        return value.trim();
+        String sanitized = HtmlSanitizer.safeUrlLikeText(value);
+        return sanitized == null || sanitized.isBlank() ? null : sanitized;
     }
 }

@@ -4,6 +4,9 @@ import com.example.netnovel_server.dto.GenreDTO;
 import com.example.netnovel_server.service.GenreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,13 +37,15 @@ public class GenreController {
 
     @PostMapping
     @Operation(summary = "Create a genre")
-    public ResponseEntity<GenreDTO> createGenre(@RequestBody GenreDTO request) {
+    public ResponseEntity<GenreDTO> createGenre(@Valid @RequestBody GenreDTO request) {
         return ResponseEntity.ok(genreService.createGenre(request));
     }
 
     @PostMapping("/batch")
     @Operation(summary = "Create multiple genres from a string list")
-    public ResponseEntity<List<GenreDTO>> createGenres(@RequestBody List<String> genreNames) {
+    public ResponseEntity<List<GenreDTO>> createGenres(
+        @Valid @RequestBody List<@NotBlank(message = "Genre name is required") @Size(max = 100, message = "Genre name must not exceed 100 characters") String> genreNames
+    ) {
         return ResponseEntity.ok(genreService.createGenres(genreNames));
     }
 

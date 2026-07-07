@@ -13,6 +13,7 @@ import com.example.netnovel_server.exception.DuplicateResourceException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.NovelMapper;
 import com.example.netnovel_server.repository.*;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -81,6 +82,7 @@ public class NovelService {
 
     @Transactional
     public NovelDTO createNovel(NovelCreateDTO request) {
+        sanitizeNovelRequest(request);
         if (novelRepository.existsByTitleIgnoreCase(request.getTitle())) {
             throw new DuplicateResourceException("Novel title already exists");
         }
@@ -98,6 +100,7 @@ public class NovelService {
 
     @Transactional
     public NovelDTO updateNovel(Long novelId, NovelCreateDTO request) {
+        sanitizeNovelRequest(request);
         Novel novel = findNovel(novelId);
 
         if (novelRepository.existsByTitleIgnoreCaseAndIdNot(request.getTitle(), novelId)) {
@@ -186,6 +189,25 @@ public class NovelService {
             return Status.valueOf(status.trim().toUpperCase());
         } catch (IllegalArgumentException exception) {
             throw new BadRequestException("Invalid novel status: " + status);
+        }
+    }
+
+    private void sanitizeNovelRequest(NovelCreateDTO request) {
+        request.setTitle(HtmlSanitizer.plainText(request.getTitle()));
+        request.setAuthor(HtmlSanitizer.plainText(request.getAuthor()));
+        request.setDescription(HtmlSanitizer.basicContent(request.getDescription()));
+        request.setCoverImageUrl(HtmlSanitizer.safeUrlLikeText(request.getCoverImageUrl()));
+        request.setCoverImagePublicId(HtmlSanitizer.safeUrlLikeText(request.getCoverImagePublicId()));
+        request.setStatus(HtmlSanitizer.plainText(request.getStatus()));
+        request.setAccessStatus(HtmlSanitizer.plainText(request.getAccessStatus()));
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw new BadRequestException("Novel title is required");
+        }
+        if (request.getAuthor() == null || request.getAuthor().isBlank()) {
+            throw new BadRequestException("Novel author is required");
+        }
+        if (request.getStatus() == null || request.getStatus().isBlank()) {
+            throw new BadRequestException("Novel status is required");
         }
     }
 

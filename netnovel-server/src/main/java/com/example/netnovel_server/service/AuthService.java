@@ -9,6 +9,7 @@ import com.example.netnovel_server.exception.UnauthorizedException;
 import com.example.netnovel_server.mapper.UserMapper;
 import com.example.netnovel_server.repository.RefreshTokenRepository;
 import com.example.netnovel_server.repository.UserRepository;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import com.example.netnovel_server.utility.TokenHashUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO request) {
+        sanitizeRegisterRequest(request);
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already exists");
         }
@@ -69,7 +71,8 @@ public class AuthService {
 
     @Transactional
     public AuthResponseDTO login(LoginRequestDTO request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        String email = HtmlSanitizer.plainText(request.getEmail());
+        User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
 
         if (user.getProvider() != AuthProvider.LOCAL || user.getPassword() == null) {
@@ -135,8 +138,8 @@ public class AuthService {
         }
 
         user.setProvider(AuthProvider.GOOGLE);
-        user.setProviderId(googleUser.providerId());
-        user.setProfilePictureUrl(googleUser.picture());
+        user.setProviderId(HtmlSanitizer.plainText(googleUser.providerId()));
+        user.setProfilePictureUrl(HtmlSanitizer.safeUrlLikeText(googleUser.picture()));
         User savedUser = userRepository.save(user);
         sendWelcomeNotification(savedUser);
         return savedUser;
@@ -154,11 +157,11 @@ public class AuthService {
 
     private User createGoogleUser(GoogleTokenVerifier.GoogleUserInfo googleUser) {
         User user = User.builder()
-            .username(buildGoogleUsername(googleUser))
-            .email(googleUser.email())
-            .profilePictureUrl(googleUser.picture())
+            .username(HtmlSanitizer.plainText(buildGoogleUsername(googleUser)))
+            .email(HtmlSanitizer.plainText(googleUser.email()))
+            .profilePictureUrl(HtmlSanitizer.safeUrlLikeText(googleUser.picture()))
             .provider(AuthProvider.GOOGLE)
-            .providerId(googleUser.providerId())
+            .providerId(HtmlSanitizer.plainText(googleUser.providerId()))
             .roles(Set.of(Role.USER))
             .build();
 
@@ -200,5 +203,17 @@ public class AuthService {
             .build();
 
         refreshTokenRepository.save(token);
+    }
+
+    private void sanitizeRegisterRequest(RegisterRequestDTO request) {
+        request.setUsername(HtmlSanitizer.plainText(request.getUsername()));
+        request.setEmail(HtmlSanitizer.plainText(request.getEmail()));
+        request.setProfilePictureUrl(HtmlSanitizer.safeUrlLikeText(request.getProfilePictureUrl()));
+        if (request.getUsername() == null || request.getUsername().isBlank()) {
+            throw new BadRequestException("Username is required");
+        }
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new BadRequestException("Email is required");
+        }
     }
 }

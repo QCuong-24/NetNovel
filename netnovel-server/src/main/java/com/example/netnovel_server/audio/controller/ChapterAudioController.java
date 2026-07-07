@@ -5,6 +5,7 @@ import com.example.netnovel_server.audio.dto.ChapterAudioResponseDTO;
 import com.example.netnovel_server.audio.service.ChapterAudioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,7 @@ public class ChapterAudioController {
     @Operation(summary = "Create or fetch cached audio for a chapter")
     public ResponseEntity<ChapterAudioResponseDTO> createChapterAudio(
         @PathVariable Long chapterId,
-        @RequestBody(required = false) ChapterAudioRequestDTO request
+        @Valid @RequestBody(required = false) ChapterAudioRequestDTO request
     ) {
         return ResponseEntity.ok(chapterAudioService.createOrGetChapterAudio(chapterId, request));
     }

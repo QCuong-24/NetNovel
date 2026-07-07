@@ -9,6 +9,7 @@ import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.GenreMapper;
 import com.example.netnovel_server.repository.GenreRepository;
 import com.example.netnovel_server.repository.NovelRepository;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import com.example.netnovel_server.utility.TextUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +95,7 @@ public class GenreService {
     }
 
     private String normalizeName(String name) {
-        String normalized = TextUtils.toTitleCaseWords(name);
+        String normalized = TextUtils.toTitleCaseWords(HtmlSanitizer.plainText(name));
         if (normalized == null || normalized.isBlank()) {
             throw new BadRequestException("Genre name is required");
         }

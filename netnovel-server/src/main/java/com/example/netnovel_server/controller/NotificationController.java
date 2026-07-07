@@ -5,6 +5,7 @@ import com.example.netnovel_server.dto.NotificationDTO;
 import com.example.netnovel_server.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -85,7 +86,7 @@ public class NotificationController {
     @Operation(summary = "Send a manual notification to a user")
     public ResponseEntity<NotificationDTO> sendNotificationToUser(
         @PathVariable Long userId,
-        @RequestBody NotificationCreateDTO request
+        @Valid @RequestBody NotificationCreateDTO request
     ) {
         return ResponseEntity.ok(notificationService.sendAdminNotificationToUser(userId, request));
     }

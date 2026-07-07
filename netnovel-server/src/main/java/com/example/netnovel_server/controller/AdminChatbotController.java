@@ -13,6 +13,7 @@ import com.example.netnovel_server.chatbot.service.embedding.ChatbotEmbeddingSta
 import com.example.netnovel_server.chatbot.service.ChatbotKnowledgeAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,7 +83,7 @@ public class AdminChatbotController {
 
     @PostMapping("/test-message")
     @Operation(summary = "Test a chatbot message and return matcher/response debug details")
-    public ResponseEntity<ChatbotAdminTestResponseDTO> testMessage(@RequestBody ChatbotAdminTestRequestDTO request) {
+    public ResponseEntity<ChatbotAdminTestResponseDTO> testMessage(@Valid @RequestBody ChatbotAdminTestRequestDTO request) {
         return ResponseEntity.ok(adminTestService.test(request));
     }
 

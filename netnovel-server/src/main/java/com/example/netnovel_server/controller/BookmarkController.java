@@ -5,6 +5,7 @@ import com.example.netnovel_server.dto.BookmarkDTO;
 import com.example.netnovel_server.service.BookmarkService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +74,7 @@ public class BookmarkController {
 
     @PostMapping
     @Operation(summary = "Create a bookmark for a novel or chapter")
-    public ResponseEntity<BookmarkDTO> createBookmark(@RequestBody BookmarkCreateDTO request) {
+    public ResponseEntity<BookmarkDTO> createBookmark(@Valid @RequestBody BookmarkCreateDTO request) {
         return ResponseEntity.ok(bookmarkService.createBookmark(request));
     }
 

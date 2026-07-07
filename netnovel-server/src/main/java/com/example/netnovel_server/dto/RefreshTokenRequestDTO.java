@@ -1,5 +1,6 @@
 package com.example.netnovel_server.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -9,5 +10,6 @@ import lombok.*;
 @Builder
 public class RefreshTokenRequestDTO {
 
+    @NotBlank(message = "Refresh token is required")
     private String refreshToken;
 }

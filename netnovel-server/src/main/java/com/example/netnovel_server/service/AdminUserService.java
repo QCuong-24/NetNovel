@@ -12,6 +12,7 @@ import com.example.netnovel_server.exception.ForbiddenException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.UserMapper;
 import com.example.netnovel_server.repository.UserRepository;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import com.example.netnovel_server.utility.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +48,7 @@ public class AdminUserService {
     @Transactional
     public UserDTO createUser(AdminUserCreateDTO request) {
         validateRequired(request);
+        sanitizeCreateRequest(request);
         validateUniqueEmail(request.getEmail());
         validateUniqueUsername(request.getUsername());
 
@@ -72,13 +74,13 @@ public class AdminUserService {
         User user = findUser(userId);
 
         if (request.getUsername() != null) {
-            String username = requireNotBlank(request.getUsername(), "Username is required");
+            String username = requireNotBlank(HtmlSanitizer.plainText(request.getUsername()), "Username is required");
             validateUniqueUsername(username, userId);
             user.setUsername(username);
         }
 
         if (request.getEmail() != null) {
-            String email = requireNotBlank(request.getEmail(), "Email is required");
+            String email = requireNotBlank(HtmlSanitizer.plainText(request.getEmail()), "Email is required");
             validateUniqueEmail(email, userId);
             user.setEmail(email);
         }
@@ -91,11 +93,11 @@ public class AdminUserService {
         }
 
         if (request.getProfilePictureUrl() != null) {
-            user.setProfilePictureUrl(trimToNull(request.getProfilePictureUrl()));
+            user.setProfilePictureUrl(trimToNull(HtmlSanitizer.safeUrlLikeText(request.getProfilePictureUrl())));
         }
 
         if (request.getProfilePicturePublicId() != null) {
-            user.setProfilePicturePublicId(trimToNull(request.getProfilePicturePublicId()));
+            user.setProfilePicturePublicId(trimToNull(HtmlSanitizer.safeUrlLikeText(request.getProfilePicturePublicId())));
         }
 
         if (request.getRoles() != null) {
@@ -132,6 +134,13 @@ public class AdminUserService {
         requireNotBlank(request.getPassword(), "Password is required");
     }
 
+    private void sanitizeCreateRequest(AdminUserCreateDTO request) {
+        request.setUsername(HtmlSanitizer.plainText(request.getUsername()));
+        request.setEmail(HtmlSanitizer.plainText(request.getEmail()));
+        request.setProfilePictureUrl(HtmlSanitizer.safeUrlLikeText(request.getProfilePictureUrl()));
+        request.setProfilePicturePublicId(HtmlSanitizer.safeUrlLikeText(request.getProfilePicturePublicId()));
+    }
+
     private void validateUniqueEmail(String email) {
         if (userRepository.existsByEmail(email.trim())) {
             throw new DuplicateResourceException("Email already exists");
@@ -162,7 +171,7 @@ public class AdminUserService {
         }
 
         Set<Role> roles = Arrays.stream(roleNames)
-            .map(role -> requireNotBlank(role, "Role is required"))
+            .map(role -> requireNotBlank(HtmlSanitizer.plainText(role), "Role is required"))
             .map(role -> {
                 try {
                     return Role.valueOf(role.trim().toUpperCase());

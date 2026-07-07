@@ -6,6 +6,7 @@ import com.example.netnovel_server.dto.UserDTO;
 import com.example.netnovel_server.service.AdminUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,7 @@ public class AdminUserController {
 
     @PostMapping
     @Operation(summary = "Create a local user")
-    public ResponseEntity<UserDTO> createUser(@RequestBody AdminUserCreateDTO request) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody AdminUserCreateDTO request) {
         return ResponseEntity.ok(adminUserService.createUser(request));
     }
 
@@ -44,7 +45,7 @@ public class AdminUserController {
     @Operation(summary = "Update a user and optionally replace roles")
     public ResponseEntity<UserDTO> updateUser(
         @PathVariable Long userId,
-        @RequestBody AdminUserUpdateDTO request
+        @Valid @RequestBody AdminUserUpdateDTO request
     ) {
         return ResponseEntity.ok(adminUserService.updateUser(userId, request));
     }

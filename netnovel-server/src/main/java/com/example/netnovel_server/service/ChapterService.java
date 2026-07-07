@@ -6,10 +6,12 @@ import com.example.netnovel_server.dto.ChapterDTO;
 import com.example.netnovel_server.entity.Chapter;
 import com.example.netnovel_server.entity.Novel;
 import com.example.netnovel_server.entity.NovelAccessStatus;
+import com.example.netnovel_server.exception.BadRequestException;
 import com.example.netnovel_server.exception.DuplicateResourceException;
 import com.example.netnovel_server.exception.ResourceNotFoundException;
 import com.example.netnovel_server.mapper.ChapterMapper;
 import com.example.netnovel_server.repository.*;
+import com.example.netnovel_server.utility.HtmlSanitizer;
 import com.example.netnovel_server.utility.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -86,6 +88,7 @@ public class ChapterService {
             throw new DuplicateResourceException("Chapter number already exists in this novel");
         }
 
+        sanitizeChapterRequest(request);
         Chapter chapter = chapterRepository.save(ChapterMapper.toEntity(request, novel));
         novelRepository.advanceUpdateAt(novelId, chapter.getUpdateAt());
         novelChapterInfoService.refresh(novelId);
@@ -102,6 +105,7 @@ public class ChapterService {
             throw new DuplicateResourceException("Chapter number already exists in this novel");
         }
 
+        sanitizeChapterRequest(request);
         chapter.setTitle(request.getTitle());
         chapter.setChapterNumber(request.getChapterNumber());
         chapter.setContent(request.getContent());
@@ -132,6 +136,17 @@ public class ChapterService {
     private Novel findNovel(Long novelId) {
         return novelRepository.findById(novelId)
             .orElseThrow(() -> new ResourceNotFoundException("Novel not found"));
+    }
+
+    private void sanitizeChapterRequest(ChapterCreateDTO request) {
+        request.setTitle(HtmlSanitizer.plainText(request.getTitle()));
+        request.setContent(HtmlSanitizer.basicContent(request.getContent()));
+        if (request.getTitle() == null || request.getTitle().isBlank()) {
+            throw new BadRequestException("Chapter title is required");
+        }
+        if (request.getContent() == null || request.getContent().isBlank()) {
+            throw new BadRequestException("Chapter content is required");
+        }
     }
 
     private boolean isPreviewLimitedForCurrentUser(Novel novel) {

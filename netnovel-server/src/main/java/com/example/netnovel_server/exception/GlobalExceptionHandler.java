@@ -1,6 +1,7 @@
 package com.example.netnovel_server.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.slf4j.Logger;
@@ -36,6 +38,34 @@ public class GlobalExceptionHandler {
         Map<String, String> validationErrors = new LinkedHashMap<>();
         exception.getBindingResult().getFieldErrors().forEach(error ->
             validationErrors.put(error.getField(), error.getDefaultMessage())
+        );
+
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", request, validationErrors);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleHandlerMethodValidationException(
+        HandlerMethodValidationException exception,
+        HttpServletRequest request
+    ) {
+        Map<String, String> validationErrors = new LinkedHashMap<>();
+        exception.getParameterValidationResults().forEach(result ->
+            result.getResolvableErrors().forEach(error ->
+                validationErrors.put(result.getMethodParameter().getParameterName(), error.getDefaultMessage())
+            )
+        );
+
+        return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", request, validationErrors);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(
+        ConstraintViolationException exception,
+        HttpServletRequest request
+    ) {
+        Map<String, String> validationErrors = new LinkedHashMap<>();
+        exception.getConstraintViolations().forEach(violation ->
+            validationErrors.put(violation.getPropertyPath().toString(), violation.getMessage())
         );
 
         return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", request, validationErrors);
