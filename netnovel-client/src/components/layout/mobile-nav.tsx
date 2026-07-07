@@ -1,6 +1,6 @@
 import { ChevronDown, Home, LibraryBig, Menu, Search, UserRound } from 'lucide-react';
 import { FormEvent, KeyboardEvent, useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { routes } from '@/config/routes';
+import { createAuthRedirectState } from '@/features/auth/lib/auth-redirect';
 import type { User } from '@/features/auth/types';
 import { useGenres } from '@/features/novels/hooks/use-novels';
 import { useSearchSuggestions } from '@/features/search/hooks/use-search';
@@ -36,6 +37,7 @@ type MobileNavProps = {
 
 export function MobileNav({ user }: MobileNavProps) {
   const { t } = useTranslation();
+  const location = useLocation();
   const navigate = useNavigate();
   const { data: genres = [] } = useGenres();
   const [open, setOpen] = useState(false);
@@ -314,7 +316,7 @@ export function MobileNav({ user }: MobileNavProps) {
           {!user ? (
             <div className="grid gap-3 border-t pt-4">
               <Button className="justify-start" variant="outline" asChild>
-                <Link to={routes.login}>
+                <Link state={createAuthRedirectState(location)} to={routes.login}>
                   <UserRound />
                   {t('auth.login')}
                 </Link>

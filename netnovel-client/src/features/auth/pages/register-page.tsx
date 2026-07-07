@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { routes } from '@/config/routes';
 import { AuthCard } from '../components/auth-card';
 import { GoogleAuthButton } from '../components/google-auth-button';
 import { useRegisterMutation } from '../hooks/use-auth';
+import { getAuthRedirectTarget } from '../lib/auth-redirect';
 
 const registerSchema = z.object({
   username: z.string().min(3),
@@ -20,8 +21,10 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const navigate = useNavigate();
   const registerMutation = useRegisterMutation();
+  const redirectTo = getAuthRedirectTarget(location.state, routes.home);
   const {
     formState: { errors },
     handleSubmit,
@@ -38,7 +41,7 @@ export function RegisterPage() {
   async function onSubmit(values: RegisterFormValues) {
     try {
       await registerMutation.mutateAsync(values);
-      navigate(routes.home);
+      navigate(redirectTo, { replace: true });
     } catch {
       // Error toast is handled by the mutation.
     }
@@ -46,7 +49,7 @@ export function RegisterPage() {
 
   return (
     <AuthCard title={t('auth.register')} description={t('auth.registerDescription')}>
-      <GoogleAuthButton />
+      <GoogleAuthButton redirectTo={redirectTo} />
       <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase text-muted-foreground">
         <div className="h-px flex-1 bg-border" />
         {t('auth.orEmail')}
@@ -82,7 +85,7 @@ export function RegisterPage() {
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
         {t('auth.hasAccount')}{' '}
-        <Link className="font-semibold text-primary hover:underline" to={routes.login}>
+        <Link className="font-semibold text-primary hover:underline" state={location.state} to={routes.login}>
           {t('auth.login')}
         </Link>
       </p>

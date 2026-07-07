@@ -4,6 +4,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser, useLogoutMutation } from '@/features/auth/hooks/use-auth';
+import { createAuthRedirectState } from '@/features/auth/lib/auth-redirect';
 import { NotificationDropdown } from '@/features/notifications/components/notification-dropdown';
 import { useSearchSuggestions } from '@/features/search/hooks/use-search';
 import type { SearchSuggestion } from '@/features/search/types';
@@ -353,7 +354,7 @@ export function AppHeader() {
             />
           ) : (
             <Button className="hidden md:inline-flex" variant="outline" asChild>
-              <Link to={routes.login}>{t('auth.login')}</Link>
+              <Link state={createAuthRedirectState(location)} to={routes.login}>{t('auth.login')}</Link>
             </Button>
           )}
           <MobileNav user={user} />

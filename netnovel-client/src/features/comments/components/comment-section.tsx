@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { routes } from '@/config/routes';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
+import { createAuthRedirectState } from '@/features/auth/lib/auth-redirect';
 import type { User } from '@/features/auth/types';
 import { formatDateTime } from '@/features/novels/lib/novel-format';
 import { cn } from '@/lib/utils';
@@ -365,6 +366,7 @@ function CommentForm({
   submitLabel: string;
 }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data: user } = useCurrentUser();
   const [content, setContent] = useState(initialValue);
 
@@ -385,7 +387,7 @@ function CommentForm({
   if (!user) {
     return (
       <div className="rounded-lg border border-dashed p-4 text-sm font-semibold text-muted-foreground">
-        <Link className="font-extrabold text-primary hover:underline" to={routes.login}>
+        <Link className="font-extrabold text-primary hover:underline" state={createAuthRedirectState(location)} to={routes.login}>
           {t('auth.login')}
         </Link>{' '}
         {t('comments.loginPrompt')}

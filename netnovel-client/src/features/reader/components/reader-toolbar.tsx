@@ -1,12 +1,14 @@
 import { ArrowLeft, LogIn, Pencil, Settings, Trash2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { UserMenu } from '@/components/layout/user-menu';
+import { routes } from '@/config/routes';
 import { useCurrentUser, useLogoutMutation } from '@/features/auth/hooks/use-auth';
+import { createAuthRedirectState } from '@/features/auth/lib/auth-redirect';
 import { useDeleteChapterMutation } from '@/features/chapters/hooks/use-chapters';
 import { canManageNovels } from '@/features/novels/lib/novel-permissions';
 import { ReaderSettingsPanel } from './reader-settings-panel';
@@ -27,6 +29,7 @@ export function ReaderToolbar({ backTo, editTo, chapterId, novelId, settings, on
   const deleteIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const deleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const { data: user } = useCurrentUser();
   const logoutMutation = useLogoutMutation();
@@ -154,12 +157,12 @@ export function ReaderToolbar({ backTo, editTo, chapterId, novelId, settings, on
           ) : (
             <>
               <Button asChild className="sm:hidden" size="icon" variant="outline">
-                <Link aria-label={t('auth.login')} to="/login">
+                <Link aria-label={t('auth.login')} state={createAuthRedirectState(location)} to={routes.login}>
                   <LogIn />
                 </Link>
               </Button>
               <Button asChild className="hidden sm:inline-flex" size="sm" variant="outline">
-                <Link to="/login">{t('auth.login')}</Link>
+                <Link state={createAuthRedirectState(location)} to={routes.login}>{t('auth.login')}</Link>
               </Button>
             </>
           )}

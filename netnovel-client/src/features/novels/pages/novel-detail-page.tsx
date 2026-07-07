@@ -1,13 +1,14 @@
 import { ArrowLeft, BookOpen, Bookmark, ChevronDown, Eye, Heart, Pencil, Plus, RefreshCw, RotateCcw, Trash2, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { routes } from '@/config/routes';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
+import { createAuthRedirectState } from '@/features/auth/lib/auth-redirect';
 import { ChapterListSection } from '@/features/chapters/components/chapter-list-section';
 import { useNovelChapterPage } from '@/features/chapters/hooks/use-chapters';
 import { CommentSection } from '@/features/comments/components/comment-section';
@@ -83,6 +84,7 @@ function isNovelBackRoute(route: string | null) {
 
 export function NovelDetailPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const navigate = useNavigate();
   const { novelId } = useParams();
   const [isEditing, setIsEditing] = useState(false);
@@ -257,7 +259,7 @@ export function NovelDetailPage() {
 
   function toggleMetricInteraction(metric: 'likes' | 'bookmarks' | 'follows') {
     if (!user) {
-      navigate(routes.login);
+      navigate(routes.login, { state: createAuthRedirectState(location) });
       return;
     }
 

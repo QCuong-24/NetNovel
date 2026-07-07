@@ -9,6 +9,7 @@ import { routes } from '@/config/routes';
 import { AuthCard } from '../components/auth-card';
 import { GoogleAuthButton } from '../components/google-auth-button';
 import { useLoginMutation } from '../hooks/use-auth';
+import { getAuthRedirectTarget } from '../lib/auth-redirect';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -22,7 +23,7 @@ export function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
-  const redirectTo = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? routes.home;
+  const redirectTo = getAuthRedirectTarget(location.state, routes.home);
   const {
     formState: { errors },
     handleSubmit,
@@ -74,7 +75,7 @@ export function LoginPage() {
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
         {t('auth.noAccount')}{' '}
-        <Link className="font-semibold text-primary hover:underline" to={routes.register}>
+        <Link className="font-semibold text-primary hover:underline" state={location.state} to={routes.register}>
           {t('auth.register')}
         </Link>
       </p>

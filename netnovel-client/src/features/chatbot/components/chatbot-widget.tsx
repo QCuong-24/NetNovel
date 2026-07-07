@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Bot, Loader2, MessageCircle, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { routes } from '@/config/routes';
 import { useCurrentUser } from '@/features/auth/hooks/use-auth';
+import { createAuthRedirectState } from '@/features/auth/lib/auth-redirect';
 import { sendChatbotMessage } from '../api/chatbot-api';
 import type { ChatMessage, ChatbotResponse } from '../types';
 
@@ -16,6 +17,7 @@ const initialSuggestions = ['Truyện hot', 'Truyện hoàn thành', 'Latest upd
 
 export function ChatbotWidget() {
   const { t } = useTranslation();
+  const location = useLocation();
   const navigate = useNavigate();
   const { data: user, isLoading: isLoadingUser } = useCurrentUser();
   const [open, setOpen] = useState(false);
@@ -120,7 +122,7 @@ export function ChatbotWidget() {
                       {t('chatbot.loginRequiredDescription')}
                     </p>
                   </div>
-                  <Button type="button" onClick={() => navigate(routes.login)}>
+                  <Button type="button" onClick={() => navigate(routes.login, { state: createAuthRedirectState(location) })}>
                     {t('auth.login')}
                   </Button>
                 </div>
