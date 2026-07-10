@@ -1,6 +1,7 @@
 package com.example.netnovel_crawler.adapter;
 
 import com.example.netnovel_crawler.dto.CrawlNovelRequestMessage;
+import com.example.netnovel_crawler.generic.GenericJsoupCrawlService;
 import com.example.netnovel_crawler.source.CrawlerEngine;
 import com.example.netnovel_crawler.source.CrawlerSource;
 import com.example.netnovel_crawler.wuxiaworld.WuxiaworldJsoupCrawler;
@@ -16,7 +17,8 @@ class JsoupCrawlerAdapterTest {
     // Jsoup adapter supports only named source implementations; unsupported sources fail fast.
 
     private final WuxiaworldJsoupCrawler wuxiaworldJsoupCrawler = mock(WuxiaworldJsoupCrawler.class);
-    private final JsoupCrawlerAdapter adapter = new JsoupCrawlerAdapter(wuxiaworldJsoupCrawler);
+    private final GenericJsoupCrawlService genericJsoupCrawlService = mock(GenericJsoupCrawlService.class);
+    private final JsoupCrawlerAdapter adapter = new JsoupCrawlerAdapter(wuxiaworldJsoupCrawler, genericJsoupCrawlService);
 
     @Test
     void crawlNovelDelegatesWuxiaworldSourceToWuxiaworldCrawler() {
@@ -26,6 +28,18 @@ class JsoupCrawlerAdapterTest {
         adapter.crawlNovel(source, message);
 
         verify(wuxiaworldJsoupCrawler).crawlNovel(source, message);
+        verify(genericJsoupCrawlService, never()).crawlNovel(source, message);
+    }
+
+    @Test
+    void crawlNovelDelegatesDynamicSourceToGenericJsoupCrawler() {
+        CrawlerSource source = new CrawlerSource("novellunar", "novellunar.com", CrawlerEngine.JSOUP, 10L);
+        CrawlNovelRequestMessage message = new CrawlNovelRequestMessage(1L, "https://novellunar.com/novel/demo", 2L);
+
+        adapter.crawlNovel(source, message);
+
+        verify(genericJsoupCrawlService).crawlNovel(source, message);
+        verify(wuxiaworldJsoupCrawler, never()).crawlNovel(source, message);
     }
 
     @Test

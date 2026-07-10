@@ -1,9 +1,10 @@
 package com.example.netnovel_crawler.wuxiaworld;
 
 import com.example.netnovel_crawler.dto.CrawlNovelRequestMessage;
-import com.example.netnovel_crawler.entity.*;
-import com.example.netnovel_crawler.repository.*;
-import com.example.netnovel_crawler.service.NovelChapterInfoService;
+import com.example.netnovel_crawler.entity.Chapter;
+import com.example.netnovel_crawler.entity.Novel;
+import com.example.netnovel_crawler.persistence.CrawlPersistenceService;
+import com.example.netnovel_crawler.persistence.CrawledNovelData;
 import com.example.netnovel_crawler.source.CrawlerSource;
 import com.example.netnovel_crawler.utility.TextCleaner;
 import org.jsoup.Jsoup;
@@ -17,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -29,39 +29,19 @@ public class WuxiaworldJsoupCrawler {
 
     private static final Logger log = LoggerFactory.getLogger(WuxiaworldJsoupCrawler.class);
 
-    private static final String CRAWLED_TAG = "Crawled";
     private static final Pattern NUMBER_PATTERN = Pattern.compile("(\\d+)");
-    private static final String SOURCE_MARKER_TEMPLATE = "[Crawled Source: %s]";
     private static final long CHAPTER_FETCH_DELAY_MILLIS = 200L;
     private static final int WUXIAWORLD_COVER_WIDTH = 400;
 
     private final WuxiaworldProperties properties;
-    private final NovelRepository novelRepository;
-    private final NovelSourceRepository novelSourceRepository;
-    private final ChapterRepository chapterRepository;
-    private final GenreRepository genreRepository;
-    private final TagRepository tagRepository;
-    private final CrawlChapterRecordRepository crawlChapterRecordRepository;
-    private final NovelChapterInfoService novelChapterInfoService;
+    private final CrawlPersistenceService crawlPersistenceService;
 
     public WuxiaworldJsoupCrawler(
         WuxiaworldProperties properties,
-        NovelRepository novelRepository,
-        NovelSourceRepository novelSourceRepository,
-        ChapterRepository chapterRepository,
-        GenreRepository genreRepository,
-        TagRepository tagRepository,
-        CrawlChapterRecordRepository crawlChapterRecordRepository,
-        NovelChapterInfoService novelChapterInfoService
+        CrawlPersistenceService crawlPersistenceService
     ) {
         this.properties = properties;
-        this.novelRepository = novelRepository;
-        this.novelSourceRepository = novelSourceRepository;
-        this.chapterRepository = chapterRepository;
-        this.genreRepository = genreRepository;
-        this.tagRepository = tagRepository;
-        this.crawlChapterRecordRepository = crawlChapterRecordRepository;
-        this.novelChapterInfoService = novelChapterInfoService;
+        this.crawlPersistenceService = crawlPersistenceService;
     }
 
     @Transactional
@@ -70,10 +50,7 @@ public class WuxiaworldJsoupCrawler {
         Document novelDocument = fetch(message.getUrl());
         String title = requiredText(novelDocument, properties.titleSelector(), "novel title");
         String author = requiredText(novelDocument, properties.authorSelector(), "novel author");
-        String description = appendSourceMarker(
-            requiredText(novelDocument, properties.descriptionSelector(), "novel description"),
-            message.getUrl()
-        );
+        String description = requiredText(novelDocument, properties.descriptionSelector(), "novel description");
         int totalChapters = parseTotalChapters(requiredText(
             novelDocument,
             properties.totalChaptersSelector(),
@@ -93,25 +70,23 @@ public class WuxiaworldJsoupCrawler {
             !coverImageUrl.isBlank()
         );
 
-        Novel novel = upsertNovel(
-            source,
+        Novel novel = crawlPersistenceService.upsertNovel(new CrawledNovelData(
+            source.name(),
+            source.domain(),
             message.getUrl(),
+            extractSlug(message.getUrl()),
             title,
             author,
             description,
             coverImageUrl,
             genreNames,
             tagNames
-        );
+        ));
         log.info("Novel upserted. taskId={}, novelId={}, title=\"{}\"", message.getTaskId(), novel.getId(), novel.getTitle());
         String slug = extractSlug(message.getUrl());
         for (int chapterNumber = 1; chapterNumber <= totalChapters; chapterNumber++) {
             String chapterUrl = buildChapterUrl(slug, chapterNumber);
-            if (crawlChapterRecordRepository.existsBySourceNameAndSourceChapterUrlAndStatus(
-                source.name(),
-                chapterUrl,
-                CrawlChapterStatus.SUCCESS
-            )) {
+            if (crawlPersistenceService.hasSuccessfulChapter(source.name(), chapterUrl)) {
                 log.info(
                     "Skipping already successful chapter. taskId={}, novelId={}, chapterNumber={}, url={}",
                     message.getTaskId(),
@@ -123,7 +98,7 @@ public class WuxiaworldJsoupCrawler {
             }
             crawlChapter(source, novel, chapterNumber, chapterUrl, message.getTaskId());
         }
-        novelChapterInfoService.refresh(novel.getId());
+        crawlPersistenceService.refreshChapterInfo(novel.getId());
         log.info("Finished Wuxiaworld novel crawl loop. taskId={}, novelId={}", message.getTaskId(), novel.getId());
     }
 
@@ -144,16 +119,14 @@ public class WuxiaworldJsoupCrawler {
                 throw new IllegalStateException("Chapter content is empty");
             }
 
-            Chapter chapter = chapterRepository.findByNovelIdAndChapterNumber(novel.getId(), chapterNumber)
-                .orElseGet(() -> Chapter.builder()
-                    .novel(novel)
-                    .chapterNumber(chapterNumber)
-                    .build());
-            chapter.setTitle(title);
-            chapter.setContent(content);
-            Chapter savedChapter = chapterRepository.save(chapter);
-            novelRepository.advanceUpdateAt(novel.getId(), savedChapter.getUpdateAt());
-            saveChapterRecord(source.name(), chapterUrl, novel, savedChapter, CrawlChapterStatus.SUCCESS, null);
+            Chapter savedChapter = crawlPersistenceService.saveSuccessfulChapter(
+                novel,
+                chapterNumber,
+                title,
+                content,
+                source.name(),
+                chapterUrl
+            );
             log.info(
                 "Chapter crawl success. taskId={}, novelId={}, chapterId={}, chapterNumber={}, title=\"{}\", contentLength={}",
                 taskId,
@@ -164,7 +137,7 @@ public class WuxiaworldJsoupCrawler {
                 content.length()
             );
         } catch (Exception exception) {
-            saveChapterRecord(source.name(), chapterUrl, novel, null, CrawlChapterStatus.FAILED, exception.getMessage());
+            crawlPersistenceService.saveFailedChapter(novel, source.name(), chapterUrl, exception.getMessage());
             log.warn(
                 "Chapter crawl failed. taskId={}, novelId={}, chapterNumber={}, url={}, error={}",
                 taskId,
@@ -174,58 +147,6 @@ public class WuxiaworldJsoupCrawler {
                 exception.getMessage()
             );
         }
-    }
-
-    private Novel upsertNovel(
-        CrawlerSource source,
-        String sourceNovelUrl,
-        String title,
-        String author,
-        String description,
-        String coverImageUrl,
-        Set<String> genreNames,
-        Set<String> tagNames
-    ) {
-        Optional<NovelSource> existingSource = novelSourceRepository.findBySourceNameAndSourceNovelUrl(
-            source.name(),
-            sourceNovelUrl
-        );
-        if (existingSource.isPresent()) {
-            Novel novel = existingSource.get().getNovel();
-            novel.setTitle(title);
-            novel.setAuthor(author);
-            novel.setDescription(appendSourceMarker(novel.getDescription(), sourceNovelUrl));
-            addGenres(novel, genreNames);
-            addTags(novel, tagNames);
-            novel.getTags().add(resolveCrawledTag());
-            updateCoverFromCrawl(novel, coverImageUrl, source);
-            Novel savedNovel = novelRepository.save(novel);
-            existingSource.get().setLastCrawledAt(LocalDateTime.now());
-            novelSourceRepository.save(existingSource.get());
-            log.info("Updated existing crawled novel source. source={}, sourceUrl={}, novelId={}", source.name(), sourceNovelUrl, savedNovel.getId());
-            return savedNovel;
-        }
-
-        Novel novel = Novel.builder()
-            .title(title)
-            .author(author)
-            .description(description)
-            .coverImageUrl(blankToNull(coverImageUrl))
-            .status(Status.ONGOING)
-            .build();
-        addGenres(novel, genreNames);
-        addTags(novel, tagNames);
-        novel.getTags().add(resolveCrawledTag());
-        Novel savedNovel = novelRepository.save(novel);
-        novelSourceRepository.save(NovelSource.builder()
-            .novel(savedNovel)
-            .sourceName(source.name())
-            .sourceNovelUrl(sourceNovelUrl)
-            .externalId(extractSlug(sourceNovelUrl))
-            .lastCrawledAt(LocalDateTime.now())
-            .build());
-        log.info("Created new crawled novel source. source={}, sourceUrl={}, novelId={}", source.name(), sourceNovelUrl, savedNovel.getId());
-        return savedNovel;
     }
 
     private String extractCoverImageUrl(Document document) {
@@ -250,38 +171,6 @@ public class WuxiaworldJsoupCrawler {
         );
     }
 
-    private void updateCoverFromCrawl(Novel novel, String crawledCoverImageUrl, CrawlerSource source) {
-        if (crawledCoverImageUrl.isBlank()) {
-            return;
-        }
-        if (novel.getCoverImagePublicId() != null && !novel.getCoverImagePublicId().isBlank()) {
-            log.info("Keeping managed cover image. novelId={}", novel.getId());
-            return;
-        }
-
-        String existingCoverImageUrl = novel.getCoverImageUrl();
-        if (existingCoverImageUrl == null || existingCoverImageUrl.isBlank() || isFromSourceDomain(existingCoverImageUrl, source.domain())) {
-            novel.setCoverImageUrl(crawledCoverImageUrl);
-            log.info("Updated crawled cover image. novelId={}", novel.getId());
-        } else {
-            log.info("Keeping non-source cover image. novelId={}", novel.getId());
-        }
-    }
-
-    private boolean isFromSourceDomain(String url, String sourceDomain) {
-        try {
-            String host = URI.create(url).getHost();
-            if (host == null) {
-                return false;
-            }
-            String normalizedHost = host.toLowerCase();
-            String normalizedSourceDomain = sourceDomain.toLowerCase();
-            return normalizedHost.equals(normalizedSourceDomain) || normalizedHost.endsWith("." + normalizedSourceDomain);
-        } catch (IllegalArgumentException exception) {
-            return false;
-        }
-    }
-
     private boolean isHttpUrl(String url) {
         try {
             String scheme = URI.create(url).getScheme();
@@ -289,60 +178,6 @@ public class WuxiaworldJsoupCrawler {
         } catch (IllegalArgumentException exception) {
             return false;
         }
-    }
-
-    private String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
-    }
-
-    private void addGenres(Novel novel, Set<String> genreNames) {
-        for (String genreName : genreNames) {
-            novel.getGenres().add(resolveGenre(genreName));
-        }
-    }
-
-    private void addTags(Novel novel, Set<String> tagNames) {
-        for (String tagName : tagNames) {
-            novel.getTags().add(resolveTag(tagName));
-        }
-    }
-
-    private Genre resolveGenre(String genreName) {
-        return genreRepository.findByNameIgnoreCase(genreName)
-            .orElseGet(() -> genreRepository.save(Genre.builder().name(genreName).build()));
-    }
-
-    private Tag resolveTag(String tagName) {
-        return tagRepository.findByNameIgnoreCase(tagName)
-            .orElseGet(() -> tagRepository.save(Tag.builder().name(tagName).build()));
-    }
-
-    private Tag resolveCrawledTag() {
-        return tagRepository.findByNameIgnoreCase(CRAWLED_TAG)
-            .orElseGet(() -> tagRepository.save(Tag.builder().name(CRAWLED_TAG).build()));
-    }
-
-    private void saveChapterRecord(
-        String sourceName,
-        String chapterUrl,
-        Novel novel,
-        Chapter chapter,
-        CrawlChapterStatus status,
-        String errorMessage
-    ) {
-        CrawlChapterRecord record = crawlChapterRecordRepository
-            .findBySourceNameAndSourceChapterUrl(sourceName, chapterUrl)
-            .orElseGet(() -> CrawlChapterRecord.builder()
-                .sourceName(sourceName)
-                .sourceChapterUrl(chapterUrl)
-                .novel(novel)
-                .build());
-        record.setNovel(novel);
-        record.setChapter(chapter);
-        record.setStatus(status);
-        record.setErrorMessage(errorMessage);
-        record.setCrawledAt(LocalDateTime.now());
-        crawlChapterRecordRepository.save(record);
     }
 
     private Document fetch(String url) {
@@ -439,18 +274,6 @@ public class WuxiaworldJsoupCrawler {
             throw new IllegalStateException("Could not parse total chapters from: " + value);
         }
         return Integer.parseInt(matcher.group(1));
-    }
-
-    private String appendSourceMarker(String description, String sourceUrl) {
-        String marker = SOURCE_MARKER_TEMPLATE.formatted(sourceUrl);
-        String cleanedDescription = TextCleaner.cleanContent(description);
-        if (cleanedDescription.contains(marker)) {
-            return cleanedDescription;
-        }
-        if (cleanedDescription.isBlank()) {
-            return marker;
-        }
-        return cleanedDescription + "\n\n" + marker;
     }
 
     private String extractSlug(String novelUrl) {

@@ -1,5 +1,8 @@
 package com.example.netnovel_crawler.source;
 
+import com.example.netnovel_crawler.profile.CrawlerSourceProfile;
+import com.example.netnovel_crawler.profile.SourceProfileValidationStatus;
+import com.example.netnovel_crawler.repository.CrawlerSourceProfileRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,9 +17,14 @@ import java.util.Optional;
 public class SourceRegistry {
 
     private final List<CrawlerSource> sources;
+    private final CrawlerSourceProfileRepository crawlerSourceProfileRepository;
 
-    public SourceRegistry(@Value("${app.crawler.supported-sources:}") String configuredSources) {
+    public SourceRegistry(
+        @Value("${app.crawler.supported-sources:}") String configuredSources,
+        CrawlerSourceProfileRepository crawlerSourceProfileRepository
+    ) {
         this.sources = parseSources(configuredSources);
+        this.crawlerSourceProfileRepository = crawlerSourceProfileRepository;
     }
 
     public Optional<CrawlerSource> resolve(String url) {
@@ -25,9 +33,51 @@ public class SourceRegistry {
             return Optional.empty();
         }
 
-        return sources.stream()
+        Optional<CrawlerSource> configuredSource = sources.stream()
             .filter(source -> matchesDomain(host, source.domain()))
             .findFirst();
+        if (configuredSource.isPresent()) {
+            return configuredSource;
+        }
+
+        return resolveDynamicSource(host);
+    }
+
+    private Optional<CrawlerSource> resolveDynamicSource(String host) {
+        for (String domain : domainCandidates(host)) {
+            Optional<CrawlerSourceProfile> profile = crawlerSourceProfileRepository
+                .findFirstByDomainAndEnabledTrueAndValidationStatusOrderByVersionDesc(
+                    domain,
+                    SourceProfileValidationStatus.VALID
+                );
+            if (profile.isPresent()) {
+                return profile.map(this::toCrawlerSource);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private CrawlerSource toCrawlerSource(CrawlerSourceProfile profile) {
+        return new CrawlerSource(
+            profile.getSourceName(),
+            profile.getDomain(),
+            CrawlerEngine.valueOf(profile.getEngine().name()),
+            profile.getId()
+        );
+    }
+
+    private List<String> domainCandidates(String host) {
+        List<String> candidates = new ArrayList<>();
+        String current = host;
+        while (current != null && !current.isBlank()) {
+            candidates.add(current);
+            int dotIndex = current.indexOf('.');
+            if (dotIndex < 0) {
+                break;
+            }
+            current = current.substring(dotIndex + 1);
+        }
+        return candidates;
     }
 
     private List<CrawlerSource> parseSources(String configuredSources) {

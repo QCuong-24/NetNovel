@@ -1,6 +1,7 @@
 package com.example.netnovel_crawler.adapter;
 
 import com.example.netnovel_crawler.dto.CrawlNovelRequestMessage;
+import com.example.netnovel_crawler.generic.GenericJsoupCrawlService;
 import com.example.netnovel_crawler.source.CrawlerSource;
 import com.example.netnovel_crawler.wuxiaworld.WuxiaworldJsoupCrawler;
 import org.springframework.stereotype.Component;
@@ -9,13 +10,23 @@ import org.springframework.stereotype.Component;
 public class JsoupCrawlerAdapter implements CrawlerAdapter {
 
     private final WuxiaworldJsoupCrawler wuxiaworldJsoupCrawler;
+    private final GenericJsoupCrawlService genericJsoupCrawlService;
 
-    public JsoupCrawlerAdapter(WuxiaworldJsoupCrawler wuxiaworldJsoupCrawler) {
+    public JsoupCrawlerAdapter(
+        WuxiaworldJsoupCrawler wuxiaworldJsoupCrawler,
+        GenericJsoupCrawlService genericJsoupCrawlService
+    ) {
         this.wuxiaworldJsoupCrawler = wuxiaworldJsoupCrawler;
+        this.genericJsoupCrawlService = genericJsoupCrawlService;
     }
 
     @Override
     public void crawlNovel(CrawlerSource source, CrawlNovelRequestMessage message) {
+        if (source.dynamic()) {
+            genericJsoupCrawlService.crawlNovel(source, message);
+            return;
+        }
+
         if ("wuxiaworld".equalsIgnoreCase(source.name())) {
             wuxiaworldJsoupCrawler.crawlNovel(source, message);
             return;
