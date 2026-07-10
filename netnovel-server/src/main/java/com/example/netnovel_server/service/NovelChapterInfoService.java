@@ -53,7 +53,32 @@ public class NovelChapterInfoService {
     }
 
     @Transactional
+    public void prepareForChapterDeletion(Long novelId, Long chapterId) {
+        novelChapterInfoRepository.findById(novelId).ifPresent(info -> {
+            long currentChapterCount = chapterRepository.countByNovelId(novelId);
+            info.setChapterCount(Math.toIntExact(Math.max(0, currentChapterCount - 1)));
+
+            Chapter latestChapter = info.getLatestChapter();
+            if (latestChapter != null && latestChapter.getId().equals(chapterId)) {
+                Chapter replacementChapter = chapterRepository
+                    .findTopByNovelIdAndIdNotOrderByChapterNumberDesc(novelId, chapterId)
+                    .orElse(null);
+                applyLatestChapter(info, replacementChapter);
+            }
+
+            novelChapterInfoRepository.saveAndFlush(info);
+        });
+    }
+
+    @Transactional
     public void refreshAll() {
         novelRepository.findAll().forEach(novel -> refresh(novel.getId()));
+    }
+
+    private void applyLatestChapter(NovelChapterInfo info, Chapter latestChapter) {
+        info.setLatestChapter(latestChapter);
+        info.setLatestChapterNumber(latestChapter == null ? null : latestChapter.getChapterNumber());
+        info.setLatestChapterTitle(latestChapter == null ? null : latestChapter.getTitle());
+        info.setLatestChapterUpdatedAt(latestChapter == null ? null : latestChapter.getUpdateAt());
     }
 }

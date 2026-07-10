@@ -193,7 +193,8 @@ class ChapterServiceTest {
         verify(chapterRepository).delete(chapter);
         verify(chapterRepository).flush();
         verify(novelRepository).decrementBookmarksBy(novel.getId(), 3L);
-        verify(novelChapterInfoService).refresh(novel.getId());
+        verify(novelChapterInfoService).prepareForChapterDeletion(novel.getId(), chapter.getId());
+        verify(novelChapterInfoService, never()).refresh(novel.getId());
     }
 
     private static ChapterCreateDTO request(String title, Integer chapterNumber, String content) {

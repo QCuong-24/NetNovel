@@ -22,6 +22,8 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
 
     Optional<Chapter> findTopByNovelIdOrderByChapterNumberDesc(Long novelId);
 
+    Optional<Chapter> findTopByNovelIdAndIdNotOrderByChapterNumberDesc(Long novelId, Long chapterId);
+
     long countByNovelId(Long novelId);
 
     long countByNovelIdAndChapterNumberLessThan(Long novelId, Integer chapterNumber);

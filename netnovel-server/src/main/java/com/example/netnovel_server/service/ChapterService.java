@@ -122,10 +122,10 @@ public class ChapterService {
         Novel novel = chapter.getNovel();
         Long novelId = novel.getId();
         long bookmarkCount = bookmarkRepository.countByChapterId(chapterId);
+        novelChapterInfoService.prepareForChapterDeletion(novelId, chapterId);
         chapterRepository.delete(chapter);
         chapterRepository.flush();
         novelRepository.decrementBookmarksBy(novelId, bookmarkCount);
-        novelChapterInfoService.refresh(novelId);
     }
 
     private Chapter findChapter(Long chapterId) {
