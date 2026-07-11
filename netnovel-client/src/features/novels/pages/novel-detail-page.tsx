@@ -13,7 +13,7 @@ import { ChapterListSection } from '@/features/chapters/components/chapter-list-
 import { useNovelChapterPage } from '@/features/chapters/hooks/use-chapters';
 import { CommentSection } from '@/features/comments/components/comment-section';
 import { useCreateCrawlTaskMutation } from '@/features/crawl-tasks/hooks/use-crawl-tasks';
-import { getPreviousRoute } from '@/lib/navigation/route-history';
+import { buildRoutePath, getPreviousNonReaderRoute } from '@/lib/navigation/route-history';
 import { NovelCover } from '../components/novel-cover';
 import { NovelForm } from '../components/novel-form';
 import { SimilarNovelsSection } from '../components/similar-novels-section';
@@ -52,33 +52,6 @@ function extractCrawledSourceUrl(description: string) {
     return new URL(sourceUrl).toString();
   } catch {
     return null;
-  }
-}
-
-function isNovelBackRoute(route: string | null) {
-  if (!route) {
-    return false;
-  }
-
-  try {
-    const pathname = new URL(route, window.location.origin).pathname;
-
-    if (pathname === routes.novels) {
-      return true;
-    }
-
-    if (
-      pathname === routes.novelsNewest ||
-      pathname === routes.novelsHot ||
-      pathname === routes.novelsCompleted ||
-      /^\/novels\/genres\/[^/]+$/.test(pathname)
-    ) {
-      return true;
-    }
-
-    return /^\/novels\/[^/]+$/.test(pathname) && pathname !== routes.novelNew;
-  } catch {
-    return false;
   }
 }
 
@@ -185,14 +158,10 @@ export function NovelDetailPage() {
   }
 
   function handleBack() {
-    const historyIndex = window.history.state?.idx;
-    const previousRoute = getPreviousRoute();
+    const currentRoute = buildRoutePath(location);
+    const previousNonReaderRoute = getPreviousNonReaderRoute(currentRoute);
 
-    if (typeof historyIndex === 'number' && historyIndex > 0 && isNovelBackRoute(previousRoute)) {
-      navigate(-1);
-    } else {
-      navigate(routes.novels);
-    }
+    navigate(previousNonReaderRoute ?? routes.novels);
   }
 
   if (isLoading) {

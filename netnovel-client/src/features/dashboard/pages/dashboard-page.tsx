@@ -424,7 +424,15 @@ function UserManagerPanel() {
                 total: usersPage?.totalPages ?? 0,
               })}
             </span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                disabled={(usersPage?.first ?? true) || usersQuery.isLoading}
+                type="button"
+                variant="outline"
+                onClick={() => setPage(0)}
+              >
+                {t('novelList.firstPage')}
+              </Button>
               <Button
                 disabled={(usersPage?.first ?? true) || usersQuery.isLoading}
                 type="button"
@@ -440,6 +448,14 @@ function UserManagerPanel() {
                 onClick={() => setPage((current) => current + 1)}
               >
                 {t('rankingPage.next')}
+              </Button>
+              <Button
+                disabled={(usersPage?.last ?? true) || usersQuery.isLoading}
+                type="button"
+                variant="outline"
+                onClick={() => setPage(Math.max(0, (usersPage?.totalPages ?? 1) - 1))}
+              >
+                {t('novelList.lastPage')}
               </Button>
             </div>
           </div>
