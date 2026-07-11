@@ -77,6 +77,7 @@ class ChapterServiceTest {
         assertEquals(savedChapter.getId(), response.getChapterId());
         assertEquals(novelId, response.getNovelId());
         assertEquals(request.getTitle(), response.getTitle());
+        assertEquals(novel.getTitle(), response.getNovelTitle());
         assertEquals(request.getChapterNumber(), response.getChapterNumber());
         assertEquals(request.getContent(), response.getContent());
 
@@ -132,7 +133,7 @@ class ChapterServiceTest {
 
         when(chapterRepository.findById(existingChapter.getId())).thenReturn(Optional.of(existingChapter));
         when(chapterRepository.existsByNovelIdAndChapterNumber(novel.getId(), request.getChapterNumber())).thenReturn(false);
-        when(chapterRepository.save(existingChapter)).thenReturn(savedChapter);
+        when(chapterRepository.saveAndFlush(existingChapter)).thenReturn(savedChapter);
 
         ChapterContentDTO response = chapterService.updateChapter(existingChapter.getId(), request);
 
@@ -155,12 +156,12 @@ class ChapterServiceTest {
         ChapterCreateDTO request = request("New Title", 1, "New chapter content is also long enough.");
 
         when(chapterRepository.findById(existingChapter.getId())).thenReturn(Optional.of(existingChapter));
-        when(chapterRepository.save(existingChapter)).thenReturn(existingChapter);
+        when(chapterRepository.saveAndFlush(existingChapter)).thenReturn(existingChapter);
 
         chapterService.updateChapter(existingChapter.getId(), request);
 
         verify(chapterRepository, never()).existsByNovelIdAndChapterNumber(any(), any());
-        verify(chapterRepository).save(existingChapter);
+        verify(chapterRepository).saveAndFlush(existingChapter);
     }
 
     // Update guards: chapter numbers must stay unique within a novel, and changing to a duplicate number is rejected.

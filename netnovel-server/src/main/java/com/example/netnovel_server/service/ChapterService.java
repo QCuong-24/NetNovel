@@ -98,7 +98,9 @@ public class ChapterService {
     @Transactional
     public ChapterContentDTO updateChapter(Long chapterId, ChapterCreateDTO request) {
         Chapter chapter = findChapter(chapterId);
-        Long novelId = chapter.getNovel().getId();
+        Novel novel = chapter.getNovel();
+        Long novelId = novel.getId();
+        String novelTitle = novel.getTitle();
 
         if (!chapter.getChapterNumber().equals(request.getChapterNumber())
             && chapterRepository.existsByNovelIdAndChapterNumber(novelId, request.getChapterNumber())) {
@@ -110,10 +112,10 @@ public class ChapterService {
         chapter.setChapterNumber(request.getChapterNumber());
         chapter.setContent(request.getContent());
 
-        Chapter savedChapter = chapterRepository.save(chapter);
+        Chapter savedChapter = chapterRepository.saveAndFlush(chapter);
         novelRepository.advanceUpdateAt(novelId, savedChapter.getUpdateAt());
         novelChapterInfoService.refresh(novelId);
-        return ChapterMapper.toContentDTO(savedChapter);
+        return toContentDTO(savedChapter, novelId, novelTitle);
     }
 
     @Transactional
@@ -173,6 +175,18 @@ public class ChapterService {
         int start = Math.toIntExact(Math.min(pageable.getOffset(), chapters.size()));
         int end = Math.min(start + pageable.getPageSize(), chapters.size());
         return new PageImpl<>(chapters.subList(start, end), pageable, chapters.size());
+    }
+
+    private ChapterContentDTO toContentDTO(Chapter chapter, Long novelId, String novelTitle) {
+        return ChapterContentDTO.builder()
+            .chapterId(chapter.getId())
+            .novelId(novelId)
+            .novelTitle(novelTitle)
+            .title(chapter.getTitle())
+            .chapterNumber(chapter.getChapterNumber())
+            .content(chapter.getContent() != null ? chapter.getContent().getContent() : null)
+            .updateAt(chapter.getUpdateAt())
+            .build();
     }
 
 }
